@@ -1,0 +1,9 @@
+node_modules/
+.vercel/
+public-url*.log
+preview*.png
+favicon.ico
+.env
+.env.*
+!.env.example
+

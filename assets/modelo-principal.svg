@@ -1,0 +1,31 @@
+<svg width="380" height="920" viewBox="0 0 380 920" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skin" x1="140" y1="122" x2="246" y2="847" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4D7A1"/>
+      <stop offset="1" stop-color="#C99043"/>
+    </linearGradient>
+    <linearGradient id="dress" x1="170" y1="302" x2="214" y2="640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F5F3EF"/>
+      <stop offset="1" stop-color="#D1A35A"/>
+    </linearGradient>
+    <linearGradient id="hair" x1="129" y1="75" x2="278" y2="215" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#241A12"/>
+      <stop offset="1" stop-color="#5C4327"/>
+    </linearGradient>
+    <filter id="shadow" x="56" y="40" width="263" height="836" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#000000" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <path d="M177 720C194 720 207 733 206 749L200 851C199 866 186 878 170 878C154 878 142 864 143 849L149 748C150 732 162 720 177 720Z" fill="url(#skin)"/>
+    <path d="M214 719C230 719 242 731 243 746L251 850C252 866 240 879 223 879C207 879 194 867 193 851L187 747C186 731 198 719 214 719Z" fill="url(#skin)"/>
+    <path d="M121 460C138 455 155 465 160 481L188 587C193 605 183 623 165 628C148 633 130 624 125 606L97 500C92 482 103 464 121 460Z" fill="url(#skin)"/>
+    <path d="M255 458C272 463 283 481 278 499L249 606C244 624 226 634 209 629C191 624 181 605 186 587L214 481C219 465 238 454 255 458Z" fill="url(#skin)"/>
+    <path d="M189 199C228 199 260 231 260 270V359C260 425 276 489 306 547L262 579C230 532 211 473 204 409L197 320H183L176 409C169 473 150 532 118 579L74 547C104 489 120 425 120 359V270C120 231 151 199 189 199Z" fill="url(#dress)"/>
+    <path d="M156 307C166 301 178 298 189 298C200 298 212 301 222 307L212 545H166L156 307Z" fill="#EFE2CB"/>
+    <path d="M155 176C155 113 171 78 206 78C242 78 265 115 265 171C265 227 227 272 190 272C153 272 155 239 155 176Z" fill="url(#skin)"/>
+    <path d="M150 112C163 70 195 44 232 44C279 44 305 81 305 129C305 181 276 208 246 208C235 183 218 168 193 156C176 148 161 134 150 112Z" fill="url(#hair)"/>
+    <path d="M140 101C160 88 182 85 205 92C175 120 171 167 175 201C145 191 116 165 116 130C116 117 124 107 140 101Z" fill="#3A2A1E"/>
+    <path d="M145 233C160 249 176 258 194 258C212 258 228 249 243 233V268C243 292 221 311 194 311C167 311 145 292 145 268V233Z" fill="#D39A52"/>
+  </g>
+</svg>
