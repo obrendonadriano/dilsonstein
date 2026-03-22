@@ -65,6 +65,7 @@ function setupTypingTitle() {
   const title = document.querySelector(".typing-title");
   if (!title) return;
 
+  const prefix = title.dataset.prefix || "";
   const phrases = JSON.parse(title.dataset.phrases || "[]");
   if (!phrases.length) return;
 
@@ -77,33 +78,33 @@ function setupTypingTitle() {
 
     if (isDeleting) {
       charIndex -= 1;
-      title.textContent = currentPhrase.slice(0, charIndex);
+      title.textContent = `${prefix}${currentPhrase.slice(0, charIndex)}`;
 
       if (charIndex <= 0) {
         isDeleting = false;
         phraseIndex = (phraseIndex + 1) % phrases.length;
-        window.setTimeout(tick, 180);
+        window.setTimeout(tick, 120);
         return;
       }
 
-      window.setTimeout(tick, 34);
+      window.setTimeout(tick, 42);
       return;
     }
 
     const nextPhrase = phrases[phraseIndex];
     charIndex += 1;
-    title.textContent = nextPhrase.slice(0, charIndex);
+    title.textContent = `${prefix}${nextPhrase.slice(0, charIndex)}`;
 
     if (charIndex >= nextPhrase.length) {
       isDeleting = true;
-      window.setTimeout(tick, 1500);
+      window.setTimeout(tick, 1100);
       return;
     }
 
-    window.setTimeout(tick, 58);
+    window.setTimeout(tick, 74);
   };
 
-  title.textContent = phrases[0];
+  title.textContent = `${prefix}${phrases[0]}`;
   charIndex = phrases[0].length;
   window.setTimeout(() => {
     isDeleting = true;
@@ -367,8 +368,12 @@ function configureWhatsAppLink(payload) {
   if (!whatsappLink) return;
 
   const rawPhone = APP_CONFIG.whatsapp?.number || "5511999999999";
-  const text = APP_CONFIG.whatsapp?.message
-    || `Oi, meu nome é ${payload.name}. Acabei de preencher o cadastro no site da Dilson Stein e quero finalizar minha avaliação.`;
+  const template = APP_CONFIG.whatsapp?.message
+    || "Olá, meu nome é {name}. Acabei de preencher o cadastro da Dilson Stein, tenho {age} anos e moro em {city}. Gostaria de marcar meu horário para finalizar meu atendimento.";
+  const text = template
+    .replaceAll("{name}", payload.name || "")
+    .replaceAll("{age}", payload.age || "")
+    .replaceAll("{city}", payload.city || "");
   const url = `https://wa.me/${rawPhone}?text=${encodeURIComponent(text)}`;
   whatsappLink.href = url;
 }

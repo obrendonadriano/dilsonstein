@@ -1,7 +1,7 @@
 window.APP_CONFIG = {
   whatsapp: {
     number: "5511925517859",
-    message: "Oi, acabei de preencher o cadastro da Dilson Stein e quero finalizar meu atendimento."
+    message: "Olá, meu nome é {name}. Acabei de preencher o cadastro da Dilson Stein, tenho {age} anos e moro em {city}. Gostaria de marcar meu horário para finalizar meu atendimento."
   },
   supabase: {
     url: "",
