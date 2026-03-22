@@ -191,11 +191,23 @@ async function handleSubmit(event) {
   submitButton.querySelector("span").textContent = "Enviando...";
 
   try {
-    await Promise.all([
+    const [supabaseResult, crmResult, facebookResult] = await Promise.allSettled([
       submitLeadToSupabase(payload),
       submitLeadToCRM(payload),
       trackLead(payload)
     ]);
+
+    if (supabaseResult.status === "rejected") {
+      throw supabaseResult.reason;
+    }
+
+    if (crmResult.status === "rejected") {
+      throw crmResult.reason;
+    }
+
+    if (facebookResult.status === "rejected") {
+      console.error("Falha ao registrar conversão do Facebook:", facebookResult.reason);
+    }
 
     form.reset();
     statusNode.textContent = "Cadastro enviado com sucesso.";
