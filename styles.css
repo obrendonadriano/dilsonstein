@@ -69,16 +69,15 @@ body::before {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.brand {
+.brand-logo {
   position: absolute;
   left: 4vw;
   top: 50%;
   transform: translateY(-50%);
   z-index: 2;
-  font-size: 1.8rem;
-  font-family: "Cormorant Garamond", serif;
-  letter-spacing: 0.08em;
-  color: #ffffff;
+  width: auto;
+  height: clamp(30px, 3vw, 42px);
+  object-fit: contain;
 }
 
 .brand-mark {
@@ -246,6 +245,14 @@ main {
   animation: caretBlink 0.9s steps(1) infinite;
 }
 
+.typing-prefix {
+  color: #0c1728;
+}
+
+.typing-dynamic {
+  color: #a18742;
+}
+
 .hero-text,
 .showcase-copy p,
 .lead-card-header p,
@@ -382,9 +389,31 @@ textarea {
 }
 
 .checkbox input {
-  width: 18px;
-  height: 18px;
-  margin-top: 3px;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  margin: 2px 0 0;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1.5px solid rgba(19, 32, 51, 0.28);
+  border-radius: 6px;
+  background: #ffffff;
+  display: inline-grid;
+  place-content: center;
+}
+
+.checkbox input::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  transform: scale(0);
+  transition: transform 120ms ease;
+  background: #a18742;
+}
+
+.checkbox input:checked::before {
+  transform: scale(1);
 }
 
 .primary-button {
@@ -733,7 +762,7 @@ textarea {
   }
 
   .brand {
-    font-size: 1.5rem;
+    display: none;
   }
 
   .brand-mark {
@@ -757,8 +786,17 @@ textarea {
     border-radius: 22px;
   }
 
+  .brand-logo {
+    left: 30px;
+    height: 34px;
+    max-width: 220px;
+  }
+
   .brand-mark {
-    left: var(--topbar-d-left-mobile, 27%);
+    left: auto;
+    right: 18px;
+    transform: translateY(-50%);
+    font-size: 3.6rem;
   }
 
   .site-footer {

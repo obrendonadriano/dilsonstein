@@ -65,6 +65,10 @@ function setupTypingTitle() {
   const title = document.querySelector(".typing-title");
   if (!title) return;
 
+  const dynamicNode = title.querySelector(".typing-dynamic");
+  const prefixNode = title.querySelector(".typing-prefix");
+  if (!dynamicNode || !prefixNode) return;
+
   const prefix = title.dataset.prefix || "";
   const phrases = JSON.parse(title.dataset.phrases || "[]");
   if (!phrases.length) return;
@@ -78,7 +82,8 @@ function setupTypingTitle() {
 
     if (isDeleting) {
       charIndex -= 1;
-      title.textContent = `${prefix}${currentPhrase.slice(0, charIndex)}`;
+      prefixNode.textContent = prefix;
+      dynamicNode.textContent = currentPhrase.slice(0, charIndex);
 
       if (charIndex <= 0) {
         isDeleting = false;
@@ -93,7 +98,8 @@ function setupTypingTitle() {
 
     const nextPhrase = phrases[phraseIndex];
     charIndex += 1;
-    title.textContent = `${prefix}${nextPhrase.slice(0, charIndex)}`;
+    prefixNode.textContent = prefix;
+    dynamicNode.textContent = nextPhrase.slice(0, charIndex);
 
     if (charIndex >= nextPhrase.length) {
       isDeleting = true;
@@ -104,7 +110,8 @@ function setupTypingTitle() {
     window.setTimeout(tick, 74);
   };
 
-  title.textContent = `${prefix}${phrases[0]}`;
+  prefixNode.textContent = prefix;
+  dynamicNode.textContent = phrases[0];
   charIndex = phrases[0].length;
   window.setTimeout(() => {
     isDeleting = true;
