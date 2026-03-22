@@ -15,6 +15,7 @@ setupTopbarProgress();
 setupCardGlowTouch();
 setupFormGate();
 setupTypingTitle();
+trackInitialPageView();
 
 if (form) form.addEventListener("submit", handleSubmit);
 if (phoneInput) phoneInput.addEventListener("input", maskPhone);
@@ -229,9 +230,12 @@ function buildPayload(formData) {
   const url = new URL(pageUrl);
   const fbc = url.searchParams.get("fbclid") || getCookie("_fbc") || "";
   const fbp = getCookie("_fbp") || "";
+  const { firstName, lastName } = splitName(payload.name?.trim() || "");
 
   return {
     name: payload.name?.trim(),
+    first_name: firstName,
+    last_name: lastName,
     age: payload.age || "",
     city: payload.city?.trim() || "",
     phone: payload.phone?.replace(/\D/g, ""),
@@ -312,23 +316,34 @@ async function submitLeadToCRM(payload) {
 }
 
 async function trackLead(payload) {
-  trackFacebookPixel(payload, "Lead");
-  return sendFacebookConversion(payload, "Lead");
+  const eventId = buildEventId("Lead");
+  trackFacebookPixel(payload, "Lead", eventId);
+  return sendFacebookConversion(payload, "Lead", eventId);
 }
 
-function trackFacebookPixel(payload, eventName = "Lead") {
+function trackFacebookPixel(payload, eventName = "Lead", eventId = "") {
   if (typeof window.fbq !== "function") return;
 
-  window.fbq("track", eventName, {
+  const eventPayload = {
     content_name: "Cadastro Dilson Stein",
     status: "started",
     lead_source: payload.source,
     age: payload.age,
-    city: payload.city
-  });
+    city: payload.city,
+    first_name: payload.first_name || "",
+    last_name: payload.last_name || "",
+    phone: payload.phone || ""
+  };
+
+  if (eventName === "PageView") {
+    window.fbq("track", "PageView", eventPayload, eventId ? { eventID: eventId } : undefined);
+    return;
+  }
+
+  window.fbq("track", eventName, eventPayload, eventId ? { eventID: eventId } : undefined);
 }
 
-async function sendFacebookConversion(payload, eventName = "Lead") {
+async function sendFacebookConversion(payload, eventName = "Lead", eventId = "") {
   const endpoint = APP_CONFIG.facebook?.conversionProxyUrl;
 
   if (!endpoint) {
@@ -342,11 +357,14 @@ async function sendFacebookConversion(payload, eventName = "Lead") {
     },
     body: JSON.stringify({
       event_name: eventName,
+      event_id: eventId || undefined,
       event_time: Math.floor(Date.now() / 1000),
       action_source: "website",
       event_source_url: window.location.href,
       test_event_code: APP_CONFIG.facebook?.testEventCode || "",
       user_data: {
+        fn: payload.first_name || "",
+        ln: payload.last_name || "",
         ph: payload.phone,
         ct: payload.city,
         country: "br",
@@ -376,8 +394,9 @@ async function handleWhatsAppClick(event) {
   event.preventDefault();
 
   try {
-    trackFacebookPixel(latestLeadPayload, "Contact");
-    await sendFacebookConversion(latestLeadPayload, "Contact");
+    const eventId = buildEventId("Contact");
+    trackFacebookPixel(latestLeadPayload, "Contact", eventId);
+    await sendFacebookConversion(latestLeadPayload, "Contact", eventId);
   } catch (error) {
     console.error("Falha ao registrar conversão do WhatsApp:", error);
   } finally {
@@ -402,4 +421,40 @@ function configureWhatsAppLink(payload) {
 function getCookie(name) {
   const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
   return match ? decodeURIComponent(match[2]) : "";
+}
+
+function splitName(fullName) {
+  const parts = String(fullName || "").trim().split(/\s+/).filter(Boolean);
+  const firstName = parts[0] || "";
+  const lastName = parts.length > 1 ? parts.slice(1).join(" ") : "";
+  return { firstName, lastName };
+}
+
+function buildEventId(eventName) {
+  const random = Math.random().toString(36).slice(2, 10);
+  return `dilson-${eventName.toLowerCase()}-${Date.now()}-${random}`;
+}
+
+function trackInitialPageView() {
+  const eventId = buildEventId("PageView");
+  const pagePayload = {
+    source: "facebook-landing-page",
+    first_name: "",
+    last_name: "",
+    age: "",
+    city: "",
+    phone: "",
+    user_agent: navigator.userAgent,
+    fbc: getCookie("_fbc") || "",
+    fbp: getCookie("_fbp") || ""
+  };
+
+  try {
+    trackFacebookPixel(pagePayload, "PageView", eventId);
+    sendFacebookConversion(pagePayload, "PageView", eventId).catch((error) => {
+      console.error("Falha ao registrar PageView no Facebook:", error);
+    });
+  } catch (error) {
+    console.error("Falha ao disparar PageView:", error);
+  }
 }

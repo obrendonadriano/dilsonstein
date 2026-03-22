@@ -29,6 +29,7 @@ module.exports = async (req, res) => {
       data: [
         {
           event_name: payload.event_name || "Lead",
+          event_id: payload.event_id || undefined,
           event_time: payload.event_time || Math.floor(Date.now() / 1000),
           action_source: payload.action_source || "website",
           event_source_url: payload.event_source_url || "",
@@ -79,4 +80,3 @@ function normalizeForHash(value) {
 function sha256(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
 }
-
