@@ -502,6 +502,21 @@ textarea {
   gap: 22px;
 }
 
+.feature-story {
+  max-width: 1040px;
+  color: rgba(22, 33, 50, 0.82);
+  font-size: 1.03rem;
+  line-height: 1.9;
+}
+
+.feature-story p {
+  margin: 0 0 22px;
+}
+
+.feature-story p:last-child {
+  margin-bottom: 0;
+}
+
 .feature-card,
 .showcase-copy,
 .showcase-card {
@@ -851,7 +866,6 @@ textarea {
   .hero,
   .features,
   .showcase,
-  .site-footer,
   .policy-page {
     width: min(100% - 24px, 1280px);
   }
