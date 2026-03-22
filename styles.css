@@ -588,12 +588,14 @@ textarea {
 }
 
 .site-footer {
-  padding: 0 0 36px;
+  margin-top: 28px;
+  padding: 56px 24px 36px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
-  color: rgba(22, 33, 50, 0.72);
+  gap: 18px;
+  background: #000000;
+  color: rgba(255, 255, 255, 0.92);
   font-size: 0.95rem;
   text-align: center;
 }
@@ -602,17 +604,96 @@ textarea {
   margin: 0;
 }
 
+.site-footer-inner {
+  width: min(1280px, 100%);
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.footer-brand,
+.footer-contact,
+.footer-social {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.footer-brand img {
+  width: min(180px, 52vw);
+  height: auto;
+  object-fit: contain;
+}
+
+.footer-contact {
+  gap: 10px;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.footer-contact strong,
+.footer-social strong {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.footer-social {
+  gap: 22px;
+}
+
+.footer-social-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.footer-social-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  color: #ffffff;
+  text-decoration: none;
+  transition: transform 180ms ease, color 180ms ease;
+}
+
+.footer-social-links a:hover,
+.footer-social-links a:focus-visible {
+  color: #a18742;
+  transform: translateY(-2px);
+}
+
+.footer-social-links svg {
+  width: 30px;
+  height: 30px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.footer-social-links .fill-icon {
+  fill: currentColor;
+  stroke: none;
+}
+
 .footer-links {
   display: flex;
   justify-content: center;
-  gap: 48px;
+  gap: 28px;
   width: 100%;
   max-width: 520px;
+  padding-top: 10px;
 }
 
 .footer-links a,
 .policy-card a {
-  color: var(--accent);
+  color: #ffffff;
   text-decoration: none;
 }
 
@@ -833,10 +914,16 @@ textarea {
     align-items: center;
   }
 
+  .site-footer-inner {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
   .footer-links {
     flex-direction: row;
-    gap: 32px;
+    gap: 18px;
     justify-content: center;
+    flex-wrap: wrap;
   }
 }
 
