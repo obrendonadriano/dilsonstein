@@ -389,9 +389,9 @@ textarea {
 }
 
 .checkbox input {
-  flex: 0 0 18px;
-  width: 18px;
-  height: 18px;
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
   margin: 2px 0 0;
   appearance: none;
   -webkit-appearance: none;
@@ -404,8 +404,8 @@ textarea {
 
 .checkbox input::before {
   content: "";
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 2px;
   transform: scale(0);
   transition: transform 120ms ease;
@@ -797,14 +797,6 @@ textarea {
     right: 22px;
     transform: translateY(-50%);
     font-size: 3.6rem;
-  }
-
-  .topbar-fill {
-    width: 100%;
-  }
-
-  .topbar-base {
-    display: none;
   }
 
   .site-footer {
