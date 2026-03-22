@@ -271,6 +271,13 @@ async function submitLeadToSupabase(payload) {
     return Promise.resolve({ skipped: true });
   }
 
+  const {
+    external_id,
+    first_name,
+    last_name,
+    ...supabasePayload
+  } = payload;
+
   const response = await fetch(`${supabaseUrl}/rest/v1/${table}`, {
     method: "POST",
     headers: {
@@ -279,7 +286,7 @@ async function submitLeadToSupabase(payload) {
       Authorization: `Bearer ${supabaseKey}`,
       Prefer: "return=representation"
     },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(supabasePayload)
   });
 
   if (!response.ok) {
