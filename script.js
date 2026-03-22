@@ -228,9 +228,14 @@ function buildPayload(formData) {
   const now = new Date().toISOString();
   const pageUrl = window.location.href;
   const url = new URL(pageUrl);
-  const fbc = url.searchParams.get("fbclid") || getCookie("_fbc") || "";
+  const fbclid = url.searchParams.get("fbclid") || "";
+  const fbc = buildFbcValue(fbclid);
   const fbp = getCookie("_fbp") || "";
   const { firstName, lastName } = splitName(payload.name?.trim() || "");
+  const externalId = buildExternalId({
+    name: payload.name?.trim(),
+    phone: payload.phone?.replace(/\D/g, "")
+  });
 
   return {
     name: payload.name?.trim(),
@@ -248,9 +253,10 @@ function buildPayload(formData) {
     utm_campaign: url.searchParams.get("utm_campaign") || "",
     utm_content: url.searchParams.get("utm_content") || "",
     utm_term: url.searchParams.get("utm_term") || "",
-    fbclid: url.searchParams.get("fbclid") || "",
+    fbclid,
     fbc,
     fbp,
+    external_id: externalId,
     user_agent: navigator.userAgent,
     locale: navigator.language
   };
@@ -368,6 +374,7 @@ async function sendFacebookConversion(payload, eventName = "Lead", eventId = "")
         ph: payload.phone,
         ct: payload.city,
         country: "br",
+        external_id: payload.external_id || "",
         client_user_agent: payload.user_agent,
         fbc: payload.fbc,
         fbp: payload.fbp
@@ -423,6 +430,13 @@ function getCookie(name) {
   return match ? decodeURIComponent(match[2]) : "";
 }
 
+function buildFbcValue(fbclid = "") {
+  const existingFbc = getCookie("_fbc") || "";
+  if (existingFbc) return existingFbc;
+  if (!fbclid) return "";
+  return `fb.1.${Date.now()}.${fbclid}`;
+}
+
 function splitName(fullName) {
   const parts = String(fullName || "").trim().split(/\s+/).filter(Boolean);
   const firstName = parts[0] || "";
@@ -435,6 +449,29 @@ function buildEventId(eventName) {
   return `dilson-${eventName.toLowerCase()}-${Date.now()}-${random}`;
 }
 
+function buildExternalId({ name = "", phone = "" } = {}) {
+  const normalizedPhone = String(phone || "").replace(/\D/g, "");
+  const normalizedName = String(name || "").trim().toLowerCase().replace(/\s+/g, "-");
+
+  if (normalizedPhone) {
+    return `lead-${normalizedPhone}`;
+  }
+
+  if (normalizedName) {
+    return `lead-${normalizedName}`;
+  }
+
+  try {
+    const existing = window.localStorage.getItem("dilson_external_id");
+    if (existing) return existing;
+    const generated = `visitor-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    window.localStorage.setItem("dilson_external_id", generated);
+    return generated;
+  } catch {
+    return `visitor-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+}
+
 function trackInitialPageView() {
   const eventId = buildEventId("PageView");
   const pagePayload = {
@@ -444,8 +481,9 @@ function trackInitialPageView() {
     age: "",
     city: "",
     phone: "",
+    external_id: buildExternalId(),
     user_agent: navigator.userAgent,
-    fbc: getCookie("_fbc") || "",
+    fbc: buildFbcValue(new URL(window.location.href).searchParams.get("fbclid") || ""),
     fbp: getCookie("_fbp") || ""
   };
 

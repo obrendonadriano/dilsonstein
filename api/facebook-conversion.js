@@ -24,6 +24,14 @@ module.exports = async (req, res) => {
     }
 
     const payload = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
+    const forwardedFor = req.headers["x-forwarded-for"];
+    const clientIpAddress = Array.isArray(forwardedFor)
+      ? forwardedFor[0]
+      : String(forwardedFor || "").split(",")[0].trim();
+    const userData = {
+      ...(payload.user_data || {}),
+      ...(clientIpAddress ? { client_ip_address: clientIpAddress } : {})
+    };
     const metaPayload = {
       test_event_code: payload.test_event_code || undefined,
       data: [
@@ -33,7 +41,7 @@ module.exports = async (req, res) => {
           event_time: payload.event_time || Math.floor(Date.now() / 1000),
           action_source: payload.action_source || "website",
           event_source_url: payload.event_source_url || "",
-          user_data: hashUserData(payload.user_data || {}),
+          user_data: hashUserData(userData),
           custom_data: payload.custom_data || {}
         }
       ]
@@ -56,7 +64,7 @@ module.exports = async (req, res) => {
 };
 
 function hashUserData(userData) {
-  const passthroughKeys = new Set(["client_user_agent", "fbc", "fbp"]);
+  const passthroughKeys = new Set(["client_user_agent", "client_ip_address", "fbc", "fbp", "external_id"]);
   const hashed = {};
 
   Object.entries(userData).forEach(([key, value]) => {
