@@ -577,8 +577,8 @@ textarea {
   background-image:
     linear-gradient(180deg, rgba(9, 17, 29, 0.14), rgba(9, 17, 29, 0.82)),
     linear-gradient(130deg, rgba(248, 242, 230, 0.92), rgba(134, 144, 156, 0.24)),
-    url("card2.webp"),
-    url("cap%203.png");
+    url("img/card2.webp"),
+    url("img/cap%203.png");
 }
 
 .card-casting {
@@ -587,8 +587,8 @@ textarea {
   background-image:
     linear-gradient(180deg, rgba(9, 17, 29, 0.12), rgba(9, 17, 29, 0.78)),
     linear-gradient(130deg, rgba(170, 182, 198, 0.42), rgba(19, 32, 51, 0.62)),
-    url("card1.webp"),
-    url("cap%204.png");
+    url("img/card1.webp"),
+    url("img/cap%204.png");
 }
 
 .card-backstage {
@@ -598,8 +598,8 @@ textarea {
   background-image:
     linear-gradient(180deg, rgba(9, 17, 29, 0.1), rgba(9, 17, 29, 0.86)),
     linear-gradient(130deg, rgba(13, 22, 34, 0.4), rgba(161, 135, 66, 0.16)),
-    url("card3.webp"),
-    url("cap%201.png");
+    url("img/card3.webp"),
+    url("img/cap%201.png");
 }
 
 .site-footer {
@@ -646,6 +646,13 @@ textarea {
   gap: 10px;
   font-size: 1rem;
   line-height: 1.55;
+}
+
+.footer-fivecoin {
+  width: min(140px, 48vw);
+  height: auto;
+  margin-top: 8px;
+  object-fit: contain;
 }
 
 .footer-contact strong,
