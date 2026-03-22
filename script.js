@@ -39,9 +39,9 @@ function setupTopbarProgress() {
     const firstScreen = Math.max(1, window.innerHeight * 0.92);
     const progress = Math.min(1, Math.max(0, window.scrollY / firstScreen));
     const fillWidth = 56 + (progress * 44);
-    const mobileFillWidth = 58 + (progress * 42);
+    const mobileFillWidth = 66 + (progress * 34);
     const desktopD = 47 + (progress * 49);
-    const mobileD = 60 + (progress * 30);
+    const mobileD = 56 + (progress * 32);
 
     topbar.style.setProperty("--topbar-fill-width", `${fillWidth}%`);
     topbar.style.setProperty("--topbar-d-left", `${desktopD}%`);

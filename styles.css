@@ -234,17 +234,6 @@ main {
   font-weight: 700;
 }
 
-.typing-title::after {
-  content: "";
-  display: inline-block;
-  width: 0.08em;
-  height: 0.9em;
-  margin-left: 0.08em;
-  background: currentColor;
-  vertical-align: -0.08em;
-  animation: caretBlink 0.9s steps(1) infinite;
-}
-
 .typing-title {
   min-height: 2.15em;
 }
@@ -801,7 +790,7 @@ textarea {
   }
 
   .brand-mark {
-    left: var(--topbar-d-left-mobile, 60%);
+    left: var(--topbar-d-left-mobile, 56%);
     right: auto;
     transform: translate(-50%, -50%);
     font-size: 3rem;
@@ -812,7 +801,7 @@ textarea {
   }
 
   .topbar-fill {
-    width: var(--topbar-fill-width-mobile, 58%);
+    width: var(--topbar-fill-width-mobile, 66%);
   }
 
   .typing-title {
@@ -854,15 +843,5 @@ textarea {
 @keyframes cardOrbit {
   to {
     --card-angle: 360deg;
-  }
-}
-
-@keyframes caretBlink {
-  0%, 49% {
-    opacity: 1;
-  }
-
-  50%, 100% {
-    opacity: 0;
   }
 }
