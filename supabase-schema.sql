@@ -22,8 +22,11 @@ create table if not exists public.leads (
 
 alter table public.leads enable row level security;
 
-create policy "Allow anon inserts on leads"
+grant usage on schema public to anon, authenticated;
+grant insert on table public.leads to anon, authenticated;
+
+create policy "Allow public inserts on leads"
 on public.leads
 for insert
-to anon
+to anon, authenticated
 with check (true);

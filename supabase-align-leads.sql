@@ -54,3 +54,17 @@ alter column gender drop not null,
 alter column birth_date drop not null,
 alter column email drop not null,
 alter column state drop not null;
+
+alter table public.leads enable row level security;
+
+grant usage on schema public to anon, authenticated;
+grant insert on table public.leads to anon, authenticated;
+
+drop policy if exists "Allow anon inserts on leads" on public.leads;
+drop policy if exists "Allow public inserts on leads" on public.leads;
+
+create policy "Allow public inserts on leads"
+on public.leads
+for insert
+to anon, authenticated
+with check (true);
