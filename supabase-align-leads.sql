@@ -49,11 +49,49 @@ add column if not exists user_agent text;
 alter table public.leads
 add column if not exists locale text;
 
-alter table public.leads
-alter column gender drop not null,
-alter column birth_date drop not null,
-alter column email drop not null,
-alter column state drop not null;
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'leads'
+      and column_name = 'gender'
+  ) then
+    execute 'alter table public.leads alter column gender drop not null';
+  end if;
+
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'leads'
+      and column_name = 'birth_date'
+  ) then
+    execute 'alter table public.leads alter column birth_date drop not null';
+  end if;
+
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'leads'
+      and column_name = 'email'
+  ) then
+    execute 'alter table public.leads alter column email drop not null';
+  end if;
+
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'leads'
+      and column_name = 'state'
+  ) then
+    execute 'alter table public.leads alter column state drop not null';
+  end if;
+end
+$$;
 
 alter table public.leads enable row level security;
 
