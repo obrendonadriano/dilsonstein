@@ -503,7 +503,10 @@ function applySheetStyles(worksheet, rowCount) {
     alignment: { horizontal: "left", vertical: "center" }
   });
 
-  ["A3", "B3", "D3", "E3", "A4", "B4", "D4", "E4"].forEach((address) => {
+  [
+    "A3", "B3", "C3", "D3", "E3", "F3",
+    "A4", "B4", "C4", "D4", "E4", "F4"
+  ].forEach((address) => {
     setCellStyle(address, {
       font: { bold: true, color: { rgb: text }, sz: 11 },
       fill: { fgColor: { rgb: soft } },
