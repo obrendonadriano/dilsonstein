@@ -496,6 +496,9 @@ textarea {
   margin: 0;
   padding: 72px 0;
   overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.82) 16%, rgba(255, 255, 255, 0.78) 84%, rgba(255, 255, 255, 0.9) 100%),
+    url("img-dilson/fundo-dilson.png") center/cover no-repeat;
 }
 
 .mentor-section::before {
@@ -503,9 +506,10 @@ textarea {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.92) 16%, rgba(255, 255, 255, 0.88) 84%, rgba(255, 255, 255, 0.96) 100%),
-    url("img-dilson/fundo-dilson.png") center/cover no-repeat;
-  opacity: 0.98;
+    radial-gradient(circle at 22% 22%, rgba(255, 255, 255, 0.75), transparent 32%),
+    radial-gradient(circle at 78% 30%, rgba(255, 255, 255, 0.62), transparent 28%),
+    radial-gradient(circle at 50% 82%, rgba(255, 255, 255, 0.48), transparent 22%);
+  opacity: 1;
 }
 
 .mentor-shell {
@@ -513,23 +517,39 @@ textarea {
   z-index: 1;
   width: min(1120px, calc(100% - 40px));
   margin: 0 auto;
-  grid-template-columns: minmax(0, 1.08fr) minmax(320px, 420px);
-  align-items: center;
-  gap: 42px;
+  grid-template-columns: minmax(0, 1.14fr) minmax(360px, 430px);
+  align-items: stretch;
+  gap: 48px;
 }
 
 .mentor-copy {
   display: grid;
-  gap: 26px;
+  grid-template-rows: auto 1fr;
+  gap: 34px;
+  min-height: 100%;
+}
+
+.mentor-intro,
+.mentor-details {
+  display: grid;
+}
+
+.mentor-intro {
+  gap: 22px;
+}
+
+.mentor-details {
+  align-content: space-between;
+  gap: 28px;
 }
 
 .mentor-copy h2 {
   margin: 0;
   font-family: "Manrope", sans-serif;
-  font-size: clamp(2.25rem, 4vw, 3.2rem);
-  line-height: 1.03;
+  font-size: clamp(2.45rem, 4vw, 3.55rem);
+  line-height: 0.98;
   font-weight: 800;
-  max-width: 700px;
+  max-width: 680px;
   color: #111111;
 }
 
@@ -542,36 +562,37 @@ textarea {
   align-items: center;
   justify-content: center;
   width: fit-content;
-  min-width: 320px;
+  min-width: 300px;
   max-width: 100%;
-  padding: 12px 24px;
+  padding: 11px 26px;
   border-radius: 999px;
   background: #020702;
   color: #ffffff;
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
 }
 
 .mentor-text {
   display: grid;
-  gap: 18px;
-  max-width: 680px;
+  gap: 22px;
+  max-width: 660px;
   color: rgba(17, 17, 17, 0.86);
 }
 
 .mentor-text h3 {
   margin: 0;
-  font-size: clamp(2rem, 3vw, 2.6rem);
+  font-size: clamp(2.1rem, 3vw, 2.7rem);
   font-weight: 800;
   line-height: 1.05;
   color: #111111;
 }
 
 .mentor-text p {
+  margin: 0;
   font-size: 1.02rem;
-  line-height: 1.75;
+  line-height: 1.7;
 }
 
 .mentor-marquee-label {
@@ -582,7 +603,7 @@ textarea {
 .mentor-marquee {
   position: relative;
   overflow: hidden;
-  padding: 10px 0 0;
+  padding: 6px 0 0;
 }
 
 .mentor-marquee::before,
@@ -619,13 +640,13 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 120px;
-  height: 62px;
+  min-width: 138px;
+  height: 70px;
 }
 
 .mentor-logo img {
-  max-width: 140px;
-  max-height: 58px;
+  max-width: 154px;
+  max-height: 62px;
   width: auto;
   height: auto;
   object-fit: contain;
@@ -636,12 +657,14 @@ textarea {
 .mentor-visual {
   display: flex;
   justify-content: center;
+  align-items: stretch;
 }
 
 .mentor-photo-card {
   position: relative;
-  width: min(100%, 420px);
-  min-height: 560px;
+  width: min(100%, 430px);
+  height: 100%;
+  min-height: 100%;
   border-radius: 28px;
   overflow: hidden;
   border: 1px solid rgba(17, 17, 17, 0.08);
@@ -652,8 +675,8 @@ textarea {
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 560px;
   object-fit: cover;
+  object-position: center top;
 }
 
 .mentor-stats {
@@ -1019,9 +1042,13 @@ textarea {
 
 @media (max-width: 1120px) {
   .hero,
-  .mentor-shell,
   .showcase {
     grid-template-columns: 1fr;
+  }
+
+  .mentor-shell {
+    grid-template-columns: 1fr;
+    gap: 34px;
   }
 }
 
@@ -1064,28 +1091,105 @@ textarea {
   }
 
   .mentor-section {
-    padding: 54px 0;
+    padding: 54px 0 60px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.82) 100%),
+      url("img-dilson/fundo-dilson.png") center/cover no-repeat;
+  }
+
+  .mentor-shell {
+    gap: 22px;
+  }
+
+  .mentor-copy {
+    grid-template-rows: auto auto;
+    gap: 22px;
+  }
+
+  .mentor-intro {
+    gap: 18px;
   }
 
   .mentor-copy h2 {
-    font-size: clamp(2rem, 8vw, 2.9rem);
+    max-width: none;
+    text-align: center;
+    font-size: clamp(2.6rem, 8vw, 3.8rem);
+    line-height: 1.02;
   }
 
   .mentor-pill {
-    min-width: 0;
     width: 100%;
+    min-height: 68px;
+    padding: 16px 24px;
     justify-content: center;
     text-align: center;
-    letter-spacing: 0.18em;
+    font-size: 0.9rem;
+    letter-spacing: 0.36em;
+  }
+
+  .mentor-visual {
+    order: 2;
+  }
+
+  .mentor-details {
+    order: 3;
+    gap: 26px;
   }
 
   .mentor-photo-card,
   .mentor-photo-card img {
-    min-height: 480px;
+    min-height: 0;
+    height: auto;
+  }
+
+  .mentor-photo-card {
+    width: 100%;
+    max-width: none;
+  }
+
+  .mentor-photo-card img {
+    aspect-ratio: 0.78;
+  }
+
+  .mentor-stats {
+    position: absolute;
+  }
+
+  .mentor-stat {
+    padding: 24px 18px;
+  }
+
+  .mentor-text {
+    gap: 24px;
+  }
+
+  .mentor-text h3 {
+    font-size: clamp(2.4rem, 8vw, 3.2rem);
+  }
+
+  .mentor-text p,
+  .mentor-marquee-label {
+    font-size: 1.12rem;
+    line-height: 1.7;
+  }
+
+  .mentor-marquee {
+    margin-top: 4px;
+    padding-top: 4px;
+  }
+
+  .mentor-logo {
+    min-width: 160px;
+    height: 80px;
+  }
+
+  .mentor-logo img {
+    max-width: 170px;
+    max-height: 68px;
   }
 
   .mentor-marquee-track {
-    gap: 28px;
+    gap: 34px;
   }
 
   .lead-card,
