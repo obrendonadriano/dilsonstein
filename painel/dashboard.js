@@ -4,6 +4,9 @@ const PANEL_SESSION_KEY = "dilson_admin_session";
 const logoutButton = document.querySelector("#logout-button");
 const filterCity = document.querySelector("#filter-city");
 const filterTime = document.querySelector("#filter-time");
+const filterDdd = document.querySelector("#filter-ddd");
+const filterState = document.querySelector("#filter-state");
+const filterCityStatus = document.querySelector("#filter-city-status");
 const applyFiltersButton = document.querySelector("#apply-filters");
 const clearFiltersButton = document.querySelector("#clear-filters");
 const exportCsvButton = document.querySelector("#export-csv");
@@ -127,6 +130,8 @@ async function fetchTable(tableName, fallback = [], query = {}) {
 function populateFilters() {
   populateSelect(filterCity, cities.map((item) => item.label), "Todas as cidades");
   populateSelect(filterTime, times.map((item) => item.label), "Todos os horários");
+  populateSelect(filterDdd, buildDddOptions(), "Todos os DDDs");
+  populateSelect(filterState, buildStateOptions(), "Todos os estados");
 }
 
 function populateSelect(node, options, placeholder) {
@@ -234,22 +239,31 @@ async function mutateSupabase(path, method, body) {
 function applyFilters() {
   const selectedCity = filterCity?.value || "";
   const selectedTime = filterTime?.value || "";
+  const selectedDdd = filterDdd?.value || "";
+  const selectedState = filterState?.value || "";
+  const selectedCityStatus = filterCityStatus?.value || "";
 
   filteredLeads = leads.filter((lead) => {
     const cityMatch = !selectedCity || lead.city === selectedCity;
     const timeMatch = !selectedTime || lead.time === selectedTime;
-    return cityMatch && timeMatch;
+    const dddMatch = !selectedDdd || extractDdd(lead.phone) === selectedDdd;
+    const stateMatch = !selectedState || extractStateFromCity(lead.city) === selectedState;
+    const cityStatusMatch = !selectedCityStatus || matchCityStatus(lead.city, selectedCityStatus);
+    return cityMatch && timeMatch && dddMatch && stateMatch && cityStatusMatch;
   });
 
   renderLeadsTable();
   renderSummaries();
   renderAlerts();
-  updateMetrics(selectedCity, selectedTime);
+  updateMetrics(selectedCity, selectedTime, selectedDdd, selectedState, selectedCityStatus);
 }
 
 function clearFilters() {
   if (filterCity) filterCity.value = "";
   if (filterTime) filterTime.value = "";
+  if (filterDdd) filterDdd.value = "";
+  if (filterState) filterState.value = "";
+  if (filterCityStatus) filterCityStatus.value = "";
   applyFilters();
 }
 
@@ -332,7 +346,10 @@ function renderAlerts() {
 
       return `
         <article class="alert-city">
-          <h3>${escapeHtml(city.label)}</h3>
+          <h3>
+            <span>${escapeHtml(city.label)}</span>
+            <b>${countCityRegistrations(city.label)}</b>
+          </h3>
           <div class="alert-times">
             ${timeRows}
           </div>
@@ -360,14 +377,20 @@ function renderSummaryList(container, rows, emptyText) {
     .join("");
 }
 
-function updateMetrics(selectedCity, selectedTime) {
+function updateMetrics(selectedCity, selectedTime, selectedDdd, selectedState, selectedCityStatus) {
   metricTotal.textContent = String(filteredLeads.length);
   metricCities.textContent = String(cities.length);
   metricTimes.textContent = String(times.length);
-  metricFilter.textContent = [
-    selectedCity || "Todas as cidades",
-    selectedTime || "Todos os horários"
-  ].join(" • ");
+  const activeFilters = [
+    selectedCity || "",
+    selectedTime || "",
+    selectedDdd ? `DDD ${selectedDdd}` : "",
+    selectedState || "",
+    selectedCityStatus === "active" ? "Cidades ativas" : "",
+    selectedCityStatus === "inactive" ? "Cidades inativas" : ""
+  ].filter(Boolean);
+
+  metricFilter.textContent = activeFilters.join(" • ") || "Todos";
 }
 
 function countBy(items, key) {
@@ -403,7 +426,10 @@ async function exportLeadsSpreadsheet() {
 function buildExportFilename() {
   const city = (filterCity?.value || "todas-cidades").replaceAll(/\s+/g, "-").toLowerCase();
   const time = (filterTime?.value || "todos-horarios").replaceAll(/\s+/g, "-").toLowerCase();
-  return `agendamentos-${city}-${time}.xlsx`;
+  const ddd = (filterDdd?.value || "todos-ddds").replaceAll(/\s+/g, "-").toLowerCase();
+  const state = (filterState?.value || "todos-estados").replaceAll(/\s+/g, "-").toLowerCase();
+  const cityStatus = (filterCityStatus?.value || "ativas-inativas").replaceAll(/\s+/g, "-").toLowerCase();
+  return `agendamentos-${city}-${time}-${ddd}-${state}-${cityStatus}.xlsx`;
 }
 
 function formatPhone(phone) {
@@ -434,6 +460,14 @@ function escapeHtml(value) {
 function buildWorkbookSheet(rows) {
   const selectedCity = filterCity?.value || "Todas as cidades";
   const selectedTime = filterTime?.value || "Todos os horários";
+  const selectedDdd = filterDdd?.value || "Todos os DDDs";
+  const selectedState = filterState?.value || "Todos os estados";
+  const selectedCityStatus =
+    filterCityStatus?.value === "active"
+      ? "Somente ativas"
+      : filterCityStatus?.value === "inactive"
+        ? "Somente inativas"
+        : "Ativas e inativas";
   const generatedAt = new Intl.DateTimeFormat("pt-BR", {
     dateStyle: "short",
     timeStyle: "short"
@@ -443,6 +477,8 @@ function buildWorkbookSheet(rows) {
     [],
     ["Cidade filtrada:", selectedCity, "", "Horário filtrado:", selectedTime, ""],
     ["Total de agendamentos:", String(rows.length), "", "Exportado em:", generatedAt, ""],
+    ["DDD filtrado:", selectedDdd, "", "Estado filtrado:", selectedState, ""],
+    ["Status da cidade:", selectedCityStatus, "", "", "", ""],
     [],
     ["Nome", "Idade", "Cidade", "Horário", "WhatsApp", "Cadastrado em"]
   ];
@@ -477,7 +513,10 @@ function buildWorkbookSheet(rows) {
     XLSX.utils.decode_range("B3:C3"),
     XLSX.utils.decode_range("E3:F3"),
     XLSX.utils.decode_range("B4:C4"),
-    XLSX.utils.decode_range("E4:F4")
+    XLSX.utils.decode_range("E4:F4"),
+    XLSX.utils.decode_range("B5:C5"),
+    XLSX.utils.decode_range("E5:F5"),
+    XLSX.utils.decode_range("B6:F6")
   ];
   worksheet["!sheetViews"] = [{ showGridLines: false }];
 
@@ -506,7 +545,9 @@ function applySheetStyles(worksheet, rowCount) {
 
   [
     "A3", "B3", "C3", "D3", "E3", "F3",
-    "A4", "B4", "C4", "D4", "E4", "F4"
+    "A4", "B4", "C4", "D4", "E4", "F4",
+    "A5", "B5", "C5", "D5", "E5", "F5",
+    "A6", "B6", "C6", "D6", "E6", "F6"
   ].forEach((address) => {
     setCellStyle(address, {
       font: { bold: true, color: { rgb: text }, sz: 11 },
@@ -516,7 +557,7 @@ function applySheetStyles(worksheet, rowCount) {
     });
   });
 
-  ["A6", "B6", "C6", "D6", "E6", "F6"].forEach((address) => {
+  ["A8", "B8", "C8", "D8", "E8", "F8"].forEach((address) => {
     setCellStyle(address, {
       font: { bold: true, color: { rgb: white }, sz: 11 },
       fill: { fgColor: { rgb: gold } },
@@ -525,7 +566,7 @@ function applySheetStyles(worksheet, rowCount) {
     });
   });
 
-  for (let row = 7; row < 7 + Math.max(rowCount, 1); row += 1) {
+  for (let row = 9; row < 9 + Math.max(rowCount, 1); row += 1) {
     const fillColor = row % 2 === 0 ? soft : white;
     ["A", "B", "C", "D", "E", "F"].forEach((column) => {
       setCellStyle(`${column}${row}`, {
@@ -545,4 +586,38 @@ function buildBorder(color) {
     bottom: { style: "thin", color: { rgb: color } },
     left: { style: "thin", color: { rgb: color } }
   };
+}
+
+function buildDddOptions() {
+  return [...new Set(leads.map((lead) => extractDdd(lead.phone)).filter(Boolean))]
+    .sort((a, b) => Number(a) - Number(b));
+}
+
+function buildStateOptions() {
+  return [...new Set(leads.map((lead) => extractStateFromCity(lead.city)).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, "pt-BR"));
+}
+
+function extractDdd(phone) {
+  const digits = String(phone || "").replace(/\D/g, "");
+  if (digits.length < 10) return "";
+  return digits.slice(0, 2);
+}
+
+function extractStateFromCity(city) {
+  const text = String(city || "").trim();
+  const stateMatch = text.match(/(?:^|[\s\-\/])([A-Z]{2})$/);
+  return stateMatch ? stateMatch[1] : "";
+}
+
+function matchCityStatus(cityLabel, selectedStatus) {
+  const cityRecord = cities.find((item) => item.label === cityLabel);
+  const isActive = cityRecord ? cityRecord.active !== false : false;
+  if (selectedStatus === "active") return isActive;
+  if (selectedStatus === "inactive") return !isActive;
+  return true;
+}
+
+function countCityRegistrations(cityLabel) {
+  return leads.filter((lead) => lead.city === cityLabel).length;
 }

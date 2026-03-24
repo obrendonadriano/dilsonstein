@@ -201,6 +201,10 @@ p {
   gap: 16px;
 }
 
+.filters-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .auth-form {
   margin-top: 10px;
 }
@@ -381,11 +385,25 @@ select:focus {
 }
 
 .alert-city h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin: 0;
   font-family: "Manrope", sans-serif;
   font-size: 1rem;
   font-weight: 800;
   line-height: 1.4;
+}
+
+.alert-city h3 b {
+  min-width: 38px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(161, 135, 66, 0.12);
+  color: var(--accent);
+  font-size: 0.9rem;
+  text-align: center;
 }
 
 .alert-times {
@@ -544,6 +562,10 @@ td {
 
   .button-row {
     flex-direction: column;
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
   }
 
   .auth-card,
