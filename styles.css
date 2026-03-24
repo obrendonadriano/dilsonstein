@@ -106,14 +106,15 @@ main {
 .hero,
 .features,
 .showcase,
-.site-footer {
+.site-footer,
+.signup-shell {
   width: min(1280px, calc(100% - 40px));
   margin: 0 auto;
 }
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(420px, 2.1fr) minmax(340px, 0.95fr);
+  grid-template-columns: 1fr;
   gap: 26px;
   align-items: stretch;
   padding: 44px 0 56px;
@@ -138,6 +139,12 @@ main {
     0 22px 50px rgba(15, 23, 42, 0.08),
     inset 1px 1px 0 rgba(255, 255, 255, 0.92),
     inset -1px -1px 0 rgba(203, 213, 225, 0.7);
+}
+
+.hero-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 28px;
 }
 
 .card-glow {
@@ -298,6 +305,7 @@ main {
   background: #ffffff;
   color: var(--text-dark);
   box-shadow: 0 24px 56px rgba(15, 23, 42, 0.1);
+  overflow: hidden;
 }
 
 .hero-image {
@@ -331,6 +339,99 @@ main {
 .lead-card-header h2 {
   font-size: clamp(2.8rem, 4vw, 3.8rem);
   color: #0c1728;
+}
+
+.hero-cta {
+  width: auto;
+  padding: 0 28px;
+}
+
+.signup-section {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 88px 0;
+  background:
+    radial-gradient(circle at top, rgba(161, 135, 66, 0.12), transparent 28%),
+    linear-gradient(180deg, #05070b 0%, #000000 100%);
+  overflow: hidden;
+}
+
+.signup-shell {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(340px, 540px);
+  align-items: center;
+  gap: 44px;
+}
+
+.signup-copy {
+  color: #f8fafc;
+}
+
+.signup-copy h2 {
+  margin: 18px 0 16px;
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(3rem, 5vw, 4.4rem);
+  line-height: 0.98;
+  color: #ffffff;
+}
+
+.signup-copy p {
+  margin: 0;
+  max-width: 560px;
+  color: rgba(248, 250, 252, 0.76);
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
+.signup-section .lead-card {
+  background:
+    linear-gradient(180deg, rgba(5, 7, 11, 0.24), rgba(5, 7, 11, 0.6)),
+    url("img-dilson/fundo-dilson.png") center center / cover no-repeat;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.48),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.signup-section .lead-card-header h2,
+.signup-section .lead-card-header p,
+.signup-section label,
+.signup-section .checkbox,
+.signup-section .form-status {
+  color: #f8fafc;
+}
+
+.signup-section .lead-card-header p,
+.signup-section .checkbox {
+  color: rgba(248, 250, 252, 0.82);
+}
+
+.signup-section input,
+.signup-section select,
+.signup-section textarea {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(2px);
+}
+
+.signup-section input::placeholder,
+.signup-section textarea::placeholder {
+  color: rgba(248, 250, 252, 0.72);
+}
+
+.signup-section select option {
+  color: #08101b;
+}
+
+.signup-section .checkbox input {
+  border-color: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.signup-section .form-status {
+  color: #f5d98f;
 }
 
 form {
@@ -1161,6 +1262,7 @@ textarea {
 
 @media (max-width: 1120px) {
   .hero,
+  .signup-shell,
   .showcase {
     grid-template-columns: 1fr;
   }
@@ -1177,6 +1279,7 @@ textarea {
 
 @media (max-width: 820px) {
   .hero,
+  .signup-shell,
   .showcase-grid,
   .field-grid {
     grid-template-columns: 1fr;
@@ -1203,7 +1306,8 @@ textarea {
   }
 
   .hero,
-  .mentor-shell {
+  .mentor-shell,
+  .signup-shell {
     width: min(100% - 24px, 1120px);
     gap: 28px;
   }
@@ -1419,6 +1523,19 @@ textarea {
     width: 18px;
     height: 18px;
     margin-top: 3px;
+  }
+
+  .signup-section {
+    padding: 64px 0;
+  }
+
+  .hero-actions {
+    justify-content: stretch;
+  }
+
+  .hero-cta {
+    width: 100%;
+    padding: 0 20px;
   }
 
   .checkbox input::before {
