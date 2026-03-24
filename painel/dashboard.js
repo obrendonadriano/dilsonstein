@@ -14,6 +14,7 @@ const timeList = document.querySelector("#time-list");
 const leadsTableBody = document.querySelector("#leads-table-body");
 const citySummary = document.querySelector("#city-summary");
 const timeSummary = document.querySelector("#time-summary");
+const alertSummary = document.querySelector("#alert-summary");
 
 const metricTotal = document.querySelector("#metric-total");
 const metricCities = document.querySelector("#metric-cities");
@@ -242,6 +243,7 @@ function applyFilters() {
 
   renderLeadsTable();
   renderSummaries();
+  renderAlerts();
   updateMetrics(selectedCity, selectedTime);
 }
 
@@ -283,6 +285,61 @@ function renderLeadsTable() {
 function renderSummaries() {
   renderSummaryList(citySummary, countBy(filteredLeads, "city"), "Nenhum agendamento por cidade ainda.");
   renderSummaryList(timeSummary, countBy(filteredLeads, "time"), "Nenhum agendamento por horário ainda.");
+}
+
+function renderAlerts() {
+  if (!alertSummary) return;
+
+  const activeCities = cities
+    .filter((item) => item.active !== false)
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || String(a.label).localeCompare(String(b.label)));
+  const activeTimes = times
+    .filter((item) => item.active !== false)
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || String(a.label).localeCompare(String(b.label)));
+
+  if (!activeCities.length || !activeTimes.length) {
+    alertSummary.innerHTML = `<p class="empty-state alert-empty">Cadastre cidades e horários para acompanhar a lotação.</p>`;
+    return;
+  }
+
+  alertSummary.innerHTML = activeCities
+    .map((city) => {
+      const timeRows = activeTimes
+        .map((time) => {
+          const total = leads.filter((lead) => lead.city === city.label && lead.time === time.label).length;
+          let stateClass = "";
+          let stateLabel = "normal";
+
+          if (total >= 500) {
+            stateClass = "is-danger";
+            stateLabel = "lotado";
+          } else if (total >= 400) {
+            stateClass = "is-warning";
+            stateLabel = "atenção";
+          }
+
+          return `
+            <div class="alert-time ${stateClass}">
+              <div>
+                <strong>${escapeHtml(time.label)}</strong>
+                <span>${stateLabel}</span>
+              </div>
+              <b>${total}</b>
+            </div>
+          `;
+        })
+        .join("");
+
+      return `
+        <article class="alert-city">
+          <h3>${escapeHtml(city.label)}</h3>
+          <div class="alert-times">
+            ${timeRows}
+          </div>
+        </article>
+      `;
+    })
+    .join("");
 }
 
 function renderSummaryList(container, rows, emptyText) {
@@ -384,8 +441,8 @@ function buildWorkbookSheet(rows) {
   const sheetRows = [
     ["DILSON STEIN", "", "", "", "", ""],
     [],
-    [`Cidade filtrada: ${selectedCity}`, "", "", `Horário filtrado: ${selectedTime}`, "", ""],
-    [`Total de agendamentos: ${rows.length}`, "", "", `Exportado em: ${generatedAt}`, "", ""],
+    ["Cidade filtrada:", selectedCity, "", "Horário filtrado:", selectedTime, ""],
+    ["Total de agendamentos:", String(rows.length), "", "Exportado em:", generatedAt, ""],
     [],
     ["Nome", "Idade", "Cidade", "Horário", "WhatsApp", "Cadastrado em"]
   ];
@@ -417,10 +474,10 @@ function buildWorkbookSheet(rows) {
 
   worksheet["!merges"] = [
     XLSX.utils.decode_range("A1:F1"),
-    XLSX.utils.decode_range("A3:C3"),
-    XLSX.utils.decode_range("D3:F3"),
-    XLSX.utils.decode_range("A4:C4"),
-    XLSX.utils.decode_range("D4:F4")
+    XLSX.utils.decode_range("B3:C3"),
+    XLSX.utils.decode_range("E3:F3"),
+    XLSX.utils.decode_range("B4:C4"),
+    XLSX.utils.decode_range("E4:F4")
   ];
 
   applySheetStyles(worksheet, rows.length);
@@ -446,7 +503,7 @@ function applySheetStyles(worksheet, rowCount) {
     alignment: { horizontal: "left", vertical: "center" }
   });
 
-  ["A3", "D3", "A4", "D4"].forEach((address) => {
+  ["A3", "B3", "D3", "E3", "A4", "B4", "D4", "E4"].forEach((address) => {
     setCellStyle(address, {
       font: { bold: true, color: { rgb: text }, sz: 11 },
       fill: { fgColor: { rgb: soft } },

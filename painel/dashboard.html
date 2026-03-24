@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/painel/painel.css?v=2">
+  <link rel="stylesheet" href="/painel/painel.css?v=3">
   <script src="/config.js?v=6"></script>
 </head>
 <body class="panel-page">
@@ -67,7 +67,7 @@
           <div class="button-row">
             <button type="button" class="primary-button" id="apply-filters">Aplicar filtros</button>
             <button type="button" class="ghost-button" id="clear-filters">Limpar</button>
-            <button type="button" class="ghost-button" id="export-csv">Baixar planilha CSV</button>
+            <button type="button" class="ghost-button" id="export-csv">Baixar planilha XLSX</button>
           </div>
         </article>
 
@@ -116,6 +116,16 @@
 
       <section class="panel-card">
         <div class="card-header">
+          <div>
+            <h2>Alerta</h2>
+            <p class="panel-subtitle">Acompanhe a lotação por cidade e por horário. Quando um horário passar de 500 cadastros, ele ganha destaque para você ficar de olho.</p>
+          </div>
+        </div>
+        <div id="alert-summary" class="alert-grid"></div>
+      </section>
+
+      <section class="panel-card">
+        <div class="card-header">
           <h2>Agendamentos</h2>
           <span id="results-count">0 registros</span>
         </div>
@@ -139,6 +149,6 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-  <script src="/painel/dashboard.js?v=2"></script>
+  <script src="/painel/dashboard.js?v=3"></script>
 </body>
 </html>
