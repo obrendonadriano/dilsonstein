@@ -1,6 +1,8 @@
 const APP_CONFIG = window.APP_CONFIG || {};
 
 const phoneInput = document.querySelector("#phone");
+const citySelect = document.querySelector("#city");
+const timeSelect = document.querySelector("#time");
 const form = document.querySelector("#lead-form");
 const statusNode = document.querySelector("#form-status");
 const modal = document.querySelector("#success-modal");
@@ -15,6 +17,7 @@ setupTopbarProgress();
 setupCardGlowTouch();
 setupFormGate();
 setupTypingTitle();
+setupSchedulingOptions();
 trackInitialPageView();
 
 if (form) form.addEventListener("submit", handleSubmit);
@@ -148,6 +151,7 @@ function updateSubmitState() {
   const name = document.querySelector("#name")?.value.trim();
   const age = document.querySelector("#age")?.value.trim();
   const city = document.querySelector("#city")?.value.trim();
+  const time = document.querySelector("#time")?.value.trim();
   const phoneDigits = document.querySelector("#phone")?.value.replace(/\D/g, "");
   const consent = document.querySelector("#consent")?.checked;
 
@@ -155,6 +159,7 @@ function updateSubmitState() {
     name &&
     age &&
     city &&
+    time &&
     phoneDigits &&
     phoneDigits.length >= 10 &&
     consent
@@ -243,6 +248,7 @@ function buildPayload(formData) {
     last_name: lastName,
     age: payload.age || "",
     city: payload.city?.trim() || "",
+    time: payload.time?.trim() || "",
     phone: payload.phone?.replace(/\D/g, ""),
     consent: payload.consent === "on",
     source: "facebook-landing-page",
@@ -343,6 +349,7 @@ function trackFacebookPixel(payload, eventName = "Lead", eventId = "") {
     lead_source: payload.source,
     age: payload.age,
     city: payload.city,
+    schedule_time: payload.time,
     first_name: payload.first_name || "",
     last_name: payload.last_name || "",
     phone: payload.phone || ""
@@ -389,7 +396,8 @@ async function sendFacebookConversion(payload, eventName = "Lead", eventId = "")
       custom_data: {
         source: payload.source,
         age: payload.age,
-        city: payload.city
+        city: payload.city,
+        schedule_time: payload.time
       }
     })
   });
@@ -423,11 +431,12 @@ function configureWhatsAppLink(payload) {
 
   const rawPhone = APP_CONFIG.whatsapp?.number || "5511999999999";
   const template = APP_CONFIG.whatsapp?.message
-    || "Olá, meu nome é {name}. Acabei de preencher o cadastro da Dilson Stein, tenho {age} anos e moro em {city}. Gostaria de marcar meu horário para finalizar meu atendimento.";
+    || "Olá, meu nome é {name}. Acabei de preencher meu cadastro na Dilson Stein, tenho {age} anos, selecionei {city} no horário de {time} e gostaria de finalizar meu atendimento.";
   const text = template
     .replaceAll("{name}", payload.name || "")
     .replaceAll("{age}", payload.age || "")
-    .replaceAll("{city}", payload.city || "");
+    .replaceAll("{city}", payload.city || "")
+    .replaceAll("{time}", payload.time || "");
   const url = `https://wa.me/${rawPhone}?text=${encodeURIComponent(text)}`;
   whatsappLink.href = url;
 }
@@ -487,6 +496,7 @@ function trackInitialPageView() {
     last_name: "",
     age: "",
     city: "",
+    time: "",
     phone: "",
     external_id: buildExternalId(),
     user_agent: navigator.userAgent,
@@ -502,4 +512,81 @@ function trackInitialPageView() {
   } catch (error) {
     console.error("Falha ao disparar PageView:", error);
   }
+}
+
+async function setupSchedulingOptions() {
+  const cityOptions = await loadSchedulingOptions("event_cities", APP_CONFIG.scheduling?.defaultCities || []);
+  const timeOptions = await loadSchedulingOptions("event_times", APP_CONFIG.scheduling?.defaultTimes || []);
+
+  populateSelect(
+    citySelect,
+    cityOptions,
+    "Selecione a cidade que deseja participar da seleção"
+  );
+
+  populateSelect(
+    timeSelect,
+    timeOptions,
+    "Selecione o horário para comparecer presencialmente à seleção"
+  );
+}
+
+async function loadSchedulingOptions(tableName, fallbackOptions) {
+  const supabaseUrl = APP_CONFIG.supabase?.url;
+  const supabaseKey = APP_CONFIG.supabase?.anonKey;
+
+  if (!supabaseUrl || !supabaseKey) {
+    return fallbackOptions;
+  }
+
+  try {
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/${tableName}?select=label,sort_order,active&active=eq.true&order=sort_order.asc.nullslast,label.asc`,
+      {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+
+    const items = await response.json();
+    if (!Array.isArray(items) || !items.length) {
+      return fallbackOptions;
+    }
+
+    return items.map((item) => item.label).filter(Boolean);
+  } catch (error) {
+    console.error(`Falha ao carregar ${tableName}:`, error);
+    return fallbackOptions;
+  }
+}
+
+function populateSelect(selectNode, options, placeholder) {
+  if (!selectNode) return;
+
+  const currentValue = selectNode.value;
+  const optionMarkup = [
+    `<option value="">${placeholder}</option>`,
+    ...options.map((option) => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`)
+  ];
+
+  selectNode.innerHTML = optionMarkup.join("");
+
+  if (options.includes(currentValue)) {
+    selectNode.value = currentValue;
+  }
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }

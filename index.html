@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=7">
-  <script src="config.js?v=5"></script>
+  <script src="config.js?v=6"></script>
   <script>
     !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
     n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -69,7 +69,7 @@
         <div class="lead-card-header">
           <span class="eyebrow">Faça parte</span>
           <h2>Cadastre seu perfil</h2>
-          <p>Preencha seus dados para iniciar a avaliação e avançar para a finalização via WhatsApp.</p>
+          <p>Preencha seus dados, selecione a cidade e o horário desejados para participar da seleção e avance para a finalização via WhatsApp.</p>
         </div>
 
         <form id="lead-form" novalidate>
@@ -84,8 +84,17 @@
           </div>
 
           <div class="field">
-            <label for="city">Cidade</label>
-            <input id="city" name="city" type="text" placeholder="Digite sua cidade" required>
+            <label for="city">Cidade da seleção</label>
+            <select id="city" name="city" required>
+              <option value="">Selecione a cidade que deseja participar da seleção</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="time">Horário da seleção</label>
+            <select id="time" name="time" required>
+              <option value="">Selecione o horário para comparecer presencialmente à seleção</option>
+            </select>
           </div>
 
           <div class="field">
@@ -221,7 +230,7 @@
       <span class="eyebrow">Cadastro recebido</span>
       <h2 id="success-title">Seu cadastro está quase concluído.</h2>
       <p>
-        Clique no botão abaixo para agendar um horário, finalizar sua avaliação e acelerar o atendimento com a equipe Dilson Stein no WhatsApp.
+        Clique no botão abaixo para finalizar sua avaliação e agilizar o atendimento com a equipe Dilson Stein no WhatsApp.
       </p>
       <a
         class="primary-button whatsapp-button"
@@ -245,6 +254,6 @@
     >
   </noscript>
 
-  <script src="script.js?v=6"></script>
+  <script src="script.js?v=7"></script>
 </body>
 </html>

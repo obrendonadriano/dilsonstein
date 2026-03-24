@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel | Dilson Stein</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="painel.css?v=1">
+  <script src="../config.js?v=6"></script>
+</head>
+<body>
+  <main class="panel-shell">
+    <section class="login-card" id="login-card">
+      <span class="eyebrow">Acesso restrito</span>
+      <h1>Painel Dilson Stein</h1>
+      <p>Entre com seu login para visualizar os agendamentos, editar cidades e horários e exportar as planilhas.</p>
+
+      <form id="login-form" class="login-form">
+        <label>
+          Login
+          <input type="text" id="login-username" placeholder="admin" autocomplete="username" required>
+        </label>
+        <label>
+          Senha
+          <input type="password" id="login-password" placeholder="admin" autocomplete="current-password" required>
+        </label>
+        <button type="submit" class="primary-button">Entrar no painel</button>
+        <p id="login-status" class="status-text" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="dashboard hidden" id="dashboard">
+      <header class="panel-header">
+        <div>
+          <span class="eyebrow">Gestão de agendamentos</span>
+          <h1>Painel Dilson Stein</h1>
+        </div>
+        <button type="button" class="ghost-button" id="logout-button">Sair</button>
+      </header>
+
+      <section class="metrics-grid">
+        <article class="metric-card">
+          <span>Total de agendamentos</span>
+          <strong id="metric-total">0</strong>
+        </article>
+        <article class="metric-card">
+          <span>Cidades ativas</span>
+          <strong id="metric-cities">0</strong>
+        </article>
+        <article class="metric-card">
+          <span>Horários ativos</span>
+          <strong id="metric-times">0</strong>
+        </article>
+        <article class="metric-card">
+          <span>Filtro atual</span>
+          <strong id="metric-filter">Todos</strong>
+        </article>
+      </section>
+
+      <section class="panel-grid">
+        <article class="panel-card">
+          <div class="card-header">
+            <h2>Filtros e exportação</h2>
+          </div>
+
+          <div class="filters-grid">
+            <label>
+              Cidade
+              <select id="filter-city">
+                <option value="">Todas as cidades</option>
+              </select>
+            </label>
+            <label>
+              Horário
+              <select id="filter-time">
+                <option value="">Todos os horários</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="button-row">
+            <button type="button" class="primary-button" id="apply-filters">Aplicar filtros</button>
+            <button type="button" class="ghost-button" id="clear-filters">Limpar</button>
+            <button type="button" class="ghost-button" id="export-csv">Baixar planilha CSV</button>
+          </div>
+        </article>
+
+        <article class="panel-card">
+          <div class="card-header">
+            <h2>Gerenciar cidades</h2>
+          </div>
+
+          <form id="city-form" class="inline-form">
+            <input type="text" id="new-city" placeholder="Ex.: Campinas 10/04" required>
+            <button type="submit" class="primary-button">Adicionar cidade</button>
+          </form>
+
+          <div class="tag-list" id="city-list"></div>
+        </article>
+
+        <article class="panel-card">
+          <div class="card-header">
+            <h2>Gerenciar horários</h2>
+          </div>
+
+          <form id="time-form" class="inline-form">
+            <input type="text" id="new-time" placeholder="Ex.: 15h30" required>
+            <button type="submit" class="primary-button">Adicionar horário</button>
+          </form>
+
+          <div class="tag-list" id="time-list"></div>
+        </article>
+      </section>
+
+      <section class="panel-grid analytics-grid">
+        <article class="panel-card">
+          <div class="card-header">
+            <h2>Total por cidade</h2>
+          </div>
+          <div id="city-summary" class="summary-list"></div>
+        </article>
+
+        <article class="panel-card">
+          <div class="card-header">
+            <h2>Total por horário</h2>
+          </div>
+          <div id="time-summary" class="summary-list"></div>
+        </article>
+      </section>
+
+      <section class="panel-card">
+        <div class="card-header">
+          <h2>Agendamentos</h2>
+          <span id="results-count">0 registros</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Idade</th>
+                <th>Cidade</th>
+                <th>Horário</th>
+                <th>WhatsApp</th>
+                <th>Data de cadastro</th>
+              </tr>
+            </thead>
+            <tbody id="leads-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script src="painel.js?v=1"></script>
+</body>
+</html>

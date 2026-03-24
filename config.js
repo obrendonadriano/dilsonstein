@@ -1,7 +1,7 @@
 window.APP_CONFIG = {
   whatsapp: {
     number: "5511925517859",
-    message: "Olá, meu nome é {name}. Acabei de preencher o cadastro da Dilson Stein, tenho {age} anos e moro em {city}. Gostaria de marcar meu horário para finalizar meu atendimento."
+    message: "Olá, meu nome é {name}. Acabei de preencher meu cadastro na Dilson Stein, tenho {age} anos, selecionei {city} no horário de {time} e gostaria de finalizar meu atendimento."
   },
   supabase: {
     url: "https://grohztewndqwfyvdgjar.supabase.co",
@@ -16,5 +16,19 @@ window.APP_CONFIG = {
     pixelId: "928735966754524",
     conversionProxyUrl: "/api/facebook-conversion",
     testEventCode: "TEST37800"
+  },
+  scheduling: {
+    defaultCities: [
+      "Campinas 10/04",
+      "São Paulo 12/04",
+      "Sorocaba 14/04"
+    ],
+    defaultTimes: [
+      "10h",
+      "12h",
+      "15h30",
+      "17h30",
+      "19h30"
+    ]
   }
 };

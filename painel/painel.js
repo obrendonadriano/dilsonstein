@@ -1,0 +1,428 @@
+const PANEL_CONFIG = window.APP_CONFIG || {};
+const PANEL_SESSION_KEY = "dilson_admin_session";
+const PANEL_USERNAME = "admin";
+const PANEL_PASSWORD = "admin";
+
+const loginCard = document.querySelector("#login-card");
+const dashboard = document.querySelector("#dashboard");
+const loginForm = document.querySelector("#login-form");
+const loginStatus = document.querySelector("#login-status");
+const logoutButton = document.querySelector("#logout-button");
+const filterCity = document.querySelector("#filter-city");
+const filterTime = document.querySelector("#filter-time");
+const applyFiltersButton = document.querySelector("#apply-filters");
+const clearFiltersButton = document.querySelector("#clear-filters");
+const exportCsvButton = document.querySelector("#export-csv");
+const cityForm = document.querySelector("#city-form");
+const timeForm = document.querySelector("#time-form");
+const cityList = document.querySelector("#city-list");
+const timeList = document.querySelector("#time-list");
+const leadsTableBody = document.querySelector("#leads-table-body");
+const citySummary = document.querySelector("#city-summary");
+const timeSummary = document.querySelector("#time-summary");
+
+const metricTotal = document.querySelector("#metric-total");
+const metricCities = document.querySelector("#metric-cities");
+const metricTimes = document.querySelector("#metric-times");
+const metricFilter = document.querySelector("#metric-filter");
+const resultsCount = document.querySelector("#results-count");
+
+let cities = [];
+let times = [];
+let leads = [];
+let filteredLeads = [];
+
+bootPanel();
+
+if (loginForm) loginForm.addEventListener("submit", handleLogin);
+if (logoutButton) logoutButton.addEventListener("click", logout);
+if (applyFiltersButton) applyFiltersButton.addEventListener("click", applyFilters);
+if (clearFiltersButton) clearFiltersButton.addEventListener("click", clearFilters);
+if (exportCsvButton) exportCsvButton.addEventListener("click", exportLeadsCsv);
+if (cityForm) cityForm.addEventListener("submit", handleCityCreate);
+if (timeForm) timeForm.addEventListener("submit", handleTimeCreate);
+
+function bootPanel() {
+  if (window.localStorage.getItem(PANEL_SESSION_KEY) === "true") {
+    showDashboard();
+    refreshDashboard();
+  }
+}
+
+function handleLogin(event) {
+  event.preventDefault();
+
+  const username = document.querySelector("#login-username")?.value.trim();
+  const password = document.querySelector("#login-password")?.value.trim();
+
+  if (username !== PANEL_USERNAME || password !== PANEL_PASSWORD) {
+    loginStatus.textContent = "Login ou senha inválidos.";
+    return;
+  }
+
+  window.localStorage.setItem(PANEL_SESSION_KEY, "true");
+  loginStatus.textContent = "";
+  showDashboard();
+  refreshDashboard();
+}
+
+function logout() {
+  window.localStorage.removeItem(PANEL_SESSION_KEY);
+  dashboard.classList.add("hidden");
+  loginCard.classList.remove("hidden");
+}
+
+function showDashboard() {
+  loginCard.classList.add("hidden");
+  dashboard.classList.remove("hidden");
+}
+
+async function refreshDashboard() {
+  await Promise.all([
+    loadCities(),
+    loadTimes(),
+    loadLeads()
+  ]);
+
+  renderOptionLists();
+  populateFilters();
+  applyFilters();
+}
+
+async function loadCities() {
+  cities = await fetchTable("event_cities", PANEL_CONFIG.scheduling?.defaultCities?.map((label, index) => ({
+    id: `fallback-city-${index}`,
+    label,
+    sort_order: index + 1,
+    active: true
+  })) || [], {
+    order: "sort_order.asc,label.asc"
+  });
+}
+
+async function loadTimes() {
+  times = await fetchTable("event_times", PANEL_CONFIG.scheduling?.defaultTimes?.map((label, index) => ({
+    id: `fallback-time-${index}`,
+    label,
+    sort_order: index + 1,
+    active: true
+  })) || [], {
+    order: "sort_order.asc,label.asc"
+  });
+}
+
+async function loadLeads() {
+  leads = await fetchTable("leads", [], {
+    select: "id,name,age,city,time,phone,created_at",
+    order: "created_at.desc"
+  });
+}
+
+async function fetchTable(tableName, fallback = [], query = {}) {
+  const supabaseUrl = PANEL_CONFIG.supabase?.url;
+  const supabaseKey = PANEL_CONFIG.supabase?.anonKey;
+
+  if (!supabaseUrl || !supabaseKey) {
+    return fallback;
+  }
+
+  const params = new URLSearchParams({
+    select: query.select || "*"
+  });
+
+  if (query.order) params.set("order", query.order);
+  if (query.activeOnly) params.set("active", "eq.true");
+
+  try {
+    const response = await fetch(`${supabaseUrl}/rest/v1/${tableName}?${params.toString()}`, {
+      headers: {
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error(`Falha ao carregar ${tableName}:`, error);
+    return fallback;
+  }
+}
+
+function populateFilters() {
+  populateSelect(filterCity, cities.map((item) => item.label), "Todas as cidades");
+  populateSelect(filterTime, times.map((item) => item.label), "Todos os horários");
+}
+
+function populateSelect(node, options, placeholder) {
+  if (!node) return;
+
+  const currentValue = node.value;
+  node.innerHTML = [
+    `<option value="">${placeholder}</option>`,
+    ...options.map((option) => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`)
+  ].join("");
+
+  if (options.includes(currentValue)) {
+    node.value = currentValue;
+  }
+}
+
+function renderOptionLists() {
+  renderTagList(cityList, cities, "event_cities");
+  renderTagList(timeList, times, "event_times");
+}
+
+function renderTagList(container, items, tableName) {
+  if (!container) return;
+
+  if (!items.length) {
+    container.innerHTML = `<p class="empty-state">Nenhum item cadastrado.</p>`;
+    return;
+  }
+
+  container.innerHTML = items
+    .map((item) => `
+      <div class="tag-item">
+        <span>${escapeHtml(item.label)}</span>
+        <button type="button" data-table="${tableName}" data-id="${item.id}">Excluir</button>
+      </div>
+    `)
+    .join("");
+
+  container.querySelectorAll("button").forEach((button) => {
+    button.addEventListener("click", () => deleteOption(button.dataset.table, button.dataset.id));
+  });
+}
+
+async function handleCityCreate(event) {
+  event.preventDefault();
+  const input = document.querySelector("#new-city");
+  const label = input?.value.trim();
+  if (!label) return;
+
+  await createOption("event_cities", label, cities.length + 1);
+  input.value = "";
+}
+
+async function handleTimeCreate(event) {
+  event.preventDefault();
+  const input = document.querySelector("#new-time");
+  const label = input?.value.trim();
+  if (!label) return;
+
+  await createOption("event_times", label, times.length + 1);
+  input.value = "";
+}
+
+async function createOption(tableName, label, sortOrder) {
+  await mutateSupabase(tableName, "POST", {
+    label,
+    sort_order: sortOrder,
+    active: true
+  });
+
+  await refreshDashboard();
+}
+
+async function deleteOption(tableName, id) {
+  await mutateSupabase(`${tableName}?id=eq.${id}`, "DELETE");
+  await refreshDashboard();
+}
+
+async function mutateSupabase(path, method, body) {
+  const supabaseUrl = PANEL_CONFIG.supabase?.url;
+  const supabaseKey = PANEL_CONFIG.supabase?.anonKey;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error("Supabase não configurado.");
+  }
+
+  const response = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      apikey: supabaseKey,
+      Authorization: `Bearer ${supabaseKey}`,
+      Prefer: "return=representation"
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+
+  return response.text().then((text) => text ? JSON.parse(text) : []);
+}
+
+function applyFilters() {
+  const selectedCity = filterCity?.value || "";
+  const selectedTime = filterTime?.value || "";
+
+  filteredLeads = leads.filter((lead) => {
+    const cityMatch = !selectedCity || lead.city === selectedCity;
+    const timeMatch = !selectedTime || lead.time === selectedTime;
+    return cityMatch && timeMatch;
+  });
+
+  renderLeadsTable();
+  renderSummaries();
+  updateMetrics(selectedCity, selectedTime);
+}
+
+function clearFilters() {
+  if (filterCity) filterCity.value = "";
+  if (filterTime) filterTime.value = "";
+  applyFilters();
+}
+
+function renderLeadsTable() {
+  if (!leadsTableBody) return;
+
+  if (!filteredLeads.length) {
+    leadsTableBody.innerHTML = `
+      <tr>
+        <td colspan="6" class="empty-state">Nenhum agendamento encontrado para o filtro atual.</td>
+      </tr>
+    `;
+    resultsCount.textContent = "0 registros";
+    return;
+  }
+
+  leadsTableBody.innerHTML = filteredLeads
+    .map((lead) => `
+      <tr>
+        <td>${escapeHtml(lead.name || "-")}</td>
+        <td>${escapeHtml(lead.age || "-")}</td>
+        <td>${escapeHtml(lead.city || "-")}</td>
+        <td>${escapeHtml(lead.time || "-")}</td>
+        <td>${formatPhone(lead.phone || "-")}</td>
+        <td>${formatDateTime(lead.created_at)}</td>
+      </tr>
+    `)
+    .join("");
+
+  resultsCount.textContent = `${filteredLeads.length} registros`;
+}
+
+function renderSummaries() {
+  renderSummaryList(citySummary, countBy(filteredLeads, "city"), "Nenhum agendamento por cidade ainda.");
+  renderSummaryList(timeSummary, countBy(filteredLeads, "time"), "Nenhum agendamento por horário ainda.");
+}
+
+function renderSummaryList(container, rows, emptyText) {
+  if (!container) return;
+
+  if (!rows.length) {
+    container.innerHTML = `<p class="empty-state">${emptyText}</p>`;
+    return;
+  }
+
+  container.innerHTML = rows
+    .map(([label, total]) => `
+      <div class="summary-row">
+        <span>${escapeHtml(label || "Não informado")}</span>
+        <strong>${total}</strong>
+      </div>
+    `)
+    .join("");
+}
+
+function updateMetrics(selectedCity, selectedTime) {
+  metricTotal.textContent = String(filteredLeads.length);
+  metricCities.textContent = String(cities.length);
+  metricTimes.textContent = String(times.length);
+
+  const label = [
+    selectedCity || "Todas as cidades",
+    selectedTime || "Todos os horários"
+  ].join(" • ");
+
+  metricFilter.textContent = label;
+}
+
+function countBy(items, key) {
+  const counts = new Map();
+  items.forEach((item) => {
+    const value = item[key] || "Não informado";
+    counts.set(value, (counts.get(value) || 0) + 1);
+  });
+  return [...counts.entries()].sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])));
+}
+
+function exportLeadsCsv() {
+  const rows = filteredLeads.map((lead) => ({
+    nome: lead.name || "",
+    idade: lead.age || "",
+    cidade: lead.city || "",
+    horario: lead.time || "",
+    whatsapp: lead.phone || "",
+    cadastrado_em: formatDateTime(lead.created_at)
+  }));
+
+  const csv = toCsv(rows);
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.href = url;
+  link.download = buildExportFilename();
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function toCsv(rows) {
+  if (!rows.length) {
+    return "nome,idade,cidade,horario,whatsapp,cadastrado_em\n";
+  }
+
+  const headers = Object.keys(rows[0]);
+  const lines = [
+    headers.join(","),
+    ...rows.map((row) => headers.map((header) => csvEscape(row[header])).join(","))
+  ];
+
+  return lines.join("\n");
+}
+
+function csvEscape(value) {
+  const text = String(value ?? "");
+  if (/[",\n;]/.test(text)) {
+    return `"${text.replaceAll('"', '""')}"`;
+  }
+  return text;
+}
+
+function buildExportFilename() {
+  const city = (filterCity?.value || "todas-cidades").replaceAll(/\s+/g, "-").toLowerCase();
+  const time = (filterTime?.value || "todos-horarios").replaceAll(/\s+/g, "-").toLowerCase();
+  return `agendamentos-${city}-${time}.csv`;
+}
+
+function formatPhone(phone) {
+  const digits = String(phone || "").replace(/\D/g, "");
+  if (digits.length !== 11) return escapeHtml(phone || "-");
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
+function formatDateTime(value) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short"
+  }).format(date);
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
