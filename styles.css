@@ -504,10 +504,10 @@ textarea {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.84) 0%, rgba(255, 255, 255, 0.72) 18%, rgba(255, 255, 255, 0.7) 82%, rgba(255, 255, 255, 0.84) 100%),
-    radial-gradient(circle at 22% 22%, rgba(255, 255, 255, 0.44), transparent 32%),
-    radial-gradient(circle at 78% 30%, rgba(255, 255, 255, 0.36), transparent 28%),
-    radial-gradient(circle at 50% 82%, rgba(255, 255, 255, 0.28), transparent 22%);
+    linear-gradient(90deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.48) 18%, rgba(255, 255, 255, 0.44) 82%, rgba(255, 255, 255, 0.62) 100%),
+    radial-gradient(circle at 22% 22%, rgba(255, 255, 255, 0.18), transparent 32%),
+    radial-gradient(circle at 78% 30%, rgba(255, 255, 255, 0.14), transparent 28%),
+    radial-gradient(circle at 50% 82%, rgba(255, 255, 255, 0.12), transparent 22%);
   opacity: 1;
 }
 
@@ -517,15 +517,11 @@ textarea {
   width: min(1120px, calc(100% - 40px));
   margin: 0 auto;
   grid-template-columns: minmax(0, 1.14fr) minmax(360px, 430px);
+  grid-template-areas:
+    "intro visual"
+    "details visual";
   align-items: stretch;
   gap: 48px;
-}
-
-.mentor-copy {
-  display: grid;
-  grid-template-rows: auto 1fr;
-  gap: 34px;
-  min-height: 100%;
 }
 
 .mentor-intro,
@@ -534,15 +530,17 @@ textarea {
 }
 
 .mentor-intro {
+  grid-area: intro;
   gap: 22px;
 }
 
 .mentor-details {
+  grid-area: details;
   align-content: space-between;
   gap: 28px;
 }
 
-.mentor-copy h2 {
+.mentor-intro h2 {
   margin: 0;
   font-family: "Manrope", sans-serif;
   font-size: clamp(2.45rem, 4vw, 3.55rem);
@@ -552,7 +550,7 @@ textarea {
   color: #111111;
 }
 
-.mentor-copy h2 span {
+.mentor-intro h2 span {
   color: var(--accent);
 }
 
@@ -654,6 +652,7 @@ textarea {
 }
 
 .mentor-visual {
+  grid-area: visual;
   display: flex;
   justify-content: center;
   align-items: stretch;
@@ -1048,6 +1047,10 @@ textarea {
 
   .mentor-shell {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "intro"
+      "visual"
+      "details";
     gap: 34px;
   }
 }
@@ -1099,16 +1102,11 @@ textarea {
     gap: 22px;
   }
 
-  .mentor-copy {
-    grid-template-rows: auto auto;
-    gap: 22px;
-  }
-
   .mentor-intro {
     gap: 18px;
   }
 
-  .mentor-copy h2 {
+  .mentor-intro h2 {
     max-width: none;
     text-align: center;
     font-size: clamp(2.6rem, 8vw, 3.8rem);
@@ -1125,12 +1123,7 @@ textarea {
     letter-spacing: 0.36em;
   }
 
-  .mentor-visual {
-    order: 2;
-  }
-
   .mentor-details {
-    order: 3;
     gap: 26px;
   }
 
