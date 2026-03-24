@@ -323,6 +323,11 @@ function countBy(items, key) {
 }
 
 async function exportLeadsSpreadsheet() {
+  if (typeof XLSX === "undefined") {
+    alert("A biblioteca de exportação ainda não carregou. Tente novamente em alguns segundos.");
+    return;
+  }
+
   const rows = filteredLeads.map((lead) => ({
     nome: lead.name || "",
     idade: lead.age || "",
@@ -332,20 +337,16 @@ async function exportLeadsSpreadsheet() {
     cadastrado_em: formatDateTime(lead.created_at)
   }));
 
-  const html = buildExcelHtml(rows);
-  const blob = new Blob(["\uFEFF", html], { type: "application/vnd.ms-excel;charset=utf-8;" });
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-  link.href = url;
-  link.download = buildExportFilename();
-  link.click();
-  URL.revokeObjectURL(url);
+  const workbook = XLSX.utils.book_new();
+  const worksheet = buildWorkbookSheet(rows);
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Agendamentos");
+  XLSX.writeFile(workbook, buildExportFilename(), { compression: true });
 }
 
 function buildExportFilename() {
   const city = (filterCity?.value || "todas-cidades").replaceAll(/\s+/g, "-").toLowerCase();
   const time = (filterTime?.value || "todos-horarios").replaceAll(/\s+/g, "-").toLowerCase();
-  return `agendamentos-${city}-${time}.xls`;
+  return `agendamentos-${city}-${time}.xlsx`;
 }
 
 function formatPhone(phone) {
@@ -373,96 +374,114 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
-function buildExcelHtml(rows) {
+function buildWorkbookSheet(rows) {
   const selectedCity = filterCity?.value || "Todas as cidades";
   const selectedTime = filterTime?.value || "Todos os horários";
   const generatedAt = new Intl.DateTimeFormat("pt-BR", {
     dateStyle: "short",
     timeStyle: "short"
   }).format(new Date());
+  const sheetRows = [
+    ["DILSON STEIN", "", "", "", "", ""],
+    [],
+    ["Cidade filtrada:", selectedCity, "", "Horário filtrado:", selectedTime, ""],
+    ["Total de agendamentos:", String(rows.length), "", "Exportado em:", generatedAt, ""],
+    [],
+    ["Nome", "Idade", "Cidade", "Horário", "WhatsApp", "Cadastrado em"]
+  ];
 
-  const headerRow = `
-    <tr>
-      <th>Nome</th>
-      <th>Idade</th>
-      <th>Cidade</th>
-      <th>Horário</th>
-      <th>WhatsApp</th>
-      <th>Cadastrado em</th>
-    </tr>
-  `;
+  if (rows.length) {
+    rows.forEach((row) => {
+      sheetRows.push([
+        row.nome,
+        row.idade,
+        row.cidade,
+        row.horario,
+        row.whatsapp,
+        row.cadastrado_em
+      ]);
+    });
+  } else {
+    sheetRows.push(["Nenhum agendamento encontrado para os filtros aplicados.", "", "", "", "", ""]);
+  }
 
-  const bodyRows = rows.length
-    ? rows.map((row) => `
-        <tr>
-          <td>${escapeHtml(row.nome)}</td>
-          <td>${escapeHtml(row.idade)}</td>
-          <td>${escapeHtml(row.cidade)}</td>
-          <td>${escapeHtml(row.horario)}</td>
-          <td>${escapeHtml(row.whatsapp)}</td>
-          <td>${escapeHtml(row.cadastrado_em)}</td>
-        </tr>
-      `).join("")
-    : `<tr><td colspan="6">Nenhum agendamento encontrado para os filtros aplicados.</td></tr>`;
+  const worksheet = XLSX.utils.aoa_to_sheet(sheetRows);
+  worksheet["!cols"] = [
+    { wch: 28 },
+    { wch: 10 },
+    { wch: 24 },
+    { wch: 16 },
+    { wch: 22 },
+    { wch: 22 }
+  ];
 
-  return `
-    <html xmlns:o="urn:schemas-microsoft-com:office:office"
-          xmlns:x="urn:schemas-microsoft-com:office:excel"
-          xmlns="http://www.w3.org/TR/REC-html40">
-      <head>
-        <meta charset="UTF-8">
-        <!--[if gte mso 9]>
-        <xml>
-          <x:ExcelWorkbook>
-            <x:ExcelWorksheets>
-              <x:ExcelWorksheet>
-                <x:Name>Agendamentos</x:Name>
-                <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
-              </x:ExcelWorksheet>
-            </x:ExcelWorksheets>
-          </x:ExcelWorkbook>
-        </xml>
-        <![endif]-->
-        <style>
-          body { font-family: Arial, sans-serif; color: #132033; }
-          .sheet { width: 100%; }
-          .brand-wrap { background: #0b0f17; color: #ffffff; }
-          .brand-cell { padding: 20px 24px; }
-          .brand-logo { height: 44px; }
-          .title { font-size: 22px; font-weight: bold; color: #A18742; }
-          .meta { font-size: 12px; color: #4a5568; }
-          .meta strong { color: #132033; }
-          .spacer { height: 14px; }
-          table { border-collapse: collapse; width: 100%; }
-          th { background: #A18742; color: #ffffff; font-weight: bold; text-align: left; padding: 10px 12px; border: 1px solid #d6dce5; }
-          td { padding: 10px 12px; border: 1px solid #d6dce5; background: #ffffff; }
-          .alt td { background: #f5f7fb; }
-          .summary-box { padding: 10px 12px; background: #eef2f7; border: 1px solid #d6dce5; }
-        </style>
-      </head>
-      <body>
-        <table class="sheet">
-          <tr class="brand-wrap">
-            <td class="brand-cell" colspan="6">
-              <span class="title">DILSON STEIN</span>
-            </td>
-          </tr>
-          <tr><td colspan="6" class="spacer"></td></tr>
-          <tr>
-            <td colspan="3" class="summary-box"><strong>Cidade filtrada:</strong> ${escapeHtml(selectedCity)}</td>
-            <td colspan="3" class="summary-box"><strong>Horário filtrado:</strong> ${escapeHtml(selectedTime)}</td>
-          </tr>
-          <tr>
-            <td colspan="3" class="summary-box"><strong>Total de agendamentos:</strong> ${rows.length}</td>
-            <td colspan="3" class="summary-box"><strong>Exportado em:</strong> ${escapeHtml(generatedAt)}</td>
-          </tr>
-          <tr><td colspan="6" class="spacer"></td></tr>
-        </table>
-        <table>
-          <thead>${headerRow}</thead>
-          <tbody>${bodyRows}</tbody>
-        </table>
-      </body>
-    </html>
-  `;
+  worksheet["!merges"] = [
+    XLSX.utils.decode_range("A1:F1"),
+    XLSX.utils.decode_range("A3:C3"),
+    XLSX.utils.decode_range("D3:F3"),
+    XLSX.utils.decode_range("A4:C4"),
+    XLSX.utils.decode_range("D4:F4")
+  ];
+
+  applySheetStyles(worksheet, rows.length);
+  return worksheet;
+}
+
+function applySheetStyles(worksheet, rowCount) {
+  const gold = "A18742";
+  const dark = "0B0F17";
+  const border = "D6DCE5";
+  const soft = "EEF2F7";
+  const white = "FFFFFF";
+  const text = "132033";
+
+  const setCellStyle = (address, style) => {
+    if (!worksheet[address]) return;
+    worksheet[address].s = style;
+  };
+
+  setCellStyle("A1", {
+    font: { bold: true, color: { rgb: gold }, sz: 18 },
+    fill: { fgColor: { rgb: dark } },
+    alignment: { horizontal: "left", vertical: "center" }
+  });
+
+  ["A3", "D3", "A4", "D4"].forEach((address) => {
+    setCellStyle(address, {
+      font: { bold: true, color: { rgb: text }, sz: 11 },
+      fill: { fgColor: { rgb: soft } },
+      border: buildBorder(border),
+      alignment: { horizontal: "left", vertical: "center" }
+    });
+  });
+
+  ["A6", "B6", "C6", "D6", "E6", "F6"].forEach((address) => {
+    setCellStyle(address, {
+      font: { bold: true, color: { rgb: white }, sz: 11 },
+      fill: { fgColor: { rgb: gold } },
+      border: buildBorder(border),
+      alignment: { horizontal: "left", vertical: "center" }
+    });
+  });
+
+  for (let row = 7; row < 7 + Math.max(rowCount, 1); row += 1) {
+    const fillColor = row % 2 === 0 ? soft : white;
+    ["A", "B", "C", "D", "E", "F"].forEach((column) => {
+      setCellStyle(`${column}${row}`, {
+        font: { color: { rgb: text }, sz: 11 },
+        fill: { fgColor: { rgb: fillColor } },
+        border: buildBorder(border),
+        alignment: { horizontal: "left", vertical: "center" }
+      });
+    });
+  }
+}
+
+function buildBorder(color) {
+  return {
+    top: { style: "thin", color: { rgb: color } },
+    right: { style: "thin", color: { rgb: color } },
+    bottom: { style: "thin", color: { rgb: color } },
+    left: { style: "thin", color: { rgb: color } }
+  };
 }
