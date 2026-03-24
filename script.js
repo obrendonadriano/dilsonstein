@@ -7,16 +7,13 @@ const form = document.querySelector("#lead-form");
 const statusNode = document.querySelector("#form-status");
 const modal = document.querySelector("#success-modal");
 const whatsappLink = document.querySelector("#whatsapp-link");
-const topbar = document.querySelector(".topbar");
 const glowCards = document.querySelectorAll(".card-glow");
 const submitButton = document.querySelector('#lead-form button[type="submit"]');
 let latestLeadPayload = null;
 
 setupModal();
-setupTopbarProgress();
 setupCardGlowTouch();
 setupFormGate();
-setupTypingTitle();
 setupSchedulingOptions();
 trackInitialPageView();
 
@@ -36,28 +33,6 @@ function maskPhone(event) {
   updateSubmitState();
 }
 
-function setupTopbarProgress() {
-  if (!topbar) return;
-
-  const updateProgress = () => {
-    const firstScreen = Math.max(1, window.innerHeight * 0.92);
-    const progress = Math.min(1, Math.max(0, window.scrollY / firstScreen));
-    const fillWidth = 56 + (progress * 44);
-    const mobileFillWidth = 66 + (progress * 34);
-    const desktopD = 47 + (progress * 49);
-    const mobileD = 56 + (progress * 32);
-
-    topbar.style.setProperty("--topbar-fill-width", `${fillWidth}%`);
-    topbar.style.setProperty("--topbar-d-left", `${desktopD}%`);
-    topbar.style.setProperty("--topbar-fill-width-mobile", `${mobileFillWidth}%`);
-    topbar.style.setProperty("--topbar-d-left-mobile", `${mobileD}%`);
-  };
-
-  updateProgress();
-  window.addEventListener("scroll", updateProgress, { passive: true });
-  window.addEventListener("resize", updateProgress);
-}
-
 function setupCardGlowTouch() {
   glowCards.forEach((card) => {
     card.addEventListener("pointerdown", () => {
@@ -65,64 +40,6 @@ function setupCardGlowTouch() {
       window.setTimeout(() => card.classList.remove("is-active"), 1000);
     });
   });
-}
-
-function setupTypingTitle() {
-  const title = document.querySelector(".typing-title");
-  if (!title) return;
-
-  const dynamicNode = title.querySelector(".typing-dynamic");
-  const prefixNode = title.querySelector(".typing-prefix");
-  if (!dynamicNode || !prefixNode) return;
-
-  const prefix = title.dataset.prefix || "";
-  const phrases = JSON.parse(title.dataset.phrases || "[]");
-  if (!phrases.length) return;
-
-  let phraseIndex = 0;
-  let charIndex = phrases[0].length;
-  let isDeleting = false;
-
-  const tick = () => {
-    const currentPhrase = phrases[phraseIndex];
-
-    if (isDeleting) {
-      charIndex -= 1;
-      prefixNode.textContent = prefix;
-      dynamicNode.textContent = currentPhrase.slice(0, charIndex);
-
-      if (charIndex <= 0) {
-        isDeleting = false;
-        phraseIndex = (phraseIndex + 1) % phrases.length;
-        window.setTimeout(tick, 120);
-        return;
-      }
-
-      window.setTimeout(tick, 42);
-      return;
-    }
-
-    const nextPhrase = phrases[phraseIndex];
-    charIndex += 1;
-    prefixNode.textContent = prefix;
-    dynamicNode.textContent = nextPhrase.slice(0, charIndex);
-
-    if (charIndex >= nextPhrase.length) {
-      isDeleting = true;
-      window.setTimeout(tick, 1100);
-      return;
-    }
-
-    window.setTimeout(tick, 74);
-  };
-
-  prefixNode.textContent = prefix;
-  dynamicNode.textContent = phrases[0];
-  charIndex = phrases[0].length;
-  window.setTimeout(() => {
-    isDeleting = true;
-    tick();
-  }, 1600);
 }
 
 function setupModal() {

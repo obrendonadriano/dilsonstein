@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=19">
+  <link rel="stylesheet" href="styles.css?v=20">
   <script src="config.js?v=7"></script>
   <script>
     !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -32,37 +32,30 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="topbar-base" aria-hidden="true"></div>
-    <div class="topbar-fill" aria-hidden="true"></div>
-    <img class="brand-logo" src="img/logo-dourada.png" alt="Dilson Stein">
-    <div class="brand-mark">D</div>
+    <div class="topbar-shell">
+      <img class="brand-logo" src="img/logo-dourada.png" alt="Dilson Stein">
+    </div>
   </header>
 
   <main>
     <section class="hero" id="inicio">
-      <div class="hero-copy card-glow">
+      <video
+        class="hero-video"
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="auto"
+      >
+        <source src="img-dilson/Dilson_Stein.mov">
+      </video>
+      <div class="hero-overlay" aria-hidden="true"></div>
+      <div class="hero-content">
         <span class="eyebrow">Agenciamento e descoberta de talentos</span>
-        <h1
-          class="typing-title"
-          data-prefix="Seu sonho é ser "
-          data-phrases='["Ator?","Atriz?","Influencer?","Modelo?"]'
-        >
-          <span class="typing-prefix">Seu sonho é ser </span><span class="typing-dynamic">Ator?</span>
+        <h1 class="hero-title">
+          A sua chance de entrar no <span>mundo da moda</span> pelas mãos de quem lançou <span>Gisele Bündchen.</span>
         </h1>
-        <p class="hero-text">Nós temos a oportunidade para realizar o seu sonho!</p>
-        <div class="hero-highlights">
-          <div class="card-glow">
-            <strong>Dilson Stein</strong>
-            <span>O maior descobridor de talentos do Brasil espera por você.</span>
-          </div>
-        </div>
-        <div class="hero-image card-glow">
-          <img
-            src="img/dilson.png"
-            alt="Imagem editorial da Dilson Stein"
-            onerror="this.onerror=null;this.src='img/cap 1.png';"
-          >
-        </div>
+        <p class="hero-text">Preencha seu perfil e dê o primeiro passo para entrar no universo da moda com a equipe Dilson Stein.</p>
         <div class="hero-actions">
           <a class="primary-button hero-cta" href="#cadastro">
             Quero cadastrar meu perfil
@@ -362,6 +355,6 @@
     >
   </noscript>
 
-  <script src="script.js?v=11"></script>
+  <script src="script.js?v=12"></script>
 </body>
 </html>
