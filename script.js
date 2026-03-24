@@ -445,8 +445,24 @@ function configureWhatsAppLink(payload) {
     .replaceAll("{age}", payload.age || "")
     .replaceAll("{city}", payload.city || "")
     .replaceAll("{time}", payload.time || "");
-  const url = `https://wa.me/${rawPhone}?text=${encodeURIComponent(text)}`;
+  const url = buildWhatsAppUrl(rawPhone, text);
   whatsappLink.href = url;
+}
+
+function buildWhatsAppUrl(phone, text) {
+  const encodedText = encodeURIComponent(text || "");
+  const normalizedPhone = String(phone || "").replace(/\D/g, "");
+
+  if (isMobileDevice()) {
+    return `whatsapp://send?phone=${normalizedPhone}&text=${encodedText}`;
+  }
+
+  return `https://web.whatsapp.com/send?phone=${normalizedPhone}&text=${encodedText}`;
+}
+
+function isMobileDevice() {
+  const ua = navigator.userAgent || "";
+  return /Android|iPhone|iPad|iPod|Windows Phone|Opera Mini|IEMobile/i.test(ua);
 }
 
 function getCookie(name) {
