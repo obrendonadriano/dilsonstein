@@ -713,7 +713,7 @@ textarea {
 
 .legacy-section {
   position: relative;
-  padding: 88px 0 96px;
+  padding: 58px 0 64px;
   background: #000000;
   overflow: hidden;
 }
@@ -722,7 +722,7 @@ textarea {
   width: min(1360px, 100%);
   margin: 0 auto;
   display: grid;
-  gap: 40px;
+  gap: 26px;
 }
 
 .legacy-copy {
@@ -730,29 +730,29 @@ textarea {
   margin: 0 auto;
   text-align: center;
   display: grid;
-  gap: 22px;
+  gap: 16px;
 }
 
 .legacy-copy h2 {
   margin: 0;
   font-family: "Manrope", sans-serif;
-  font-size: clamp(2.4rem, 4vw, 4rem);
-  line-height: 1.12;
+  font-size: clamp(2rem, 3.6vw, 3.5rem);
+  line-height: 1.08;
   font-weight: 700;
   color: var(--accent);
 }
 
 .legacy-copy p {
   margin: 0;
-  font-size: clamp(1.1rem, 2vw, 1.35rem);
-  line-height: 1.45;
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  line-height: 1.35;
   color: rgba(255, 255, 255, 0.94);
 }
 
 .legacy-carousel {
   position: relative;
   overflow: hidden;
-  padding: 8px 0;
+  padding: 8px 0 0;
 }
 
 .legacy-carousel::before,
@@ -761,66 +761,42 @@ textarea {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: min(19vw, 240px);
+  width: min(16vw, 220px);
   z-index: 2;
   pointer-events: none;
-  backdrop-filter: blur(7px);
 }
 
 .legacy-carousel::before {
   left: 0;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.62) 45%, rgba(0, 0, 0, 0.18) 100%);
+  background: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.92) 28%, rgba(0, 0, 0, 0.66) 62%, rgba(0, 0, 0, 0.18) 100%);
 }
 
 .legacy-carousel::after {
   right: 0;
-  background: linear-gradient(270deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.62) 45%, rgba(0, 0, 0, 0.18) 100%);
+  background: linear-gradient(270deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.92) 28%, rgba(0, 0, 0, 0.66) 62%, rgba(0, 0, 0, 0.18) 100%);
 }
 
 .legacy-carousel-track {
   display: flex;
   align-items: stretch;
-  gap: 28px;
+  gap: 18px;
   width: max-content;
   animation: legacyMarquee 34s linear infinite;
 }
 
 .legacy-card {
   position: relative;
-  flex: 0 0 340px;
-  height: 380px;
-  border-radius: 30px;
+  flex: 0 0 250px;
+  border-radius: 26px;
   overflow: hidden;
   background: #131313;
-  box-shadow: 0 22px 46px rgba(0, 0, 0, 0.36);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
 }
 
 .legacy-card img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
   display: block;
-}
-
-.legacy-card::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0 0;
-  height: 42%;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.82));
-}
-
-.legacy-card strong {
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  bottom: 24px;
-  z-index: 1;
-  font-family: "Manrope", sans-serif;
-  font-size: clamp(1.7rem, 2.8vw, 2rem);
-  line-height: 1.04;
-  font-weight: 800;
-  color: #ffffff;
 }
 
 .section-heading h2,
@@ -1301,45 +1277,36 @@ textarea {
   }
 
   .legacy-section {
-    padding: 64px 0 72px;
+    padding: 56px 0 60px;
   }
 
   .legacy-copy {
     width: min(100% - 32px, 760px);
-    gap: 18px;
+    gap: 14px;
   }
 
   .legacy-copy h2 {
-    font-size: clamp(2rem, 8vw, 3rem);
-    line-height: 1.18;
+    font-size: clamp(1.8rem, 7vw, 2.7rem);
+    line-height: 1.14;
   }
 
   .legacy-copy p {
-    font-size: 1.02rem;
-    line-height: 1.5;
+    font-size: 0.98rem;
+    line-height: 1.42;
   }
 
   .legacy-carousel::before,
   .legacy-carousel::after {
-    width: 72px;
-    backdrop-filter: blur(5px);
+    width: 54px;
   }
 
   .legacy-carousel-track {
-    gap: 18px;
+    gap: 14px;
   }
 
   .legacy-card {
-    flex-basis: min(78vw, 300px);
-    height: min(96vw, 360px);
-    border-radius: 24px;
-  }
-
-  .legacy-card strong {
-    left: 18px;
-    right: 18px;
-    bottom: 18px;
-    font-size: clamp(1.35rem, 5vw, 1.8rem);
+    flex-basis: min(60vw, 220px);
+    border-radius: 22px;
   }
 
   .lead-card,
