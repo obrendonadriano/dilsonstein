@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=18">
+  <link rel="stylesheet" href="styles.css?v=19">
   <script src="config.js?v=7"></script>
   <script>
     !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -73,14 +73,6 @@
 
     <section class="signup-section" id="cadastro">
       <div class="signup-shell">
-        <div class="signup-copy">
-          <span class="eyebrow">Segunda etapa</span>
-          <h2>Cadastre seu perfil e avance para a selecao.</h2>
-          <p>
-            Agora voce esta na area de cadastro. Preencha seus dados, escolha cidade e horario e siga para a finalizacao no WhatsApp com a equipe Dilson Stein.
-          </p>
-        </div>
-
         <aside class="lead-card card-glow">
           <div class="lead-card-header">
             <span class="eyebrow">Faca parte</span>
@@ -89,28 +81,32 @@
           </div>
 
           <form id="lead-form" novalidate>
-            <div class="field">
-              <label for="name">Nome</label>
-              <input id="name" name="name" type="text" autocomplete="name" placeholder="Seu Nome" required>
+            <div class="field-grid">
+              <div class="field">
+                <label for="name">Nome</label>
+                <input id="name" name="name" type="text" autocomplete="name" placeholder="Seu Nome" required>
+              </div>
+
+              <div class="field">
+                <label for="age">Idade</label>
+                <input id="age" name="age" type="number" min="0" max="120" placeholder="Ex.: 19" required>
+              </div>
             </div>
 
-            <div class="field">
-              <label for="age">Idade</label>
-              <input id="age" name="age" type="number" min="0" max="120" placeholder="Ex.: 19" required>
-            </div>
+            <div class="field-grid">
+              <div class="field">
+                <label for="city">Cidade da seleção</label>
+                <select id="city" name="city" required>
+                  <option value="">Selecione a cidade que deseja participar da seleção</option>
+                </select>
+              </div>
 
-            <div class="field">
-              <label for="city">Cidade da seleção</label>
-              <select id="city" name="city" required>
-                <option value="">Selecione a cidade que deseja participar da seleção</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="time">Horário da seleção</label>
-              <select id="time" name="time" required>
-                <option value="">Selecione o horário para comparecer presencialmente à seleção</option>
-              </select>
+              <div class="field">
+                <label for="time">Horário da seleção</label>
+                <select id="time" name="time" required>
+                  <option value="">Selecione o horário para comparecer presencialmente à seleção</option>
+                </select>
+              </div>
             </div>
 
             <div class="field">

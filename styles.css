@@ -358,33 +358,13 @@ main {
 }
 
 .signup-shell {
-  display: grid;
-  grid-template-columns: minmax(280px, 0.9fr) minmax(340px, 540px);
-  align-items: center;
-  gap: 44px;
-}
-
-.signup-copy {
-  color: #f8fafc;
-}
-
-.signup-copy h2 {
-  margin: 18px 0 16px;
-  font-family: "Cormorant Garamond", serif;
-  font-size: clamp(3rem, 5vw, 4.4rem);
-  line-height: 0.98;
-  color: #ffffff;
-}
-
-.signup-copy p {
-  margin: 0;
-  max-width: 560px;
-  color: rgba(248, 250, 252, 0.76);
-  font-size: 1.05rem;
-  line-height: 1.8;
+  display: flex;
+  justify-content: center;
 }
 
 .signup-section .lead-card {
+  width: min(760px, 100%);
+  padding: 36px;
   background:
     linear-gradient(180deg, rgba(5, 7, 11, 0.24), rgba(5, 7, 11, 0.6)),
     url("img-dilson/fundo-dilson.png") center center / cover no-repeat;
@@ -432,6 +412,10 @@ main {
 
 .signup-section .form-status {
   color: #f5d98f;
+}
+
+.signup-section form {
+  gap: 18px;
 }
 
 form {
