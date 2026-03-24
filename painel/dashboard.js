@@ -1,12 +1,6 @@
 const PANEL_CONFIG = window.APP_CONFIG || {};
 const PANEL_SESSION_KEY = "dilson_admin_session";
-const PANEL_USERNAME = "admin";
-const PANEL_PASSWORD = "admin";
 
-const loginCard = document.querySelector("#login-card");
-const dashboard = document.querySelector("#dashboard");
-const loginForm = document.querySelector("#login-form");
-const loginStatus = document.querySelector("#login-status");
 const logoutButton = document.querySelector("#logout-button");
 const filterCity = document.querySelector("#filter-city");
 const filterTime = document.querySelector("#filter-time");
@@ -32,9 +26,9 @@ let times = [];
 let leads = [];
 let filteredLeads = [];
 
-bootPanel();
+guardRoute();
+refreshDashboard();
 
-if (loginForm) loginForm.addEventListener("submit", handleLogin);
 if (logoutButton) logoutButton.addEventListener("click", logout);
 if (applyFiltersButton) applyFiltersButton.addEventListener("click", applyFilters);
 if (clearFiltersButton) clearFiltersButton.addEventListener("click", clearFilters);
@@ -42,39 +36,16 @@ if (exportCsvButton) exportCsvButton.addEventListener("click", exportLeadsCsv);
 if (cityForm) cityForm.addEventListener("submit", handleCityCreate);
 if (timeForm) timeForm.addEventListener("submit", handleTimeCreate);
 
-function bootPanel() {
-  if (window.localStorage.getItem(PANEL_SESSION_KEY) === "true") {
-    showDashboard();
-    refreshDashboard();
+function guardRoute() {
+  if (window.localStorage.getItem(PANEL_SESSION_KEY) !== "true") {
+    window.location.replace("/painel");
   }
 }
 
-function handleLogin(event) {
-  event.preventDefault();
-
-  const username = document.querySelector("#login-username")?.value.trim();
-  const password = document.querySelector("#login-password")?.value.trim();
-
-  if (username !== PANEL_USERNAME || password !== PANEL_PASSWORD) {
-    loginStatus.textContent = "Login ou senha inválidos.";
-    return;
-  }
-
-  window.localStorage.setItem(PANEL_SESSION_KEY, "true");
-  loginStatus.textContent = "";
-  showDashboard();
-  refreshDashboard();
-}
-
-function logout() {
+function logout(event) {
+  event?.preventDefault();
   window.localStorage.removeItem(PANEL_SESSION_KEY);
-  dashboard.classList.add("hidden");
-  loginCard.classList.remove("hidden");
-}
-
-function showDashboard() {
-  loginCard.classList.add("hidden");
-  dashboard.classList.remove("hidden");
+  window.location.replace("/painel");
 }
 
 async function refreshDashboard() {
@@ -336,13 +307,10 @@ function updateMetrics(selectedCity, selectedTime) {
   metricTotal.textContent = String(filteredLeads.length);
   metricCities.textContent = String(cities.length);
   metricTimes.textContent = String(times.length);
-
-  const label = [
+  metricFilter.textContent = [
     selectedCity || "Todas as cidades",
     selectedTime || "Todos os horários"
   ].join(" • ");
-
-  metricFilter.textContent = label;
 }
 
 function countBy(items, key) {
@@ -384,7 +352,6 @@ function toCsv(rows) {
     headers.join(","),
     ...rows.map((row) => headers.map((header) => csvEscape(row[header])).join(","))
   ];
-
   return lines.join("\n");
 }
 
