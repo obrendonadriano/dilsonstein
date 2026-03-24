@@ -14,6 +14,7 @@ let latestLeadPayload = null;
 setupModal();
 setupCardGlowTouch();
 setupFormGate();
+setupHeroModelLoop();
 setupSchedulingOptions();
 trackInitialPageView();
 
@@ -40,6 +41,55 @@ function setupCardGlowTouch() {
       window.setTimeout(() => card.classList.remove("is-active"), 1000);
     });
   });
+}
+
+function setupHeroModelLoop() {
+  const rotatingNode = document.querySelector(".hero-rotating-name");
+  if (!rotatingNode) return;
+
+  const phrases = JSON.parse(rotatingNode.dataset.modelPhrases || "[]");
+  if (!phrases.length) return;
+
+  let phraseIndex = 0;
+  let charIndex = phrases[0].length;
+  let isDeleting = false;
+
+  const tick = () => {
+    const currentPhrase = phrases[phraseIndex];
+
+    if (isDeleting) {
+      charIndex -= 1;
+      rotatingNode.textContent = currentPhrase.slice(0, charIndex);
+
+      if (charIndex <= 0) {
+        isDeleting = false;
+        phraseIndex = (phraseIndex + 1) % phrases.length;
+        window.setTimeout(tick, 120);
+        return;
+      }
+
+      window.setTimeout(tick, 34);
+      return;
+    }
+
+    const nextPhrase = phrases[phraseIndex];
+    charIndex += 1;
+    rotatingNode.textContent = nextPhrase.slice(0, charIndex);
+
+    if (charIndex >= nextPhrase.length) {
+      isDeleting = true;
+      window.setTimeout(tick, 1900);
+      return;
+    }
+
+    window.setTimeout(tick, 58);
+  };
+
+  rotatingNode.textContent = phrases[0];
+  window.setTimeout(() => {
+    isDeleting = true;
+    tick();
+  }, 2200);
 }
 
 function setupModal() {

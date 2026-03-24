@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20">
+  <link rel="stylesheet" href="styles.css?v=21">
   <script src="config.js?v=7"></script>
   <script>
     !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -51,22 +51,19 @@
       </video>
       <div class="hero-overlay" aria-hidden="true"></div>
       <div class="hero-content">
-        <span class="eyebrow">Agenciamento e descoberta de talentos</span>
-        <h1 class="hero-title">
-          A sua chance de entrar no <span>mundo da moda</span> pelas mãos de quem lançou <span>Gisele Bündchen.</span>
-        </h1>
-        <p class="hero-text">Preencha seu perfil e dê o primeiro passo para entrar no universo da moda com a equipe Dilson Stein.</p>
-        <div class="hero-actions">
-          <a class="primary-button hero-cta" href="#cadastro">
-            Quero cadastrar meu perfil
-          </a>
+        <div class="hero-copy">
+          <span class="eyebrow">Agenciamento e descoberta de talentos</span>
+          <h1 class="hero-title">
+            A sua chance de entrar no <span>mundo da moda</span> pelas mãos de quem lançou
+            <span
+              class="hero-rotating-name"
+              data-model-phrases='["Gisele Bündchen.","Caroline Trentini.","Alessandra Ambrosio.","Emanuel Ramos.","Gisele Bündchen.","Giovana Breunig.","Laura Pigatto.","Caroline Trentini.","Gisele Bündchen."]'
+            >Gisele Bündchen.</span>
+          </h1>
+          <p class="hero-text">Preencha seu perfil e dê o primeiro passo para entrar no universo da moda com a equipe Dilson Stein.</p>
         </div>
-      </div>
-    </section>
 
-    <section class="signup-section" id="cadastro">
-      <div class="signup-shell">
-        <aside class="lead-card card-glow">
+        <aside class="lead-card card-glow hero-form-card" id="cadastro">
           <div class="lead-card-header">
             <span class="eyebrow">Faca parte</span>
             <h2>Cadastre seu perfil</h2>
@@ -74,32 +71,28 @@
           </div>
 
           <form id="lead-form" novalidate>
-            <div class="field-grid">
-              <div class="field">
-                <label for="name">Nome</label>
-                <input id="name" name="name" type="text" autocomplete="name" placeholder="Seu Nome" required>
-              </div>
-
-              <div class="field">
-                <label for="age">Idade</label>
-                <input id="age" name="age" type="number" min="0" max="120" placeholder="Ex.: 19" required>
-              </div>
+            <div class="field">
+              <label for="name">Nome</label>
+              <input id="name" name="name" type="text" autocomplete="name" placeholder="Seu Nome" required>
             </div>
 
-            <div class="field-grid">
-              <div class="field">
-                <label for="city">Cidade da seleção</label>
-                <select id="city" name="city" required>
-                  <option value="">Selecione a cidade que deseja participar da seleção</option>
-                </select>
-              </div>
+            <div class="field">
+              <label for="age">Idade</label>
+              <input id="age" name="age" type="number" min="0" max="120" placeholder="Ex.: 19" required>
+            </div>
 
-              <div class="field">
-                <label for="time">Horário da seleção</label>
-                <select id="time" name="time" required>
-                  <option value="">Selecione o horário para comparecer presencialmente à seleção</option>
-                </select>
-              </div>
+            <div class="field">
+              <label for="city">Cidade da seleção</label>
+              <select id="city" name="city" required>
+                <option value="">Selecione a cidade que deseja participar da seleção</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="time">Horário da seleção</label>
+              <select id="time" name="time" required>
+                <option value="">Selecione o horário para comparecer presencialmente à seleção</option>
+              </select>
             </div>
 
             <div class="field">
@@ -355,6 +348,6 @@
     >
   </noscript>
 
-  <script src="script.js?v=12"></script>
+  <script src="script.js?v=13"></script>
 </body>
 </html>
