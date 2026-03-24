@@ -629,15 +629,18 @@ textarea {
   gap: 38px;
   flex: 0 0 auto;
   width: max-content;
+  padding-right: 38px;
 }
 
 .mentor-marquee-motion {
   display: flex;
   align-items: center;
-  gap: 38px;
+  gap: 0;
   width: max-content;
   animation: mentorMarquee 28s linear infinite;
-  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .mentor-logo {
@@ -769,41 +772,26 @@ textarea {
   position: relative;
   overflow: hidden;
   padding: 8px 0 0;
-}
-
-.legacy-carousel::before,
-.legacy-carousel::after {
-  content: "";
-  position: absolute;
-  top: -2px;
-  bottom: -2px;
-  width: min(17vw, 240px);
-  z-index: 2;
-  pointer-events: none;
-}
-
-.legacy-carousel::before {
-  left: 0;
-  background: linear-gradient(
+  -webkit-mask-image: linear-gradient(
     90deg,
-    #000 0%,
-    rgba(0, 0, 0, 0.98) 16%,
-    rgba(0, 0, 0, 0.9) 32%,
-    rgba(0, 0, 0, 0.68) 52%,
-    rgba(0, 0, 0, 0.32) 76%,
+    transparent 0%,
+    rgba(0, 0, 0, 0.22) 4%,
+    rgba(0, 0, 0, 0.68) 9%,
+    #000 15%,
+    #000 85%,
+    rgba(0, 0, 0, 0.68) 91%,
+    rgba(0, 0, 0, 0.22) 96%,
     transparent 100%
   );
-}
-
-.legacy-carousel::after {
-  right: 0;
-  background: linear-gradient(
-    270deg,
-    #000 0%,
-    rgba(0, 0, 0, 0.98) 16%,
-    rgba(0, 0, 0, 0.9) 32%,
-    rgba(0, 0, 0, 0.68) 52%,
-    rgba(0, 0, 0, 0.32) 76%,
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.22) 4%,
+    rgba(0, 0, 0, 0.68) 9%,
+    #000 15%,
+    #000 85%,
+    rgba(0, 0, 0, 0.68) 91%,
+    rgba(0, 0, 0, 0.22) 96%,
     transparent 100%
   );
 }
@@ -811,10 +799,12 @@ textarea {
 .legacy-carousel-motion {
   display: flex;
   align-items: stretch;
-  gap: 18px;
+  gap: 0;
   width: max-content;
   animation: legacyMarquee 34s linear infinite;
-  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .legacy-carousel-track {
@@ -823,6 +813,7 @@ textarea {
   gap: 18px;
   flex: 0 0 auto;
   width: max-content;
+  padding-right: 18px;
 }
 
 .legacy-card {
@@ -1336,10 +1327,11 @@ textarea {
 
   .mentor-marquee-track {
     gap: 34px;
+    padding-right: 34px;
   }
 
   .mentor-marquee-motion {
-    gap: 34px;
+    gap: 0;
   }
 
   .legacy-section {
@@ -1361,43 +1353,23 @@ textarea {
     line-height: 1.42;
   }
 
-  .legacy-carousel::before,
-  .legacy-carousel::after {
-    width: 88px;
-  }
-
-  .legacy-carousel::before {
-    background: linear-gradient(
-      90deg,
-      #000 0%,
-      rgba(0, 0, 0, 0.92) 18%,
-      rgba(0, 0, 0, 0.72) 38%,
-      rgba(0, 0, 0, 0.4) 68%,
-      transparent 100%
-    );
-  }
-
-  .legacy-carousel::after {
-    background: linear-gradient(
-      270deg,
-      #000 0%,
-      rgba(0, 0, 0, 0.92) 18%,
-      rgba(0, 0, 0, 0.72) 38%,
-      rgba(0, 0, 0, 0.4) 68%,
-      transparent 100%
-    );
+  .legacy-carousel {
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 
   .legacy-carousel-track {
     gap: 14px;
+    padding-right: 14px;
   }
 
   .legacy-carousel-motion {
-    gap: 14px;
+    gap: 0;
+    animation-duration: 30s;
   }
 
   .legacy-card {
-    flex-basis: min(72vw, 260px);
+    flex-basis: min(78vw, 290px);
     border-radius: 22px;
   }
 
@@ -1480,20 +1452,20 @@ textarea {
 
 @keyframes mentorMarquee {
   from {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
   }
 
   to {
-    transform: translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
 @keyframes legacyMarquee {
   from {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
   }
 
   to {
-    transform: translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
   }
 }
