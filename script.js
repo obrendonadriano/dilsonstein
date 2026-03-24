@@ -372,6 +372,7 @@ async function sendFacebookConversion(payload, eventName = "Lead", eventId = "")
 
   const response = await fetch(endpoint, {
     method: "POST",
+    keepalive: true,
     headers: {
       "Content-Type": "application/json"
     },
@@ -414,16 +415,23 @@ async function handleWhatsAppClick(event) {
   if (!latestLeadPayload) return;
 
   event.preventDefault();
+  const targetUrl = whatsappLink?.href;
+
+  if (!targetUrl || targetUrl === "#") {
+    return;
+  }
 
   try {
     const eventId = buildEventId("Contact");
     trackFacebookPixel(latestLeadPayload, "Contact", eventId);
-    await sendFacebookConversion(latestLeadPayload, "Contact", eventId);
+    sendFacebookConversion(latestLeadPayload, "Contact", eventId).catch((error) => {
+      console.error("Falha ao registrar conversão do WhatsApp:", error);
+    });
   } catch (error) {
     console.error("Falha ao registrar conversão do WhatsApp:", error);
-  } finally {
-    window.open(whatsappLink.href, "_blank", "noopener,noreferrer");
   }
+
+  window.location.assign(targetUrl);
 }
 
 function configureWhatsAppLink(payload) {
