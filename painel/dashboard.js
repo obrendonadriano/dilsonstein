@@ -384,8 +384,8 @@ function buildWorkbookSheet(rows) {
   const sheetRows = [
     ["DILSON STEIN", "", "", "", "", ""],
     [],
-    ["Cidade filtrada:", selectedCity, "", "Horário filtrado:", selectedTime, ""],
-    ["Total de agendamentos:", String(rows.length), "", "Exportado em:", generatedAt, ""],
+    [`Cidade filtrada: ${selectedCity}`, "", "", `Horário filtrado: ${selectedTime}`, "", ""],
+    [`Total de agendamentos: ${rows.length}`, "", "", `Exportado em: ${generatedAt}`, "", ""],
     [],
     ["Nome", "Idade", "Cidade", "Horário", "WhatsApp", "Cadastrado em"]
   ];
