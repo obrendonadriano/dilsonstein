@@ -332,8 +332,7 @@ async function exportLeadsSpreadsheet() {
     cadastrado_em: formatDateTime(lead.created_at)
   }));
 
-  const logoDataUrl = await loadLogoDataUrl();
-  const html = buildExcelHtml(rows, logoDataUrl);
+  const html = buildExcelHtml(rows);
   const blob = new Blob(["\uFEFF", html], { type: "application/vnd.ms-excel;charset=utf-8;" });
   const link = document.createElement("a");
   const url = URL.createObjectURL(blob);
@@ -374,27 +373,7 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
-async function loadLogoDataUrl() {
-  try {
-    const response = await fetch("/img/logo-dourada.png");
-    const blob = await response.blob();
-    return await blobToDataUrl(blob);
-  } catch (error) {
-    console.error("Falha ao carregar logo para exportação:", error);
-    return "";
-  }
-}
-
-function blobToDataUrl(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
-function buildExcelHtml(rows, logoDataUrl = "") {
+function buildExcelHtml(rows) {
   const selectedCity = filterCity?.value || "Todas as cidades";
   const selectedTime = filterTime?.value || "Todos os horários";
   const generatedAt = new Intl.DateTimeFormat("pt-BR", {
@@ -465,7 +444,7 @@ function buildExcelHtml(rows, logoDataUrl = "") {
         <table class="sheet">
           <tr class="brand-wrap">
             <td class="brand-cell" colspan="6">
-              ${logoDataUrl ? `<img class="brand-logo" src="${logoDataUrl}" alt="Dilson Stein">` : `<span class="title">DILSON STEIN</span>`}
+              <span class="title">DILSON STEIN</span>
             </td>
           </tr>
           <tr><td colspan="6" class="spacer"></td></tr>
