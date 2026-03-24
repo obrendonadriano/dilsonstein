@@ -32,7 +32,7 @@ refreshDashboard();
 if (logoutButton) logoutButton.addEventListener("click", logout);
 if (applyFiltersButton) applyFiltersButton.addEventListener("click", applyFilters);
 if (clearFiltersButton) clearFiltersButton.addEventListener("click", clearFilters);
-if (exportCsvButton) exportCsvButton.addEventListener("click", exportLeadsCsv);
+if (exportCsvButton) exportCsvButton.addEventListener("click", exportLeadsSpreadsheet);
 if (cityForm) cityForm.addEventListener("submit", handleCityCreate);
 if (timeForm) timeForm.addEventListener("submit", handleTimeCreate);
 
@@ -322,18 +322,19 @@ function countBy(items, key) {
   return [...counts.entries()].sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])));
 }
 
-function exportLeadsCsv() {
+async function exportLeadsSpreadsheet() {
   const rows = filteredLeads.map((lead) => ({
     nome: lead.name || "",
     idade: lead.age || "",
     cidade: lead.city || "",
     horario: lead.time || "",
-    whatsapp: lead.phone || "",
+    whatsapp: formatPhone(lead.phone || ""),
     cadastrado_em: formatDateTime(lead.created_at)
   }));
 
-  const csv = toCsv(rows);
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const logoDataUrl = await loadLogoDataUrl();
+  const html = buildExcelHtml(rows, logoDataUrl);
+  const blob = new Blob(["\uFEFF", html], { type: "application/vnd.ms-excel;charset=utf-8;" });
   const link = document.createElement("a");
   const url = URL.createObjectURL(blob);
   link.href = url;
@@ -342,31 +343,10 @@ function exportLeadsCsv() {
   URL.revokeObjectURL(url);
 }
 
-function toCsv(rows) {
-  if (!rows.length) {
-    return "nome,idade,cidade,horario,whatsapp,cadastrado_em\n";
-  }
-
-  const headers = Object.keys(rows[0]);
-  const lines = [
-    headers.join(","),
-    ...rows.map((row) => headers.map((header) => csvEscape(row[header])).join(","))
-  ];
-  return lines.join("\n");
-}
-
-function csvEscape(value) {
-  const text = String(value ?? "");
-  if (/[",\n;]/.test(text)) {
-    return `"${text.replaceAll('"', '""')}"`;
-  }
-  return text;
-}
-
 function buildExportFilename() {
   const city = (filterCity?.value || "todas-cidades").replaceAll(/\s+/g, "-").toLowerCase();
   const time = (filterTime?.value || "todos-horarios").replaceAll(/\s+/g, "-").toLowerCase();
-  return `agendamentos-${city}-${time}.csv`;
+  return `agendamentos-${city}-${time}.xls`;
 }
 
 function formatPhone(phone) {
@@ -392,4 +372,118 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+}
+
+async function loadLogoDataUrl() {
+  try {
+    const response = await fetch("/img/logo-dourada.png");
+    const blob = await response.blob();
+    return await blobToDataUrl(blob);
+  } catch (error) {
+    console.error("Falha ao carregar logo para exportação:", error);
+    return "";
+  }
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function buildExcelHtml(rows, logoDataUrl = "") {
+  const selectedCity = filterCity?.value || "Todas as cidades";
+  const selectedTime = filterTime?.value || "Todos os horários";
+  const generatedAt = new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short"
+  }).format(new Date());
+
+  const headerRow = `
+    <tr>
+      <th>Nome</th>
+      <th>Idade</th>
+      <th>Cidade</th>
+      <th>Horário</th>
+      <th>WhatsApp</th>
+      <th>Cadastrado em</th>
+    </tr>
+  `;
+
+  const bodyRows = rows.length
+    ? rows.map((row) => `
+        <tr>
+          <td>${escapeHtml(row.nome)}</td>
+          <td>${escapeHtml(row.idade)}</td>
+          <td>${escapeHtml(row.cidade)}</td>
+          <td>${escapeHtml(row.horario)}</td>
+          <td>${escapeHtml(row.whatsapp)}</td>
+          <td>${escapeHtml(row.cadastrado_em)}</td>
+        </tr>
+      `).join("")
+    : `<tr><td colspan="6">Nenhum agendamento encontrado para os filtros aplicados.</td></tr>`;
+
+  return `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office"
+          xmlns:x="urn:schemas-microsoft-com:office:excel"
+          xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="UTF-8">
+        <!--[if gte mso 9]>
+        <xml>
+          <x:ExcelWorkbook>
+            <x:ExcelWorksheets>
+              <x:ExcelWorksheet>
+                <x:Name>Agendamentos</x:Name>
+                <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+              </x:ExcelWorksheet>
+            </x:ExcelWorksheets>
+          </x:ExcelWorkbook>
+        </xml>
+        <![endif]-->
+        <style>
+          body { font-family: Arial, sans-serif; color: #132033; }
+          .sheet { width: 100%; }
+          .brand-wrap { background: #0b0f17; color: #ffffff; }
+          .brand-cell { padding: 20px 24px; }
+          .brand-logo { height: 44px; }
+          .title { font-size: 22px; font-weight: bold; color: #A18742; }
+          .meta { font-size: 12px; color: #4a5568; }
+          .meta strong { color: #132033; }
+          .spacer { height: 14px; }
+          table { border-collapse: collapse; width: 100%; }
+          th { background: #A18742; color: #ffffff; font-weight: bold; text-align: left; padding: 10px 12px; border: 1px solid #d6dce5; }
+          td { padding: 10px 12px; border: 1px solid #d6dce5; background: #ffffff; }
+          .alt td { background: #f5f7fb; }
+          .summary-box { padding: 10px 12px; background: #eef2f7; border: 1px solid #d6dce5; }
+        </style>
+      </head>
+      <body>
+        <table class="sheet">
+          <tr class="brand-wrap">
+            <td class="brand-cell" colspan="6">
+              ${logoDataUrl ? `<img class="brand-logo" src="${logoDataUrl}" alt="Dilson Stein">` : `<span class="title">DILSON STEIN</span>`}
+            </td>
+          </tr>
+          <tr><td colspan="6" class="spacer"></td></tr>
+          <tr>
+            <td colspan="3" class="summary-box"><strong>Cidade filtrada:</strong> ${escapeHtml(selectedCity)}</td>
+            <td colspan="3" class="summary-box"><strong>Horário filtrado:</strong> ${escapeHtml(selectedTime)}</td>
+          </tr>
+          <tr>
+            <td colspan="3" class="summary-box"><strong>Total de agendamentos:</strong> ${rows.length}</td>
+            <td colspan="3" class="summary-box"><strong>Exportado em:</strong> ${escapeHtml(generatedAt)}</td>
+          </tr>
+          <tr><td colspan="6" class="spacer"></td></tr>
+        </table>
+        <table>
+          <thead>${headerRow}</thead>
+          <tbody>${bodyRows}</tbody>
+        </table>
+      </body>
+    </html>
+  `;
 }
