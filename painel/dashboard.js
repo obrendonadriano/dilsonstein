@@ -479,6 +479,7 @@ function buildWorkbookSheet(rows) {
     XLSX.utils.decode_range("B4:C4"),
     XLSX.utils.decode_range("E4:F4")
   ];
+  worksheet["!sheetViews"] = [{ showGridLines: false }];
 
   applySheetStyles(worksheet, rows.length);
   return worksheet;

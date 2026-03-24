@@ -439,7 +439,7 @@ function configureWhatsAppLink(payload) {
 
   const rawPhone = APP_CONFIG.whatsapp?.number || "5511999999999";
   const template = APP_CONFIG.whatsapp?.message
-    || "Olá, meu nome é {name}. Acabei de preencher meu cadastro na Dilson Stein, tenho {age} anos, selecionei {city} no horário de {time} e gostaria de finalizar meu atendimento.";
+    || "Olá, meu nome é {name}, tenho {age} anos e me cadastrei para participar da seleção em {city}. Gostaria de mais informações sobre como participar.";
   const text = template
     .replaceAll("{name}", payload.name || "")
     .replaceAll("{age}", payload.age || "")

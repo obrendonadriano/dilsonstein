@@ -1,7 +1,7 @@
 window.APP_CONFIG = {
   whatsapp: {
     number: "5511925517859",
-    message: "Olá, meu nome é {name}. Acabei de preencher meu cadastro na Dilson Stein, tenho {age} anos, selecionei {city} no horário de {time} e gostaria de finalizar meu atendimento."
+    message: "Olá, meu nome é {name}, tenho {age} anos e me cadastrei para participar da seleção em {city}. Gostaria de mais informações sobre como participar."
   },
   supabase: {
     url: "https://grohztewndqwfyvdgjar.supabase.co",
