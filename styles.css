@@ -970,7 +970,7 @@ textarea {
   align-items: stretch;
   gap: 0;
   width: max-content;
-  animation: legacyMarquee 34s linear infinite;
+  animation: legacyMarquee 28s linear infinite;
   transform: translate3d(0, 0, 0);
   will-change: transform;
   backface-visibility: hidden;
@@ -1570,7 +1570,7 @@ textarea {
   .legacy-carousel-motion {
     gap: 0;
     width: max-content;
-    animation: legacyMarquee 30s linear infinite;
+    animation: legacyMarquee 22s linear infinite;
     transform: translate3d(0, 0, 0);
   }
 
@@ -1761,6 +1761,6 @@ textarea {
   }
 
   to {
-    transform: translate3d(-50%, 0, 0);
+    transform: translate3d(calc(-1 * var(--legacy-loop-distance, 50%)), 0, 0);
   }
 }

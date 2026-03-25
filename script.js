@@ -15,6 +15,7 @@ setupModal();
 setupCardGlowTouch();
 setupFormGate();
 setupHeroModelLoop();
+setupLegacyCarouselLoop();
 setupSchedulingOptions();
 trackInitialPageView();
 
@@ -97,6 +98,26 @@ function setupHeroModelLoop() {
     isDeleting = true;
     tick();
   }, 2200);
+}
+
+function setupLegacyCarouselLoop() {
+  const motion = document.querySelector(".legacy-carousel-motion");
+  const firstTrack = document.querySelector(".legacy-carousel-track");
+  if (!motion || !firstTrack) return;
+
+  const updateLoopDistance = () => {
+    const trackWidth = firstTrack.getBoundingClientRect().width;
+    if (!trackWidth) return;
+    motion.style.setProperty("--legacy-loop-distance", `${trackWidth}px`);
+  };
+
+  updateLoopDistance();
+  window.addEventListener("resize", updateLoopDistance, { passive: true });
+
+  if ("ResizeObserver" in window) {
+    const resizeObserver = new ResizeObserver(updateLoopDistance);
+    resizeObserver.observe(firstTrack);
+  }
 }
 
 function setupModal() {
