@@ -138,8 +138,10 @@ function setupInfiniteMarquees() {
 function setupLegacyMobileTicker() {
   const mediaQuery = window.matchMedia("(max-width: 820px)");
   const motion = document.querySelector(".legacy-carousel-motion");
-  const firstTrack = motion?.querySelector(".legacy-carousel-track");
-  if (!motion || !firstTrack) return;
+  const tracks = motion?.querySelectorAll(".legacy-carousel-track");
+  const firstTrack = tracks?.[0];
+  const secondTrack = tracks?.[1];
+  if (!motion || !firstTrack || !secondTrack) return;
 
   let frameId = 0;
   let previousTime = 0;
@@ -149,7 +151,10 @@ function setupLegacyMobileTicker() {
   const speed = 34;
 
   const measure = () => {
-    loopDistance = firstTrack.getBoundingClientRect().width;
+    loopDistance = secondTrack.offsetLeft - firstTrack.offsetLeft;
+    if (!loopDistance) {
+      loopDistance = firstTrack.scrollWidth;
+    }
     if (loopDistance) {
       motion.style.setProperty("--marquee-loop-distance", `${loopDistance}px`);
       offset = offset % loopDistance;
@@ -209,7 +214,14 @@ function setupLegacyMobileTicker() {
   if ("ResizeObserver" in window) {
     const resizeObserver = new ResizeObserver(() => start());
     resizeObserver.observe(firstTrack);
+    resizeObserver.observe(secondTrack);
   }
+
+  motion.querySelectorAll("img").forEach((img) => {
+    if (!img.complete) {
+      img.addEventListener("load", () => start(), { once: true });
+    }
+  });
 }
 
 function setupModal() {
