@@ -280,8 +280,9 @@ main {
 }
 
 .hero-cta {
-  width: auto;
+  width: fit-content;
   min-width: 220px;
+  max-width: none;
   min-height: 54px;
   padding: 0 26px;
   justify-self: center;
@@ -1594,12 +1595,13 @@ textarea {
   }
 
   .hero-text-centered {
-    max-width: 17ch;
-    line-height: 1.45;
+    max-width: 32ch;
+    font-size: 0.96rem;
+    line-height: 1.38;
   }
 
   .hero-cta {
-    width: auto;
+    width: fit-content;
     min-width: 240px;
     max-width: calc(100vw - 48px);
     padding: 0 24px;
