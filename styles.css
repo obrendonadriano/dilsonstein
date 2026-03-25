@@ -279,6 +279,10 @@ main {
   text-align: center;
 }
 
+.hero-text-mobile-break {
+  display: none;
+}
+
 .hero-cta {
   width: fit-content;
   min-width: 220px;
@@ -1595,9 +1599,13 @@ textarea {
   }
 
   .hero-text-centered {
-    max-width: 32ch;
-    font-size: 0.96rem;
-    line-height: 1.38;
+    max-width: 44ch;
+    font-size: 0.82rem;
+    line-height: 1.32;
+  }
+
+  .hero-text-mobile-break {
+    display: block;
   }
 
   .hero-cta {
