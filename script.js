@@ -9,6 +9,8 @@ const modal = document.querySelector("#success-modal");
 const whatsappLink = document.querySelector("#whatsapp-link");
 const activeCitiesList = document.querySelector("#active-cities-list");
 const heroActiveCitiesText = document.querySelector("#hero-active-cities-text");
+const heroSection = document.querySelector(".hero");
+const heroVideo = document.querySelector(".hero-video");
 const glowCards = document.querySelectorAll(".card-glow");
 const submitButton = document.querySelector('#lead-form button[type="submit"]');
 const chatRoot = document.querySelector("#site-chat");
@@ -25,6 +27,7 @@ let chatTypingNode = null;
 
 setupModal();
 setupCardGlowTouch();
+setupHeroVideo();
 setupFormGate();
 setupHeroModelLoop();
 setupInfiniteMarquees();
@@ -56,6 +59,44 @@ function setupCardGlowTouch() {
       window.setTimeout(() => card.classList.remove("is-active"), 1000);
     });
   });
+}
+
+function setupHeroVideo() {
+  if (!heroVideo || !heroSection) return;
+
+  heroVideo.muted = true;
+  heroVideo.defaultMuted = true;
+  heroVideo.setAttribute("muted", "");
+  heroVideo.setAttribute("playsinline", "");
+
+  const enableFallback = () => {
+    heroSection.classList.add("is-video-fallback");
+  };
+
+  const tryPlay = () => {
+    const playPromise = heroVideo.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(() => {
+        enableFallback();
+      });
+    }
+  };
+
+  heroVideo.addEventListener("loadeddata", () => {
+    heroSection.classList.remove("is-video-fallback");
+    tryPlay();
+  });
+
+  heroVideo.addEventListener("error", enableFallback);
+  heroVideo.addEventListener("stalled", enableFallback);
+
+  window.addEventListener("load", tryPlay, { passive: true });
+
+  window.setTimeout(() => {
+    if (heroVideo.readyState < 2) {
+      enableFallback();
+    }
+  }, 2200);
 }
 
 function setupHeroModelLoop() {
