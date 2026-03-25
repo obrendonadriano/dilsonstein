@@ -111,6 +111,10 @@ main {
   height: 100%;
   object-fit: cover;
   background: #03060c;
+  background-image: url("img-dilson/fundo-dourado.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 .hero-overlay {
