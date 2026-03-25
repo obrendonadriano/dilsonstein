@@ -42,6 +42,7 @@ let cityTimes = [];
 let leads = [];
 let filteredLeads = [];
 let selectedEditorCityId = "";
+let cityTimesFeatureEnabled = true;
 
 guardRoute();
 refreshDashboard();
@@ -114,9 +115,16 @@ async function loadTimeTemplates() {
 }
 
 async function loadCityTimes() {
-  cityTimes = normalizeCityTimes(await fetchTable("event_city_times", [], {
-    order: "city_id.asc,sort_order.asc,label.asc"
-  }));
+  try {
+    cityTimes = normalizeCityTimes(await fetchTable("event_city_times", [], {
+      order: "city_id.asc,sort_order.asc,label.asc"
+    }));
+    cityTimesFeatureEnabled = true;
+  } catch (error) {
+    console.error("Falha ao carregar event_city_times:", error);
+    cityTimes = [];
+    cityTimesFeatureEnabled = false;
+  }
 }
 
 async function loadLeads() {
@@ -250,11 +258,6 @@ async function renderEditorCity() {
     return;
   }
 
-  if (!cityTimes.some((item) => String(item.city_id) === String(selectedCity.id))) {
-    await seedCityTimes(selectedCity);
-    await loadCityTimes();
-  }
-
   if (editCityInput) editCityInput.value = selectedCity.label;
   if (editCityVenueInput) editCityVenueInput.value = selectedCity.venue_name;
   if (editCityAddressInput) editCityAddressInput.value = selectedCity.address;
@@ -334,7 +337,14 @@ async function handleCityCreate(event) {
 
   const createdCity = normalizeCityRecords(createdRows)[0];
   if (createdCity) {
-    await seedCityTimes(createdCity);
+    if (cityTimesFeatureEnabled) {
+      try {
+        await seedCityTimes(createdCity);
+      } catch (error) {
+        console.error("Falha ao criar horários iniciais da cidade:", error);
+        cityTimesFeatureEnabled = false;
+      }
+    }
     selectedEditorCityId = String(createdCity.id);
   }
 
@@ -370,6 +380,10 @@ async function handleCityTimeCreate(event) {
   const selectedCity = getSelectedEditorCity();
   const label = newCityTimeInput?.value.trim();
   if (!selectedCity || !label) return;
+  if (!cityTimesFeatureEnabled) {
+    alert("Os horários por cidade ainda não estão disponíveis no Supabase. Rode o SQL de atualização e tente novamente.");
+    return;
+  }
 
   await mutateSupabase("event_city_times", "POST", {
     city_id: selectedCity.id,
@@ -386,6 +400,10 @@ async function createCityTimeFromTemplate(label) {
   const selectedCity = getSelectedEditorCity();
   const normalizedLabel = String(label || "").trim();
   if (!selectedCity || !normalizedLabel) return;
+  if (!cityTimesFeatureEnabled) {
+    alert("Os horários por cidade ainda não estão disponíveis no Supabase. Rode o SQL de atualização e tente novamente.");
+    return;
+  }
 
   await mutateSupabase("event_city_times", "POST", {
     city_id: selectedCity.id,
@@ -424,7 +442,13 @@ async function seedCityTimes(city) {
 }
 
 async function deleteCity(id) {
-  await mutateSupabase(`event_city_times?city_id=eq.${id}`, "DELETE");
+  if (cityTimesFeatureEnabled) {
+    try {
+      await mutateSupabase(`event_city_times?city_id=eq.${id}`, "DELETE");
+    } catch (error) {
+      console.error("Falha ao excluir horários da cidade:", error);
+    }
+  }
   await mutateSupabase(`event_cities?id=eq.${id}`, "DELETE");
   if (selectedEditorCityId === String(id)) {
     selectedEditorCityId = "";
@@ -435,6 +459,10 @@ async function deleteCity(id) {
 async function toggleCityTime(id) {
   const row = cityTimes.find((item) => String(item.id) === String(id));
   if (!row) return;
+  if (!cityTimesFeatureEnabled) {
+    alert("Os horários por cidade ainda não estão disponíveis no Supabase. Rode o SQL de atualização e tente novamente.");
+    return;
+  }
 
   await mutateSupabase(`event_city_times?id=eq.${id}`, "PATCH", {
     active: row.active === false
@@ -444,6 +472,10 @@ async function toggleCityTime(id) {
 }
 
 async function deleteOption(tableName, id) {
+  if (tableName === "event_city_times" && !cityTimesFeatureEnabled) {
+    alert("Os horários por cidade ainda não estão disponíveis no Supabase. Rode o SQL de atualização e tente novamente.");
+    return;
+  }
   await mutateSupabase(`${tableName}?id=eq.${id}`, "DELETE");
   await refreshDashboard();
 }
