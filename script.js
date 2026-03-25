@@ -146,33 +146,45 @@ function setupLegacyMobileTicker() {
   let frameId = 0;
   let previousTime = 0;
   let offset = 0;
-  let loopDistance = 0;
   let lastViewportWidth = window.innerWidth;
   const speed = 34;
+  const gap = () => parseFloat(window.getComputedStyle(firstTrack).gap || "0");
+
+  const syncDuplicateTrack = () => {
+    secondTrack.innerHTML = firstTrack.innerHTML;
+  };
 
   const measure = () => {
-    loopDistance = secondTrack.offsetLeft - firstTrack.offsetLeft;
-    if (!loopDistance) {
-      loopDistance = firstTrack.scrollWidth;
-    }
-    if (loopDistance) {
-      motion.style.setProperty("--marquee-loop-distance", `${loopDistance}px`);
-      offset = offset % loopDistance;
+    syncDuplicateTrack();
+    motion.style.transform = `translate3d(${-offset}px, 0, 0)`;
+  };
+
+  const recycleCards = () => {
+    let firstCard = firstTrack.querySelector(".legacy-card");
+    if (!firstCard) return;
+
+    let cardWidth = firstCard.getBoundingClientRect().width + gap();
+    if (!cardWidth) return;
+
+    while (offset >= cardWidth && firstCard) {
+      offset -= cardWidth;
+      firstTrack.appendChild(firstCard);
+      firstCard = firstTrack.querySelector(".legacy-card");
+      cardWidth = firstCard ? firstCard.getBoundingClientRect().width + gap() : 0;
+      syncDuplicateTrack();
+      motion.style.transform = `translate3d(${-offset}px, 0, 0)`;
     }
   };
 
   const tick = (time) => {
-    if (!mediaQuery.matches || !loopDistance) return;
+    if (!mediaQuery.matches) return;
 
     if (!previousTime) previousTime = time;
     const delta = (time - previousTime) / 1000;
     previousTime = time;
 
     offset += speed * delta;
-    if (offset >= loopDistance) {
-      offset -= loopDistance;
-    }
-
+    recycleCards();
     motion.style.transform = `translate3d(${-offset}px, 0, 0)`;
     frameId = window.requestAnimationFrame(tick);
   };
