@@ -687,20 +687,11 @@ textarea {
   margin: 0;
   padding: 72px 0;
   overflow: hidden;
-  background:
-    linear-gradient(180deg, rgba(3, 6, 12, 0.4), rgba(3, 6, 12, 0.84)),
-    url("img-dilson/fundo-dilson.png") center/cover no-repeat;
+  background: url("img-dilson/fundo-dilson.png") center/cover no-repeat;
 }
 
 .mentor-section::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 20% 24%, rgba(194, 161, 75, 0.1), transparent 30%),
-    radial-gradient(circle at 80% 28%, rgba(255, 255, 255, 0.06), transparent 26%),
-    radial-gradient(circle at 52% 84%, rgba(194, 161, 75, 0.08), transparent 24%);
-  opacity: 0.78;
+  content: none;
 }
 
 .mentor-shell {
@@ -739,7 +730,7 @@ textarea {
   line-height: 0.98;
   font-weight: 800;
   max-width: 680px;
-  color: #f8fafc;
+  color: #111111;
 }
 
 .mentor-intro h2 span {
@@ -755,8 +746,9 @@ textarea {
   max-width: 100%;
   padding: 11px 26px;
   border-radius: 999px;
-  background: #020702;
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  color: #111111;
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.28em;
@@ -767,7 +759,7 @@ textarea {
   display: grid;
   gap: 22px;
   max-width: 660px;
-  color: rgba(248, 250, 252, 0.86);
+  color: rgba(17, 17, 17, 0.82);
 }
 
 .mentor-text h3 {
@@ -775,7 +767,7 @@ textarea {
   font-size: clamp(2.1rem, 3vw, 2.7rem);
   font-weight: 800;
   line-height: 1.05;
-  color: #ffffff;
+  color: #111111;
 }
 
 .mentor-text p {
@@ -786,7 +778,7 @@ textarea {
 
 .mentor-marquee-label {
   font-size: 1rem;
-  color: rgba(248, 250, 252, 0.82);
+  color: rgba(17, 17, 17, 0.74);
 }
 
 .mentor-marquee {
@@ -797,23 +789,7 @@ textarea {
 
 .mentor-marquee::before,
 .mentor-marquee::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 72px;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.mentor-marquee::before {
-  left: 0;
-  background: linear-gradient(90deg, rgba(5, 7, 11, 0.95), transparent);
-}
-
-.mentor-marquee::after {
-  right: 0;
-  background: linear-gradient(270deg, rgba(5, 7, 11, 0.95), transparent);
+  content: none;
 }
 
 .mentor-marquee-track {
@@ -855,7 +831,7 @@ textarea {
   object-fit: contain;
   filter: grayscale(1) contrast(1.05);
   opacity: 0.92;
-  mix-blend-mode: multiply;
+  mix-blend-mode: normal;
 }
 
 .mentor-visual {
@@ -895,13 +871,13 @@ textarea {
 
 .mentor-stat {
   padding: 22px 20px;
-  background: linear-gradient(180deg, rgba(17, 17, 17, 0.58), rgba(17, 17, 17, 0.88));
-  color: #ffffff;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.9));
+  color: #111111;
   backdrop-filter: blur(10px);
 }
 
 .mentor-stat + .mentor-stat {
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 1px solid rgba(17, 17, 17, 0.08);
 }
 
 .mentor-stat strong {
@@ -920,7 +896,7 @@ textarea {
 .mentor-stat span {
   display: block;
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.82);
+  color: rgba(17, 17, 17, 0.72);
 }
 
 .legacy-section {
@@ -1445,11 +1421,7 @@ textarea {
   }
 
   .mentor-section::before {
-    background:
-      radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.09), transparent 28%),
-      radial-gradient(circle at 82% 22%, rgba(255, 255, 255, 0.07), transparent 24%),
-      radial-gradient(circle at 50% 84%, rgba(255, 255, 255, 0.06), transparent 20%);
-    opacity: 0.34;
+    content: none;
   }
 
   .mentor-shell {
@@ -1507,7 +1479,7 @@ textarea {
 
   .mentor-stat {
     padding: 24px 18px;
-    background: linear-gradient(180deg, rgba(17, 17, 17, 0.38), rgba(17, 17, 17, 0.8));
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.88));
   }
 
   .mentor-stat strong {
