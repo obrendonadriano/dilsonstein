@@ -11,7 +11,17 @@ const activeCitiesList = document.querySelector("#active-cities-list");
 const heroActiveCitiesText = document.querySelector("#hero-active-cities-text");
 const glowCards = document.querySelectorAll(".card-glow");
 const submitButton = document.querySelector('#lead-form button[type="submit"]');
+const chatRoot = document.querySelector("#site-chat");
+const chatToggle = document.querySelector("#site-chat-toggle");
+const chatPanel = document.querySelector("#site-chat-panel");
+const chatClose = document.querySelector("#site-chat-close");
+const chatMessages = document.querySelector("#site-chat-messages");
+const chatForm = document.querySelector("#site-chat-form");
+const chatInput = document.querySelector("#site-chat-input");
+const chatSubmit = document.querySelector("#site-chat-submit");
 let latestLeadPayload = null;
+let chatHistory = [];
+let chatTypingNode = null;
 
 setupModal();
 setupCardGlowTouch();
@@ -20,6 +30,7 @@ setupHeroModelLoop();
 setupInfiniteMarquees();
 setupModelsScrollLoop();
 setupSchedulingOptions();
+setupSiteChat();
 trackInitialPageView();
 
 if (form) form.addEventListener("submit", handleSubmit);
@@ -717,4 +728,177 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+}
+
+function setupSiteChat() {
+  if (!chatRoot || !chatToggle || !chatPanel || !chatMessages || !chatForm || !chatInput) return;
+
+  chatHistory = loadChatHistory();
+  renderChatHistory();
+
+  if (!chatHistory.length) {
+    const welcomeMessage = "Oi, tudo bem? Eu posso te explicar como funciona a seletiva e te ajudar a concluir seu cadastro. O que você gostaria de saber?";
+    appendChatMessage("model", welcomeMessage);
+    persistChatHistory();
+  }
+
+  chatToggle.addEventListener("click", () => {
+    const shouldOpen = chatPanel.hidden;
+    setChatOpen(shouldOpen);
+  });
+
+  chatClose?.addEventListener("click", () => setChatOpen(false));
+
+  chatForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const message = chatInput.value.trim();
+
+    if (!message) return;
+
+    appendChatMessage("user", message);
+    persistChatHistory();
+    chatInput.value = "";
+    autoResizeChatInput();
+    setChatLoading(true);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message,
+          history: chatHistory.slice(0, -1).slice(-8),
+          leadContext: getLeadContext()
+        })
+      });
+
+      const data = await response.json().catch(() => ({}));
+      const reply = String(data.reply || "").trim()
+        || "Posso te ajudar a seguir com o cadastro. Me conta sua dúvida.";
+
+      appendChatMessage("model", reply);
+
+      const ctaNode = chatRoot.querySelector(".site-chat-cta");
+      if (ctaNode && data.ctaHref) {
+        ctaNode.href = data.ctaHref;
+      }
+      if (ctaNode && data.ctaLabel) {
+        ctaNode.textContent = data.ctaLabel;
+      }
+    } catch (error) {
+      console.error("Falha no chat:", error);
+      appendChatMessage("model", "Tive uma instabilidade aqui agora, mas você pode seguir pelo botão de cadastro e concluir seu perfil.");
+    } finally {
+      setChatLoading(false);
+      persistChatHistory();
+      setChatOpen(true);
+    }
+  });
+
+  chatInput.addEventListener("input", autoResizeChatInput);
+}
+
+function setChatOpen(isOpen) {
+  if (!chatPanel || !chatToggle) return;
+  chatPanel.hidden = !isOpen;
+  chatToggle.setAttribute("aria-expanded", String(isOpen));
+
+  if (isOpen) {
+    window.setTimeout(() => {
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      chatInput?.focus();
+    }, 30);
+  }
+}
+
+function setChatLoading(isLoading) {
+  if (!chatSubmit) return;
+
+  chatSubmit.disabled = isLoading;
+  chatInput.disabled = isLoading;
+
+  if (isLoading) {
+    chatTypingNode = document.createElement("div");
+    chatTypingNode.className = "site-chat-message site-chat-message--bot site-chat-message--typing";
+    chatTypingNode.textContent = "Digitando...";
+    chatMessages.appendChild(chatTypingNode);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return;
+  }
+
+  if (chatTypingNode) {
+    chatTypingNode.remove();
+    chatTypingNode = null;
+  }
+}
+
+function appendChatMessage(role, text) {
+  const normalizedRole = role === "user" ? "user" : "model";
+  const trimmedText = String(text || "").trim();
+  if (!trimmedText || !chatMessages) return;
+
+  chatHistory.push({ role: normalizedRole, text: trimmedText });
+  chatHistory = chatHistory.slice(-20);
+
+  const messageNode = document.createElement("div");
+  messageNode.className = `site-chat-message site-chat-message--${normalizedRole === "user" ? "user" : "bot"}`;
+  messageNode.textContent = trimmedText;
+  chatMessages.appendChild(messageNode);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function renderChatHistory() {
+  if (!chatMessages) return;
+  chatMessages.innerHTML = "";
+
+  chatHistory.forEach((entry) => {
+    const messageNode = document.createElement("div");
+    messageNode.className = `site-chat-message site-chat-message--${entry.role === "user" ? "user" : "bot"}`;
+    messageNode.textContent = entry.text;
+    chatMessages.appendChild(messageNode);
+  });
+}
+
+function loadChatHistory() {
+  try {
+    const raw = window.localStorage.getItem("dilson_site_chat_history");
+    const parsed = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .map((entry) => ({
+        role: entry?.role === "user" ? "user" : "model",
+        text: String(entry?.text || "").trim()
+      }))
+      .filter((entry) => entry.text)
+      .slice(-20);
+  } catch {
+    return [];
+  }
+}
+
+function persistChatHistory() {
+  try {
+    window.localStorage.setItem("dilson_site_chat_history", JSON.stringify(chatHistory.slice(-20)));
+  } catch {
+    // Ignora falha de armazenamento local.
+  }
+}
+
+function autoResizeChatInput() {
+  if (!chatInput) return;
+  chatInput.style.height = "auto";
+  chatInput.style.height = `${Math.min(chatInput.scrollHeight, 120)}px`;
+}
+
+function getLeadContext() {
+  return {
+    page: window.location.pathname,
+    name: document.querySelector("#name")?.value.trim() || "",
+    age: document.querySelector("#age")?.value.trim() || "",
+    city: document.querySelector("#city")?.value.trim() || "",
+    time: document.querySelector("#time")?.value.trim() || ""
+  };
 }

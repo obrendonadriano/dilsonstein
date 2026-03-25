@@ -119,6 +119,33 @@
     </div>
   </div>
 
-  <script src="script.js?v=8"></script>
+  <aside class="site-chat" id="site-chat" aria-label="Chat de duvidas">
+    <button class="site-chat-toggle" id="site-chat-toggle" type="button" aria-expanded="false" aria-controls="site-chat-panel">
+      <span class="site-chat-toggle-label">Duvidas</span>
+      <span class="site-chat-toggle-icon" aria-hidden="true">?</span>
+    </button>
+
+    <section class="site-chat-panel" id="site-chat-panel" hidden>
+      <header class="site-chat-header">
+        <div>
+          <strong>Chat de duvidas</strong>
+          <p>Tire suas duvidas e avance no cadastro.</p>
+        </div>
+        <button class="site-chat-close" id="site-chat-close" type="button" aria-label="Fechar chat">×</button>
+      </header>
+
+      <div class="site-chat-messages" id="site-chat-messages" aria-live="polite"></div>
+
+      <a class="site-chat-cta" href="/cadastro-formulario">Quero cadastrar meu perfil</a>
+
+      <form class="site-chat-form" id="site-chat-form">
+        <label class="site-chat-sr-only" for="site-chat-input">Digite sua duvida</label>
+        <textarea id="site-chat-input" rows="1" maxlength="500" placeholder="Digite sua duvida..."></textarea>
+        <button type="submit" id="site-chat-submit">Enviar</button>
+      </form>
+    </section>
+  </aside>
+
+  <script src="script.js?v=9"></script>
 </body>
 </html>
