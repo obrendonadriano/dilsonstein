@@ -7,6 +7,7 @@ const form = document.querySelector("#lead-form");
 const statusNode = document.querySelector("#form-status");
 const modal = document.querySelector("#success-modal");
 const whatsappLink = document.querySelector("#whatsapp-link");
+const activeCitiesList = document.querySelector("#active-cities-list");
 const glowCards = document.querySelectorAll(".card-glow");
 const submitButton = document.querySelector('#lead-form button[type="submit"]');
 let latestLeadPayload = null;
@@ -629,6 +630,8 @@ async function setupSchedulingOptions() {
     timeOptions,
     "Selecione o horário para comparecer presencialmente à seleção"
   );
+
+  populateActiveCities(cityOptions);
 }
 
 async function loadSchedulingOptions(tableName, fallbackOptions) {
@@ -680,6 +683,15 @@ function populateSelect(selectNode, options, placeholder) {
   if (options.includes(currentValue)) {
     selectNode.value = currentValue;
   }
+}
+
+function populateActiveCities(cities) {
+  if (!activeCitiesList) return;
+
+  const items = (Array.isArray(cities) ? cities : []).filter(Boolean);
+  activeCitiesList.innerHTML = items
+    .map((city) => `<span>${escapeHtml(city)}</span>`)
+    .join("");
 }
 
 function escapeHtml(value) {
