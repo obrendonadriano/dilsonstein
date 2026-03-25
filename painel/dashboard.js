@@ -16,6 +16,7 @@ const filterCityStatus = document.querySelector("#filter-city-status");
 const applyFiltersButton = document.querySelector("#apply-filters");
 const clearFiltersButton = document.querySelector("#clear-filters");
 const exportCsvButton = document.querySelector("#export-csv");
+const exportClearFiltersButton = document.querySelector("#export-clear-filters");
 const cityForm = document.querySelector("#city-form");
 const cityEditorForm = document.querySelector("#city-editor-form");
 const cityTimeForm = document.querySelector("#city-time-form");
@@ -37,16 +38,11 @@ const editCityVenueInput = document.querySelector("#edit-city-venue");
 const editCityAddressInput = document.querySelector("#edit-city-address");
 const editCityActiveInput = document.querySelector("#edit-city-active");
 const newCityTimeInput = document.querySelector("#new-city-time");
-const exportUseCity = document.querySelector("#export-use-city");
-const exportUseTime = document.querySelector("#export-use-time");
-const exportUseDdd = document.querySelector("#export-use-ddd");
-const exportUseState = document.querySelector("#export-use-state");
-const exportUseCityStatus = document.querySelector("#export-use-city-status");
-const exportCityValue = document.querySelector("#export-city-value");
-const exportTimeValue = document.querySelector("#export-time-value");
-const exportDddValue = document.querySelector("#export-ddd-value");
-const exportStateValue = document.querySelector("#export-state-value");
-const exportCityStatusValue = document.querySelector("#export-city-status-value");
+const exportFilterCity = document.querySelector("#export-filter-city");
+const exportFilterTime = document.querySelector("#export-filter-time");
+const exportFilterDdd = document.querySelector("#export-filter-ddd");
+const exportFilterState = document.querySelector("#export-filter-state");
+const exportFilterCityStatus = document.querySelector("#export-filter-city-status");
 
 const metricTotal = document.querySelector("#metric-total");
 const metricCities = document.querySelector("#metric-cities");
@@ -72,6 +68,7 @@ logoutButtons.forEach((button) => button.addEventListener("click", logout));
 if (applyFiltersButton) applyFiltersButton.addEventListener("click", applyFilters);
 if (clearFiltersButton) clearFiltersButton.addEventListener("click", clearFilters);
 if (exportCsvButton) exportCsvButton.addEventListener("click", exportLeadsSpreadsheet);
+if (exportClearFiltersButton) exportClearFiltersButton.addEventListener("click", clearExportFilters);
 if (cityForm) cityForm.addEventListener("submit", handleCityCreate);
 if (cityEditorForm) cityEditorForm.addEventListener("submit", handleCityUpdate);
 if (cityTimeForm) cityTimeForm.addEventListener("submit", handleCityTimeCreate);
@@ -180,6 +177,7 @@ async function refreshDashboard() {
   syncSelectedEditorCity();
   renderOptionLists();
   populateFilters();
+  populateExportFilters();
   populateEditorCitySelect();
   await renderEditorCity();
   applyFilters();
@@ -266,6 +264,13 @@ function populateFilters() {
   populateSelect(filterTime, buildActiveTimeLabels(), "Todos os horários");
   populateSelect(filterDdd, buildDddOptions(), "Todos os DDDs");
   populateSelect(filterState, buildStateOptions(), "Todos os estados");
+}
+
+function populateExportFilters() {
+  populateSelect(exportFilterCity, cities.map((item) => item.label), "Todas as cidades");
+  populateSelect(exportFilterTime, buildActiveTimeLabels(), "Todos os horários");
+  populateSelect(exportFilterDdd, buildDddOptions(), "Todos os DDDs");
+  populateSelect(exportFilterState, buildStateOptions(), "Todos os estados");
 }
 
 function populateEditorCitySelect() {
@@ -625,7 +630,6 @@ function applyFilters() {
   renderSummaries();
   renderAlerts();
   updateMetrics(selectedCity, selectedTime, selectedDdd, selectedState, selectedCityStatus);
-  updateExportSelections();
 }
 
 function clearFilters() {
@@ -636,6 +640,14 @@ function clearFilters() {
   if (filterCityStatus) filterCityStatus.value = "";
   if (leadSearchInput) leadSearchInput.value = "";
   applyFilters();
+}
+
+function clearExportFilters() {
+  if (exportFilterCity) exportFilterCity.value = "";
+  if (exportFilterTime) exportFilterTime.value = "";
+  if (exportFilterDdd) exportFilterDdd.value = "";
+  if (exportFilterState) exportFilterState.value = "";
+  if (exportFilterCityStatus) exportFilterCityStatus.value = "";
 }
 
 function renderLeadsTable() {
@@ -681,7 +693,7 @@ function renderLeadsTable() {
         .find((node) => node.dataset.id === leadId);
       const nextTime = select?.value || "";
       if (!leadId || !nextTime) return;
-      await updateLeadTime(leadId, nextTime);
+      await updateLeadTime(leadId, nextTime, button);
     });
   });
 
@@ -950,15 +962,49 @@ async function exportLeadsSpreadsheet() {
   XLSX.writeFile(workbook, buildExportFilename(exportFilters), { compression: true });
 }
 
-async function updateLeadTime(leadId, nextTime) {
+async function updateLeadTime(leadId, nextTime, button) {
   const lead = leads.find((item) => String(item.id) === String(leadId));
   if (!lead || !nextTime || lead.time === nextTime) return;
+  const originalText = button?.textContent || "Salvar";
 
-  await mutateSupabase(`leads?id=eq.${leadId}`, "PATCH", {
-    time: nextTime
-  });
+  try {
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Salvando...";
+    }
 
-  await refreshDashboard();
+    await mutateSupabase(`leads?id=eq.${leadId}`, "PATCH", {
+      time: nextTime
+    });
+
+    lead.time = nextTime;
+    filteredLeads = filteredLeads.map((item) =>
+      String(item.id) === String(leadId) ? { ...item, time: nextTime } : item
+    );
+    renderLeadsTable();
+
+    if (button) {
+      button.textContent = "Salvo";
+      button.classList.add("is-success");
+    }
+
+    await refreshDashboard();
+
+    window.setTimeout(() => {
+      if (!button) return;
+      button.textContent = originalText;
+      button.classList.remove("is-success");
+      button.disabled = false;
+    }, 1200);
+  } catch (error) {
+    console.error("Falha ao atualizar horário do lead:", error);
+    if (button) {
+      button.disabled = false;
+      button.textContent = originalText;
+      button.classList.remove("is-success");
+    }
+    alert("Não foi possível atualizar o horário agora. Verifique o Supabase e tente novamente.");
+  }
 }
 
 function buildExportFilename(filters) {
@@ -1148,13 +1194,12 @@ function getLeadsByFilters(filters) {
 }
 
 function getExportFilters() {
-  const currentFilters = getCurrentFilters();
   return {
-    selectedCity: exportUseCity?.checked ? currentFilters.selectedCity : "",
-    selectedTime: exportUseTime?.checked ? currentFilters.selectedTime : "",
-    selectedDdd: exportUseDdd?.checked ? currentFilters.selectedDdd : "",
-    selectedState: exportUseState?.checked ? currentFilters.selectedState : "",
-    selectedCityStatus: exportUseCityStatus?.checked ? currentFilters.selectedCityStatus : ""
+    selectedCity: exportFilterCity?.value || "",
+    selectedTime: exportFilterTime?.value || "",
+    selectedDdd: exportFilterDdd?.value || "",
+    selectedState: exportFilterState?.value || "",
+    selectedCityStatus: exportFilterCityStatus?.value || ""
   };
 }
 
@@ -1191,21 +1236,6 @@ function matchLeadSearch(lead, searchTerm) {
   const phoneQuery = String(searchTerm).replace(/\D/g, "");
 
   return normalizedName.includes(searchTerm) || (phoneQuery && normalizedPhone.includes(phoneQuery));
-}
-
-function updateExportSelections() {
-  if (exportCityValue) exportCityValue.textContent = filterCity?.value || "Todas as cidades";
-  if (exportTimeValue) exportTimeValue.textContent = filterTime?.value || "Todos os horários";
-  if (exportDddValue) exportDddValue.textContent = filterDdd?.value || "Todos os DDDs";
-  if (exportStateValue) exportStateValue.textContent = filterState?.value || "Todos os estados";
-  if (exportCityStatusValue) {
-    exportCityStatusValue.textContent =
-      filterCityStatus?.value === "active"
-        ? "Somente ativas"
-        : filterCityStatus?.value === "inactive"
-          ? "Somente inativas"
-          : "Ativas e inativas";
-  }
 }
 
 function buildDddOptions() {

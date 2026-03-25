@@ -471,50 +471,6 @@ p {
   margin-top: 18px;
 }
 
-.export-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.export-choice {
-  display: flex;
-  align-items: start;
-  gap: 12px;
-  padding: 16px 18px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.44);
-  border: 1px solid rgba(19, 32, 51, 0.08);
-  cursor: pointer;
-}
-
-.export-choice input {
-  width: 18px;
-  height: 18px;
-  margin-top: 2px;
-  padding: 0;
-  border: 0;
-  border-radius: 4px;
-  background: transparent;
-  box-shadow: none;
-  accent-color: var(--accent);
-}
-
-.export-choice span {
-  display: grid;
-  gap: 4px;
-}
-
-.export-choice strong {
-  font-size: 1rem;
-}
-
-.export-choice small {
-  color: var(--muted);
-  font-size: 0.88rem;
-  line-height: 1.45;
-}
-
 .editor-stack {
   display: grid;
   gap: 16px;
@@ -808,6 +764,11 @@ select:focus {
   padding: 10px 14px;
 }
 
+.lead-time-editor button.is-success {
+  background: rgba(161, 135, 66, 0.18);
+  color: #72580f;
+}
+
 .table-wrap {
   overflow: auto;
 }
@@ -932,8 +893,7 @@ td {
   }
 
   .filters-grid,
-  .inline-form-grid,
-  .export-grid {
+  .inline-form-grid {
     grid-template-columns: 1fr;
   }
 

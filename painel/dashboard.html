@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/painel/painel.css?v=10">
+  <link rel="stylesheet" href="/painel/painel.css?v=11">
   <script src="/config.js?v=7"></script>
 </head>
 <body class="panel-page">
@@ -206,61 +206,48 @@
               <div>
                 <span class="eyebrow">Exportação</span>
                 <h2>Baixar Planilha</h2>
-                <p class="panel-subtitle">Escolha quais filtros da Dashboard devem entrar no arquivo e gere a planilha do jeito que ficar melhor para você.</p>
+                <p class="panel-subtitle">Escolha os filtros que deseja aplicar na exportação e baixe a planilha pronta para usar.</p>
               </div>
             </header>
 
             <section class="workspace-panel">
-              <div class="card-header">
-                <div>
-                  <h2>Filtros que entram na planilha</h2>
-                  <p class="panel-subtitle">Os filtros abaixo usam a seleção atual da Dashboard. Marque o que você quer considerar no download.</p>
-                </div>
-              </div>
-
-              <div class="export-grid">
-                <label class="export-choice">
-                  <input type="checkbox" id="export-use-city" checked>
-                  <span>
-                    <strong>Cidade</strong>
-                    <small id="export-city-value">Todas as cidades</small>
-                  </span>
+              <div class="filters-grid">
+                <label>
+                  Cidade
+                  <select id="export-filter-city">
+                    <option value="">Todas as cidades</option>
+                  </select>
                 </label>
-
-                <label class="export-choice">
-                  <input type="checkbox" id="export-use-time" checked>
-                  <span>
-                    <strong>Horário</strong>
-                    <small id="export-time-value">Todos os horários</small>
-                  </span>
+                <label>
+                  Horário
+                  <select id="export-filter-time">
+                    <option value="">Todos os horários</option>
+                  </select>
                 </label>
-
-                <label class="export-choice">
-                  <input type="checkbox" id="export-use-ddd" checked>
-                  <span>
-                    <strong>DDD</strong>
-                    <small id="export-ddd-value">Todos os DDDs</small>
-                  </span>
+                <label>
+                  DDD
+                  <select id="export-filter-ddd">
+                    <option value="">Todos os DDDs</option>
+                  </select>
                 </label>
-
-                <label class="export-choice">
-                  <input type="checkbox" id="export-use-state" checked>
-                  <span>
-                    <strong>Estado</strong>
-                    <small id="export-state-value">Todos os estados</small>
-                  </span>
+                <label>
+                  Estado
+                  <select id="export-filter-state">
+                    <option value="">Todos os estados</option>
+                  </select>
                 </label>
-
-                <label class="export-choice">
-                  <input type="checkbox" id="export-use-city-status" checked>
-                  <span>
-                    <strong>Status da cidade</strong>
-                    <small id="export-city-status-value">Ativas e inativas</small>
-                  </span>
+                <label>
+                  Status da cidade
+                  <select id="export-filter-city-status">
+                    <option value="">Ativas e inativas</option>
+                    <option value="active">Somente ativas</option>
+                    <option value="inactive">Somente inativas</option>
+                  </select>
                 </label>
               </div>
 
               <div class="button-row">
+                <button type="button" class="ghost-button" id="export-clear-filters">Limpar filtros da planilha</button>
                 <button type="button" class="ghost-button" id="export-csv">Baixar planilha XLSX</button>
               </div>
             </section>
@@ -349,6 +336,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-  <script src="/painel/dashboard.js?v=11"></script>
+  <script src="/painel/dashboard.js?v=12"></script>
 </body>
 </html>
