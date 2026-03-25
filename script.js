@@ -8,6 +8,7 @@ const statusNode = document.querySelector("#form-status");
 const modal = document.querySelector("#success-modal");
 const whatsappLink = document.querySelector("#whatsapp-link");
 const activeCitiesList = document.querySelector("#active-cities-list");
+const heroActiveCitiesText = document.querySelector("#hero-active-cities-text");
 const glowCards = document.querySelectorAll(".card-glow");
 const submitButton = document.querySelector('#lead-form button[type="submit"]');
 let latestLeadPayload = null;
@@ -632,6 +633,7 @@ async function setupSchedulingOptions() {
   );
 
   populateActiveCities(cityOptions);
+  populateHeroActiveCities(cityOptions);
 }
 
 async function loadSchedulingOptions(tableName, fallbackOptions) {
@@ -692,6 +694,20 @@ function populateActiveCities(cities) {
   activeCitiesList.innerHTML = items
     .map((city) => `<span>${escapeHtml(city)}</span>`)
     .join("");
+}
+
+function populateHeroActiveCities(cities) {
+  if (!heroActiveCitiesText) return;
+
+  const items = (Array.isArray(cities) ? cities : []).filter(Boolean);
+  if (!items.length) {
+    heroActiveCitiesText.textContent = "Seleção presencial já confirmada nas cidades ativas.";
+    return;
+  }
+
+  const visibleCities = items.slice(0, 3);
+  const cityText = visibleCities.join(", ");
+  heroActiveCitiesText.textContent = ` Seleção presencial já confirmada em ${cityText}.`;
 }
 
 function escapeHtml(value) {
