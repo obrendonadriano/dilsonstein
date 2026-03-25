@@ -147,7 +147,7 @@ function setupLegacyMobileTicker() {
   let previousTime = 0;
   let offset = 0;
   let lastViewportWidth = window.innerWidth;
-  const speed = 34;
+  const speed = 58;
   const gap = () => parseFloat(window.getComputedStyle(firstTrack).gap || "0");
 
   const syncDuplicateTrack = () => {
