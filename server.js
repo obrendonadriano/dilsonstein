@@ -352,8 +352,9 @@ async function generateChatReply(payload) {
     });
 
     return {
-      statusCode: 500,
+      statusCode: 200,
       data: {
+        fallback: true,
         error: error.message,
         reply: fallbackReply
       }
@@ -507,10 +508,76 @@ function buildFallbackChatReply({ message, memory, leadContext }) {
   const audience = memory?.campaign_data?.eligible_audience || {};
   const faq = Array.isArray(memory?.faq) ? memory.faq : [];
   const objections = Array.isArray(memory?.objection_handling) ? memory.objection_handling : [];
+  const selectionDayInfo = Array.isArray(memory?.selection_day_info?.what_happens)
+    ? memory.selection_day_info.what_happens.filter(Boolean)
+    : [];
+  const cityText = activeCities.length ? activeCities.join(", ") : "";
+  const timeText = availableTimes.length ? availableTimes.join(", ") : "";
+
+  if (/^(oi|ola|olá|e ai|e aí|hey|kkk|rs|rsrs|bom dia|boa tarde|boa noite|oii+)$/.test(normalizedMessage.trim())) {
+    return `Oi! Tudo bem? Eu posso te explicar como funciona a seletiva, passar cidades e horarios ativos e te orientar sobre como participar. O que você quer saber primeiro?`;
+  }
+
+  if (/como participar|como faço|como faco|quero participar|participar|cadastro|cadastrar|inscri/.test(normalizedMessage)) {
+    const cityHint = cityText ? ` No momento, as cidades ativas sao ${cityText}.` : "";
+    const timeHint = timeText ? ` Os horarios disponiveis sao ${timeText}.` : "";
+    return `E super simples: voce faz o cadastro no site, escolhe a cidade e o horario disponivel e participa da seletiva presencial com a equipe.${cityHint}${timeHint} Se quiser, eu tambem posso te ajudar a escolher a melhor cidade para voce.`;
+  }
+
+  if (/cidade|cidades|onde vai acontecer|onde acontece|onde sera|onde será/.test(normalizedMessage)) {
+    if (cityText) {
+      return `No momento, as cidades ativas sao ${cityText}. Qual delas fica melhor para voce?`;
+    }
+    return "No momento, eu consigo te orientar pelas cidades ativas que aparecem no site. Quer me dizer sua regiao para eu te ajudar melhor?";
+  }
+
+  if (/horario|horarios|horários/.test(normalizedMessage)) {
+    if (timeText) {
+      return `Os horarios disponiveis no momento sao ${timeText}. Qual horario voce prefere?`;
+    }
+    return "Posso te orientar sobre os horarios disponiveis da seletiva. Se quiser, me diz a cidade que eu continuo por aqui.";
+  }
+
+  if (/idade|quem pode|posso participar|tenho .* anos|anos/.test(normalizedMessage)) {
+    const ageRange = audience.age_range || "de 8 ate 60/70 anos";
+    const minorsRule = audience.minors_rule || "Menores devem estar acompanhados pelos responsaveis.";
+    return `Podem participar ${audience.gender || "homens e mulheres"}, normalmente ${ageRange}. ${minorsRule} Se quiser, me fala sua idade que eu te oriento melhor.`;
+  }
+
+  if (/pagar|preco|valor|taxa|custa/.test(normalizedMessage) && solidarityRequirement) {
+    return `${solidarityRequirement} As informacoes completas sobre as proximas etapas sao apresentadas pela equipe responsavel durante o processo presencial.`;
+  }
+
+  if (/roupa|vestido|vestida|como devo ir|como ir/.test(normalizedMessage)) {
+    return "A orientacao e ir com roupa confortavel, do dia a dia, algo em que voce se sinta bem, evitando roupas muito curtas e maquiagem pesada.";
+  }
+
+  if (/o que acontece|como funciona no dia|no dia|dia da seletiva/.test(normalizedMessage) && selectionDayInfo.length) {
+    return `No dia da seletiva acontece assim: ${selectionDayInfo.join(", ")}. E uma avaliacao de perfil feita pela equipe, nao um concurso de beleza.`;
+  }
+
+  if (/nunca modelei|nunca trabalhei|sem experiencia|sem experiência/.test(normalizedMessage)) {
+    return "Pode sim. A seletiva existe justamente para identificar novos talentos, inclusive quem ainda nao teve experiencia. Se quiser, eu tambem posso te explicar como funciona a avaliacao.";
+  }
+
+  if (/tenho vergonha|vergonha|nao sei se tenho perfil|não sei se tenho perfil|e golpe|é golpe|confiavel|confiável/.test(normalizedMessage)) {
+    const objectionMatchDirect = objections.find((item) => {
+      const objection = String(item?.objection || "").toLowerCase();
+      return objection && normalizedMessage.includes(objection);
+    });
+
+    if (objectionMatchDirect?.response) {
+      return objectionMatchDirect.response;
+    }
+  }
 
   const faqMatch = faq.find((item) => {
     const question = String(item?.question || "").toLowerCase();
-    return question && normalizedMessage.includes(question.replace("?", ""));
+    const normalizedQuestion = question.replaceAll("?", "").trim();
+    return normalizedQuestion && (
+      normalizedMessage.includes(normalizedQuestion)
+      || normalizedQuestion.split(" ").every((part) => part.length <= 2 || normalizedMessage.includes(part))
+    );
   });
 
   if (faqMatch?.answer) {
@@ -526,30 +593,9 @@ function buildFallbackChatReply({ message, memory, leadContext }) {
     return maybeAppendSignupNudge(objectionMatch.response, message, leadContext);
   }
 
-  if (/cidade|cidades|onde vai acontecer|onde acontece/.test(normalizedMessage)) {
-    const cityText = activeCities.length
-      ? activeCities.join(", ")
-      : "No momento, posso te orientar pelas cidades ativas exibidas no site.";
-    return `${cityText}. Qual delas faz mais sentido para voce?`;
-  }
-
-  if (/horario|horários|horarios/.test(normalizedMessage) && availableTimes.length) {
-    return `Os horarios disponiveis no momento sao ${availableTimes.join(", ")}. Qual horario voce prefere?`;
-  }
-
-  if (/idade|quem pode|posso participar|tenho .* anos|anos/.test(normalizedMessage)) {
-    const ageRange = audience.age_range || "de 8 ate 60/70 anos";
-    const minorsRule = audience.minors_rule || "Menores devem estar acompanhados pelos responsaveis.";
-    return `Podem participar ${audience.gender || "homens e mulheres"}, normalmente ${ageRange}. ${minorsRule}`;
-  }
-
-  if (/pagar|preco|valor|taxa|custa/.test(normalizedMessage) && solidarityRequirement) {
-    return `${solidarityRequirement} As informacoes completas sobre as proximas etapas sao apresentadas pela equipe responsavel durante o processo presencial.`;
-  }
-
-  const cityHint = activeCities.length ? `No momento, as cidades ativas sao ${activeCities.join(", ")}.` : "";
-  const timeHint = availableTimes.length ? ` Os horarios disponiveis sao ${availableTimes.join(", ")}.` : "";
+  const cityHint = cityText ? ` No momento, as cidades ativas sao ${cityText}.` : "";
+  const timeHint = timeText ? ` Os horarios disponiveis sao ${timeText}.` : "";
   const donationHint = solidarityRequirement ? ` ${solidarityRequirement}` : "";
 
-  return `Oi! Posso te ajudar com a seletiva da Dilson Stein.${cityHint}${timeHint}${donationHint} Se quiser, me diga sua duvida sobre cidade, horario, idade ou como participar.`;
+  return `Oi! Posso te ajudar com a seletiva da Dilson Stein.${cityHint}${timeHint}${donationHint} Se quiser, me fala sua duvida de forma mais direta, como por exemplo: cidade, horario, idade ou como participar.`;
 }
