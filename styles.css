@@ -280,10 +280,12 @@ main {
 }
 
 .hero-cta {
-  width: fit-content;
+  width: auto;
   min-width: 220px;
   min-height: 54px;
   padding: 0 26px;
+  justify-self: center;
+  align-self: center;
   box-shadow:
     0 0 0 1px rgba(255, 236, 184, 0.18),
     0 0 22px rgba(194, 161, 75, 0.34),
@@ -1589,6 +1591,11 @@ textarea {
 
   .hero-title-centered {
     font-size: clamp(2.8rem, 12vw, 4.5rem);
+  }
+
+  .hero-text-centered {
+    max-width: 17ch;
+    line-height: 1.45;
   }
 
   .hero-cta {
