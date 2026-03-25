@@ -935,6 +935,12 @@ textarea {
   position: relative;
   overflow: hidden;
   padding: 8px 0 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.models-marquee::-webkit-scrollbar {
+  display: none;
 }
 
 .models-marquee-motion {
@@ -942,11 +948,6 @@ textarea {
   align-items: stretch;
   gap: 0;
   width: max-content;
-  animation: modelsMarquee 28s linear infinite;
-  transform: translate3d(0, 0, 0);
-  will-change: transform;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
 }
 
 .models-marquee-track {

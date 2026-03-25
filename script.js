@@ -16,6 +16,7 @@ setupCardGlowTouch();
 setupFormGate();
 setupHeroModelLoop();
 setupInfiniteMarquees();
+setupModelsScrollLoop();
 setupSchedulingOptions();
 trackInitialPageView();
 
@@ -109,10 +110,6 @@ function setupInfiniteMarquees() {
     {
       motionSelector: ".legacy-carousel-motion",
       trackSelector: ".legacy-carousel-track"
-    },
-    {
-      motionSelector: ".models-marquee-motion",
-      trackSelector: ".models-marquee-track"
     }
   ];
 
@@ -134,6 +131,72 @@ function setupInfiniteMarquees() {
     if ("ResizeObserver" in window) {
       const resizeObserver = new ResizeObserver(updateLoopDistance);
       resizeObserver.observe(firstTrack);
+    }
+  });
+}
+
+function setupModelsScrollLoop() {
+  const marquee = document.querySelector(".models-marquee");
+  const motion = document.querySelector(".models-marquee-motion");
+  const firstTrack = motion?.querySelector(".models-marquee-track");
+  if (!marquee || !motion || !firstTrack) return;
+
+  let frameId = 0;
+  let previousTime = 0;
+  let loopDistance = 0;
+  let currentOffset = 0;
+
+  const speed = 42;
+
+  const measure = () => {
+    const trackWidth = firstTrack.getBoundingClientRect().width;
+    if (!trackWidth) return;
+    loopDistance = trackWidth;
+    currentOffset = currentOffset % loopDistance;
+    marquee.scrollLeft = currentOffset;
+  };
+
+  const tick = (time) => {
+    if (!loopDistance) {
+      frameId = window.requestAnimationFrame(tick);
+      return;
+    }
+
+    if (!previousTime) previousTime = time;
+    const delta = (time - previousTime) / 1000;
+    previousTime = time;
+
+    currentOffset += speed * delta;
+    if (currentOffset >= loopDistance) {
+      currentOffset -= loopDistance;
+    }
+
+    marquee.scrollLeft = currentOffset;
+    frameId = window.requestAnimationFrame(tick);
+  };
+
+  const start = () => {
+    if (frameId) {
+      window.cancelAnimationFrame(frameId);
+      frameId = 0;
+    }
+    previousTime = 0;
+    measure();
+    frameId = window.requestAnimationFrame(tick);
+  };
+
+  start();
+  window.addEventListener("load", start, { passive: true });
+  window.addEventListener("resize", start, { passive: true });
+
+  if ("ResizeObserver" in window) {
+    const resizeObserver = new ResizeObserver(start);
+    resizeObserver.observe(firstTrack);
+  }
+
+  motion.querySelectorAll("img").forEach((img) => {
+    if (!img.complete) {
+      img.addEventListener("load", start, { once: true });
     }
   });
 }
