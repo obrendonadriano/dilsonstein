@@ -798,6 +798,12 @@ function setupSiteChat() {
   });
 
   chatInput.addEventListener("input", autoResizeChatInput);
+  chatInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      chatForm.requestSubmit();
+    }
+  });
 }
 
 function setChatOpen(isOpen) {
