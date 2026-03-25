@@ -1571,7 +1571,7 @@ textarea {
   .legacy-carousel-motion {
     gap: 0;
     width: max-content;
-    animation: legacyMarquee 28s linear infinite;
+    animation: none;
     transform: translate3d(0, 0, 0);
   }
 

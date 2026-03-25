@@ -16,6 +16,7 @@ setupCardGlowTouch();
 setupFormGate();
 setupHeroModelLoop();
 setupInfiniteMarquees();
+setupLegacyMobileTicker();
 setupSchedulingOptions();
 trackInitialPageView();
 
@@ -132,6 +133,73 @@ function setupInfiniteMarquees() {
       resizeObserver.observe(firstTrack);
     }
   });
+}
+
+function setupLegacyMobileTicker() {
+  const mediaQuery = window.matchMedia("(max-width: 820px)");
+  const carousel = document.querySelector(".legacy-carousel");
+  const motion = document.querySelector(".legacy-carousel-motion");
+  const firstTrack = motion?.querySelector(".legacy-carousel-track");
+  if (!carousel || !motion || !firstTrack) return;
+
+  let frameId = 0;
+  let previousTime = 0;
+  let offset = 0;
+  let loopDistance = 0;
+  const speed = 34;
+
+  const measure = () => {
+    loopDistance = firstTrack.getBoundingClientRect().width;
+    if (loopDistance) {
+      motion.style.setProperty("--marquee-loop-distance", `${loopDistance}px`);
+    }
+  };
+
+  const tick = (time) => {
+    if (!mediaQuery.matches || !loopDistance) return;
+
+    if (!previousTime) previousTime = time;
+    const delta = (time - previousTime) / 1000;
+    previousTime = time;
+
+    offset += speed * delta;
+    if (offset >= loopDistance) {
+      offset -= loopDistance;
+    }
+
+    motion.style.transform = `translate3d(${-offset}px, 0, 0)`;
+    frameId = window.requestAnimationFrame(tick);
+  };
+
+  const stop = () => {
+    if (frameId) {
+      window.cancelAnimationFrame(frameId);
+      frameId = 0;
+    }
+    previousTime = 0;
+    offset = 0;
+    motion.style.transform = "translate3d(0, 0, 0)";
+  };
+
+  const start = () => {
+    stop();
+    measure();
+    if (!mediaQuery.matches) {
+      motion.style.transform = "";
+      return;
+    }
+    frameId = window.requestAnimationFrame(tick);
+  };
+
+  start();
+  window.addEventListener("load", start, { passive: true });
+  window.addEventListener("resize", start, { passive: true });
+  mediaQuery.addEventListener("change", start);
+
+  if ("ResizeObserver" in window) {
+    const resizeObserver = new ResizeObserver(start);
+    resizeObserver.observe(firstTrack);
+  }
 }
 
 function setupModal() {
