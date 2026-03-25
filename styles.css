@@ -48,7 +48,7 @@ body::before {
   position: relative;
   z-index: 10;
   width: 100%;
-  padding: 18px 32px 14px;
+  padding: 14px 32px 10px;
   background: rgba(0, 0, 0, 0.82);
 }
 
@@ -87,7 +87,7 @@ main {
   place-items: center;
   width: 100%;
   min-height: 100dvh;
-  padding: 36px 20px 88px;
+  padding: 8px 20px 88px;
   overflow: hidden;
 }
 
@@ -1612,12 +1612,12 @@ textarea {
   }
 
   .topbar {
-    padding: 16px 20px 12px;
+    padding: 14px 20px 8px;
   }
 
   .hero {
     min-height: 100dvh;
-    padding: 28px 24px 84px;
+    padding: 12px 24px 84px;
   }
 
   .hero-copy {
