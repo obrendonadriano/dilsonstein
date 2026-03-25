@@ -801,7 +801,9 @@ function setupSiteChat() {
 }
 
 function setChatOpen(isOpen) {
-  if (!chatPanel || !chatToggle) return;
+  if (!chatPanel || !chatToggle || !chatRoot) return;
+
+  chatRoot.classList.toggle("is-open", isOpen);
   chatPanel.hidden = !isOpen;
   chatToggle.setAttribute("aria-expanded", String(isOpen));
 

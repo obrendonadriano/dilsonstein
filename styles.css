@@ -2045,10 +2045,9 @@ textarea {
 .site-chat-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
   border: 0;
   border-radius: 999px;
-  padding: 14px 18px;
+  padding: 14px 22px;
   background: linear-gradient(135deg, #c7a757, #8e6a26);
   color: #08101b;
   font: inherit;
@@ -2057,14 +2056,12 @@ textarea {
   cursor: pointer;
 }
 
-.site-chat-toggle-icon {
-  display: inline-grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  background: rgba(8, 16, 27, 0.12);
-  font-weight: 900;
+.site-chat-toggle-label {
+  letter-spacing: 0.02em;
+}
+
+.site-chat.is-open .site-chat-toggle {
+  display: none;
 }
 
 .site-chat-panel {
