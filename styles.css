@@ -139,7 +139,7 @@ main {
 .hero-home-layout {
   grid-template-columns: 1fr;
   align-items: center;
-  justify-content: start;
+  justify-content: center;
   gap: 0;
 }
 
@@ -160,86 +160,38 @@ main {
 
 @media (min-width: 821px) {
   .hero-content.hero-home-layout {
-    position: relative;
-    width: min(1280px, 100%);
-    min-height: 640px;
+    width: min(1120px, 100%);
+    min-height: auto;
+    justify-items: center;
   }
 
   .hero-copy-centered {
-    justify-items: flex-start;
-    text-align: left;
+    justify-items: center;
+    text-align: center;
     padding-top: 0;
-    max-width: 620px;
-    position: relative;
-    z-index: 2;
+    max-width: 980px;
   }
 
   .hero-title-centered,
   .hero-text-centered {
-    text-align: left;
+    text-align: center;
   }
 
   .hero-title-centered {
-    max-width: 620px;
-    font-size: clamp(2.8rem, 4.4vw, 4.15rem);
-    line-height: 1.02;
+    max-width: 1040px;
+    font-size: clamp(3.3rem, 5.4vw, 5.05rem);
+    line-height: 0.98;
   }
 
   .hero-text-centered {
-    max-width: 460px;
-    font-size: 0.92rem;
-    line-height: 1.6;
+    max-width: 760px;
+    font-size: 1.05rem;
+    line-height: 1.5;
   }
 
   .hero-cta {
-    justify-self: flex-start;
+    justify-self: center;
   }
-
-  .hero-visual {
-    position: absolute;
-    right: 0;
-    top: 34px;
-    bottom: 0;
-    width: min(46vw, 650px);
-    min-height: 0;
-    padding: 0;
-    align-items: flex-end;
-    justify-content: flex-end;
-    pointer-events: none;
-  }
-
-  .hero-visual img {
-    width: 100%;
-    max-width: 760px;
-    transform: translate(42px, 18px) scale(1.08);
-  }
-}
-
-.hero-visual {
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  width: 100%;
-  min-height: 680px;
-  padding: 0;
-  overflow: visible;
-}
-
-.hero-visual img {
-  position: relative;
-  z-index: 1;
-  display: block;
-  width: min(100%, 760px);
-  height: auto;
-  min-height: 0;
-  object-fit: contain;
-  object-position: bottom center;
-  transform: translate(18px, 26px) scale(1.08);
-  filter:
-    drop-shadow(0 0 10px rgba(255, 255, 255, 0.58))
-    drop-shadow(0 0 28px rgba(255, 255, 255, 0.26))
-    drop-shadow(0 30px 70px rgba(0, 0, 0, 0.34));
 }
 
 .card-glow {
@@ -1675,10 +1627,6 @@ textarea {
     justify-items: center;
     text-align: center;
     padding-top: 0;
-  }
-
-  .hero-visual {
-    display: none;
   }
 
   .hero-title {
