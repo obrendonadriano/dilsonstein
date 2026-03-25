@@ -89,7 +89,7 @@ main {
   display: grid;
   place-items: center;
   width: 100%;
-  min-height: 100vh;
+  min-height: 100svh;
   padding: 168px 20px 96px;
   overflow: hidden;
 }
@@ -147,7 +147,8 @@ main {
 .hero-copy-centered {
   justify-items: center;
   text-align: center;
-  padding-top: 40px;
+  padding-top: 56px;
+  gap: 26px;
 }
 
 .card-glow {
@@ -273,6 +274,16 @@ main {
   font-size: clamp(3.4rem, 6vw, 5.6rem);
 }
 
+.hero-cta {
+  width: auto;
+  padding: 0 34px;
+  box-shadow:
+    0 0 0 1px rgba(255, 236, 184, 0.18),
+    0 0 34px rgba(194, 161, 75, 0.46),
+    0 0 74px rgba(194, 161, 75, 0.24);
+  animation: heroPulse 2.2s ease-in-out infinite;
+}
+
 .hero-title span {
   color: #c2a14b;
 }
@@ -337,14 +348,15 @@ main {
   width: min(1240px, calc(100% - 40px));
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1.02fr) minmax(360px, 460px);
-  align-items: center;
-  gap: 40px;
+  grid-template-columns: minmax(360px, 460px) minmax(360px, 460px);
+  justify-content: center;
+  align-items: stretch;
+  gap: 34px;
 }
 
 .signup-visual {
   position: relative;
-  min-height: 680px;
+  min-height: 100%;
   border-radius: 30px;
   overflow: hidden;
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
@@ -354,7 +366,7 @@ main {
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 680px;
+  min-height: 100%;
   object-fit: cover;
 }
 
@@ -395,6 +407,7 @@ main {
 .signup-form-card {
   width: min(100%, 460px);
   padding: 34px;
+  height: 100%;
   background: #ffffff;
   border: 1px solid rgba(203, 213, 225, 0.8);
   box-shadow:
@@ -1359,6 +1372,7 @@ textarea {
 
   .signup-layout {
     width: min(100% - 24px, 620px);
+    justify-content: stretch;
     gap: 22px;
   }
 
@@ -1556,16 +1570,23 @@ textarea {
 
   .hero-title {
     font-size: clamp(2.8rem, 12vw, 4.5rem);
-    line-height: 1.02;
+    line-height: 1.06;
   }
 
   .hero-rotating-name {
     min-width: 0;
+    display: block;
+    min-height: 1.15em;
     white-space: normal;
   }
 
   .hero-title-centered {
     font-size: clamp(2.8rem, 12vw, 4.5rem);
+  }
+
+  .hero-cta {
+    width: 100%;
+    padding: 0 20px;
   }
 
   .signup-section {
@@ -1603,6 +1624,7 @@ textarea {
     order: 1;
     width: 100%;
     padding: 24px;
+    height: auto;
   }
 
   .checkbox {
