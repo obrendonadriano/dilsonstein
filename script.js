@@ -15,7 +15,7 @@ setupModal();
 setupCardGlowTouch();
 setupFormGate();
 setupHeroModelLoop();
-setupLegacyCarouselLoop();
+setupInfiniteMarquees();
 setupSchedulingOptions();
 trackInitialPageView();
 
@@ -100,25 +100,38 @@ function setupHeroModelLoop() {
   }, 2200);
 }
 
-function setupLegacyCarouselLoop() {
-  const motion = document.querySelector(".legacy-carousel-motion");
-  if (!motion) return;
+function setupInfiniteMarquees() {
+  const marqueeConfigs = [
+    {
+      motionSelector: ".mentor-marquee-motion",
+      trackSelector: ".mentor-marquee-track"
+    },
+    {
+      motionSelector: ".legacy-carousel-motion",
+      trackSelector: ".legacy-carousel-track"
+    }
+  ];
 
-  const updateLoopDistance = () => {
-    const motionWidth = motion.scrollWidth;
-    if (!motionWidth) return;
-    motion.style.setProperty("--legacy-loop-distance", `${motionWidth / 2}px`);
-  };
+  marqueeConfigs.forEach(({ motionSelector, trackSelector }) => {
+    const motion = document.querySelector(motionSelector);
+    const firstTrack = motion?.querySelector(trackSelector);
+    if (!motion || !firstTrack) return;
 
-  updateLoopDistance();
-  window.addEventListener("resize", updateLoopDistance, { passive: true });
+    const updateLoopDistance = () => {
+      const trackWidth = firstTrack.getBoundingClientRect().width;
+      if (!trackWidth) return;
+      motion.style.setProperty("--marquee-loop-distance", `${trackWidth}px`);
+    };
 
-  if ("ResizeObserver" in window) {
-    const resizeObserver = new ResizeObserver(updateLoopDistance);
-    resizeObserver.observe(motion);
-  }
+    updateLoopDistance();
+    window.addEventListener("resize", updateLoopDistance, { passive: true });
+    window.addEventListener("load", updateLoopDistance, { passive: true });
 
-  window.addEventListener("load", updateLoopDistance, { passive: true });
+    if ("ResizeObserver" in window) {
+      const resizeObserver = new ResizeObserver(updateLoopDistance);
+      resizeObserver.observe(firstTrack);
+    }
+  });
 }
 
 function setupModal() {
