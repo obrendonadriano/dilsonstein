@@ -1552,25 +1552,17 @@ textarea {
   }
 
   .legacy-carousel {
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 12px 16px 6px;
+    overflow: hidden;
+    padding: 12px 0 6px;
     -webkit-mask-image: none;
     mask-image: none;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-
-  .legacy-carousel::-webkit-scrollbar {
-    display: none;
   }
 
   .legacy-carousel-motion {
-    width: auto;
-    animation: none;
-    transform: none;
-    padding-right: 0;
+    gap: 0;
+    width: max-content;
+    animation: legacyMarquee 30s linear infinite;
+    transform: translate3d(0, 0, 0);
   }
 
   .legacy-carousel-track {
@@ -1579,13 +1571,12 @@ textarea {
   }
 
   .legacy-carousel-track[aria-hidden="true"] {
-    display: none;
+    display: flex;
   }
 
   .legacy-card {
-    flex: 0 0 min(84vw, 340px);
+    flex: 0 0 min(80vw, 340px);
     border-radius: 22px;
-    scroll-snap-align: center;
   }
 
   .lead-card,
