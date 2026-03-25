@@ -900,6 +900,78 @@ textarea {
   color: rgba(17, 17, 17, 0.72);
 }
 
+.models-section {
+  position: relative;
+  padding: 46px 0 88px;
+  background: #03060c;
+  overflow: hidden;
+}
+
+.models-copy {
+  width: min(980px, calc(100% - 40px));
+  margin: 0 auto 34px;
+  text-align: center;
+  display: grid;
+  gap: 18px;
+}
+
+.models-copy h2 {
+  margin: 0;
+  font-family: "Manrope", sans-serif;
+  font-size: clamp(2.2rem, 4vw, 4rem);
+  line-height: 1.08;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.models-copy p {
+  margin: 0;
+  font-size: clamp(1rem, 1.55vw, 1.28rem);
+  line-height: 1.42;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.models-marquee {
+  position: relative;
+  overflow: hidden;
+  padding: 8px 0 0;
+}
+
+.models-marquee-motion {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  width: max-content;
+  animation: modelsMarquee 28s linear infinite;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.models-marquee-track {
+  display: flex;
+  align-items: stretch;
+  gap: 22px;
+  flex: 0 0 auto;
+  width: max-content;
+  padding-right: 22px;
+}
+
+.models-card {
+  flex: 0 0 430px;
+  border-radius: 30px;
+  overflow: hidden;
+  background: #10151f;
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.3);
+}
+
+.models-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 .legacy-section {
   position: relative;
   padding: 72px 0 78px;
@@ -1546,6 +1618,36 @@ textarea {
     padding: 64px 0 72px;
   }
 
+  .models-section {
+    padding: 34px 0 64px;
+  }
+
+  .models-copy {
+    width: min(100% - 28px, 760px);
+    margin-bottom: 24px;
+    gap: 14px;
+  }
+
+  .models-copy h2 {
+    font-size: clamp(1.9rem, 8vw, 3rem);
+    line-height: 1.12;
+  }
+
+  .models-copy p {
+    font-size: 0.98rem;
+    line-height: 1.5;
+  }
+
+  .models-marquee-track {
+    gap: 16px;
+    padding-right: 16px;
+  }
+
+  .models-card {
+    flex: 0 0 min(84vw, 360px);
+    border-radius: 24px;
+  }
+
   .legacy-copy {
     width: min(100% - 32px, 760px);
     gap: 14px;
@@ -1757,6 +1859,16 @@ textarea {
 }
 
 @keyframes legacyMarquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(calc(-1 * var(--marquee-loop-distance, 50%)), 0, 0);
+  }
+}
+
+@keyframes modelsMarquee {
   from {
     transform: translate3d(0, 0, 0);
   }

@@ -16,7 +16,6 @@ setupCardGlowTouch();
 setupFormGate();
 setupHeroModelLoop();
 setupInfiniteMarquees();
-setupLegacyMobileTicker();
 setupSchedulingOptions();
 trackInitialPageView();
 
@@ -110,6 +109,10 @@ function setupInfiniteMarquees() {
     {
       motionSelector: ".legacy-carousel-motion",
       trackSelector: ".legacy-carousel-track"
+    },
+    {
+      motionSelector: ".models-marquee-motion",
+      trackSelector: ".models-marquee-track"
     }
   ];
 
@@ -131,107 +134,6 @@ function setupInfiniteMarquees() {
     if ("ResizeObserver" in window) {
       const resizeObserver = new ResizeObserver(updateLoopDistance);
       resizeObserver.observe(firstTrack);
-    }
-  });
-}
-
-function setupLegacyMobileTicker() {
-  const mediaQuery = window.matchMedia("(max-width: 820px)");
-  const motion = document.querySelector(".legacy-carousel-motion");
-  const tracks = motion?.querySelectorAll(".legacy-carousel-track");
-  const firstTrack = tracks?.[0];
-  const secondTrack = tracks?.[1];
-  if (!motion || !firstTrack || !secondTrack) return;
-
-  let frameId = 0;
-  let previousTime = 0;
-  let offset = 0;
-  let lastViewportWidth = window.innerWidth;
-  const speed = 58;
-  const gap = () => parseFloat(window.getComputedStyle(firstTrack).gap || "0");
-
-  const syncDuplicateTrack = () => {
-    secondTrack.innerHTML = firstTrack.innerHTML;
-  };
-
-  const measure = () => {
-    syncDuplicateTrack();
-    motion.style.transform = `translate3d(${-offset}px, 0, 0)`;
-  };
-
-  const recycleCards = () => {
-    let firstCard = firstTrack.querySelector(".legacy-card");
-    if (!firstCard) return;
-
-    let cardWidth = firstCard.getBoundingClientRect().width + gap();
-    if (!cardWidth) return;
-
-    while (offset >= cardWidth && firstCard) {
-      offset -= cardWidth;
-      firstTrack.appendChild(firstCard);
-      firstCard = firstTrack.querySelector(".legacy-card");
-      cardWidth = firstCard ? firstCard.getBoundingClientRect().width + gap() : 0;
-      syncDuplicateTrack();
-      motion.style.transform = `translate3d(${-offset}px, 0, 0)`;
-    }
-  };
-
-  const tick = (time) => {
-    if (!mediaQuery.matches) return;
-
-    if (!previousTime) previousTime = time;
-    const delta = (time - previousTime) / 1000;
-    previousTime = time;
-
-    offset += speed * delta;
-    recycleCards();
-    motion.style.transform = `translate3d(${-offset}px, 0, 0)`;
-    frameId = window.requestAnimationFrame(tick);
-  };
-
-  const stop = () => {
-    if (frameId) {
-      window.cancelAnimationFrame(frameId);
-      frameId = 0;
-    }
-    previousTime = 0;
-  };
-
-  const start = ({ resetOffset = false } = {}) => {
-    stop();
-    if (resetOffset) {
-      offset = 0;
-      motion.style.transform = "translate3d(0, 0, 0)";
-    }
-    measure();
-    if (!mediaQuery.matches) {
-      motion.style.transform = "";
-      return;
-    }
-    frameId = window.requestAnimationFrame(tick);
-  };
-
-  const handleResize = () => {
-    const currentWidth = window.innerWidth;
-    if (Math.abs(currentWidth - lastViewportWidth) < 2) return;
-    lastViewportWidth = currentWidth;
-    start();
-  };
-
-  start({ resetOffset: true });
-  window.addEventListener("load", () => start(), { passive: true });
-  window.addEventListener("resize", handleResize, { passive: true });
-  mediaQuery.addEventListener("change", () => start({ resetOffset: true }));
-
-  if ("ResizeObserver" in window) {
-    const resizeObserver = new ResizeObserver(() => start());
-    resizeObserver.observe(firstTrack);
-    resizeObserver.observe(secondTrack);
-  }
-
-  motion.querySelectorAll("img").forEach((img) => {
-    if (!img.complete) {
-      img.addEventListener("load", () => start(), { once: true });
     }
   });
 }
