@@ -102,13 +102,12 @@ function setupHeroModelLoop() {
 
 function setupLegacyCarouselLoop() {
   const motion = document.querySelector(".legacy-carousel-motion");
-  const firstTrack = document.querySelector(".legacy-carousel-track");
-  if (!motion || !firstTrack) return;
+  if (!motion) return;
 
   const updateLoopDistance = () => {
-    const trackWidth = firstTrack.getBoundingClientRect().width;
-    if (!trackWidth) return;
-    motion.style.setProperty("--legacy-loop-distance", `${trackWidth}px`);
+    const motionWidth = motion.scrollWidth;
+    if (!motionWidth) return;
+    motion.style.setProperty("--legacy-loop-distance", `${motionWidth / 2}px`);
   };
 
   updateLoopDistance();
@@ -116,8 +115,10 @@ function setupLegacyCarouselLoop() {
 
   if ("ResizeObserver" in window) {
     const resizeObserver = new ResizeObserver(updateLoopDistance);
-    resizeObserver.observe(firstTrack);
+    resizeObserver.observe(motion);
   }
+
+  window.addEventListener("load", updateLoopDistance, { passive: true });
 }
 
 function setupModal() {
