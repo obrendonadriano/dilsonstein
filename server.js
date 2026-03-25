@@ -21,10 +21,13 @@ const MIME_TYPES = {
   ".js": "application/javascript; charset=utf-8",
   ".json": "application/json; charset=utf-8",
   ".png": "image/png",
+  ".webp": "image/webp",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".svg": "image/svg+xml",
   ".ico": "image/x-icon",
+  ".mov": "video/quicktime",
+  ".mp4": "video/mp4",
   ".sql": "text/plain; charset=utf-8"
 };
 
@@ -104,9 +107,9 @@ const server = http.createServer(async (req, res) => {
         }
       }
 
-      fs.readFile(resolvedPath, (error, content) => {
-        if (error) {
-          if (error.code === "ENOENT") {
+      fs.stat(resolvedPath, (fileStatError, fileStats) => {
+        if (fileStatError || !fileStats.isFile()) {
+          if (fileStatError?.code === "ENOENT") {
             res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
             res.end("Not Found");
             return;
@@ -118,10 +121,40 @@ const server = http.createServer(async (req, res) => {
         }
 
         const ext = path.extname(resolvedPath).toLowerCase();
+        const contentType = MIME_TYPES[ext] || "application/octet-stream";
+        const rangeHeader = req.headers.range;
+
+        if (rangeHeader && /^bytes=/.test(rangeHeader)) {
+          const [rawStart, rawEnd] = rangeHeader.replace("bytes=", "").split("-");
+          const start = Number.parseInt(rawStart, 10);
+          const end = rawEnd ? Number.parseInt(rawEnd, 10) : fileStats.size - 1;
+
+          if (Number.isNaN(start) || Number.isNaN(end) || start < 0 || end >= fileStats.size || start > end) {
+            res.writeHead(416, {
+              "Content-Range": `bytes */${fileStats.size}`
+            });
+            res.end();
+            return;
+          }
+
+          res.writeHead(206, {
+            "Content-Type": contentType,
+            "Content-Length": end - start + 1,
+            "Content-Range": `bytes ${start}-${end}/${fileStats.size}`,
+            "Accept-Ranges": "bytes"
+          });
+
+          fs.createReadStream(resolvedPath, { start, end }).pipe(res);
+          return;
+        }
+
         res.writeHead(200, {
-          "Content-Type": MIME_TYPES[ext] || "application/octet-stream"
+          "Content-Type": contentType,
+          "Content-Length": fileStats.size,
+          "Accept-Ranges": "bytes"
         });
-        res.end(content);
+
+        fs.createReadStream(resolvedPath).pipe(res);
       });
     });
   } catch (error) {
