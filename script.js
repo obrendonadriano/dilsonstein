@@ -912,11 +912,17 @@ function autoResizeChatInput() {
 }
 
 function getLeadContext() {
+  const activeCities = Array.from(document.querySelectorAll("#active-cities-list span"))
+    .map((node) => node.textContent.trim())
+    .filter(Boolean);
+
   return {
     page: window.location.pathname,
     name: document.querySelector("#name")?.value.trim() || "",
     age: document.querySelector("#age")?.value.trim() || "",
     city: document.querySelector("#city")?.value.trim() || "",
-    time: document.querySelector("#time")?.value.trim() || ""
+    time: document.querySelector("#time")?.value.trim() || "",
+    activeCities,
+    activeCitiesSource: "Cidades ativas para quem quer viver essa oportunidade de perto."
   };
 }
