@@ -1061,9 +1061,8 @@ textarea {
   display: inline-flex;
   align-items: center;
   min-height: 0;
-  padding: 0 0 0 18px;
+  padding: 0;
   border: 0;
-  border-left: 2px solid rgba(161, 135, 66, 0.5);
   border-radius: 0;
   background: transparent;
   color: #ffffff;
@@ -1794,7 +1793,7 @@ textarea {
 
   .cities-list span {
     width: 100%;
-    padding: 0 0 0 16px;
+    padding: 0;
     font-size: 0.98rem;
   }
 
