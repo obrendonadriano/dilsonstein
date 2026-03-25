@@ -307,9 +307,7 @@ async function generateChatReply(payload) {
     return {
       statusCode: 200,
       data: {
-        reply,
-        ctaLabel: "Quero cadastrar meu perfil",
-        ctaHref: "/cadastro-formulario"
+        reply: maybeAppendSignupNudge(reply, message, leadContext)
       }
     };
   } catch (error) {
@@ -435,4 +433,21 @@ function extractGeminiText(responseData) {
     .map((part) => part?.text || "")
     .join("")
     .trim();
+}
+
+function maybeAppendSignupNudge(reply, message, leadContext) {
+  const normalizedReply = String(reply || "").trim();
+  const normalizedMessage = String(message || "").toLowerCase();
+  const currentPage = String(leadContext?.page || "");
+
+  if (!normalizedReply) return normalizedReply;
+  if (currentPage.includes("cadastro-formulario")) return normalizedReply;
+  if (/cadastro|cadastrar|inscri|quero participar|como faço|posso participar|tenho interesse|quero ir|quero saber mais/.test(normalizedReply.toLowerCase())) {
+    return normalizedReply;
+  }
+
+  const shouldNudge = /quero|posso participar|como faço|como participar|tenho interesse|gostaria|onde me inscrevo|inscri|cadastro|cadastrar|horario|cidade/.test(normalizedMessage);
+  if (!shouldNudge) return normalizedReply;
+
+  return `${normalizedReply}\n\nSe fizer sentido para voce, ja pode preencher seu cadastro no site para adiantar sua participacao.`;
 }

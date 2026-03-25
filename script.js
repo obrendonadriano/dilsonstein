@@ -747,7 +747,10 @@ function setupSiteChat() {
     setChatOpen(shouldOpen);
   });
 
-  chatClose?.addEventListener("click", (event) => {
+  chatRoot.addEventListener("click", (event) => {
+    const closeTrigger = event.target.closest("[data-chat-close]");
+    if (!closeTrigger) return;
+
     event.preventDefault();
     event.stopPropagation();
     setChatOpen(false);
@@ -783,14 +786,6 @@ function setupSiteChat() {
         || "Posso te ajudar a seguir com o cadastro. Me conta sua dúvida.";
 
       appendChatMessage("model", reply);
-
-      const ctaNode = chatRoot.querySelector(".site-chat-cta");
-      if (ctaNode && data.ctaHref) {
-        ctaNode.href = data.ctaHref;
-      }
-      if (ctaNode && data.ctaLabel) {
-        ctaNode.textContent = data.ctaLabel;
-      }
     } catch (error) {
       console.error("Falha no chat:", error);
       appendChatMessage("model", "Tive uma instabilidade aqui agora, mas você pode seguir pelo botão de cadastro e concluir seu perfil.");
@@ -817,13 +812,17 @@ function setChatOpen(isOpen) {
   chatPanel.hidden = !isOpen;
   chatPanel.setAttribute("aria-hidden", String(!isOpen));
   chatToggle.setAttribute("aria-expanded", String(isOpen));
+  chatToggle.hidden = isOpen;
 
   if (isOpen) {
     window.setTimeout(() => {
       chatMessages.scrollTop = chatMessages.scrollHeight;
       chatInput?.focus();
     }, 30);
+    return;
   }
+
+  chatInput?.blur();
 }
 
 function setChatLoading(isLoading) {
