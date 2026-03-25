@@ -163,7 +163,7 @@ main {
     justify-items: flex-start;
     text-align: left;
     padding-top: 0;
-    max-width: 620px;
+    max-width: 860px;
   }
 
   .hero-title-centered,
@@ -172,9 +172,9 @@ main {
   }
 
   .hero-title-centered {
-    max-width: 620px;
-    font-size: clamp(2.85rem, 4.6vw, 4.3rem);
-    line-height: 1.04;
+    max-width: 860px;
+    font-size: clamp(2.65rem, 4.2vw, 4rem);
+    line-height: 1.02;
   }
 
   .hero-text-centered {
