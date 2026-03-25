@@ -129,12 +129,12 @@ main {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(390px, 470px);
   align-items: start;
-  gap: 62px;
+  gap: 92px;
 }
 
 .hero-copy {
   display: grid;
-  gap: 18px;
+  gap: 8px;
   justify-items: flex-start;
   text-align: left;
   padding-top: 84px;
@@ -316,7 +316,7 @@ main {
   padding: 30px;
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.34)),
-    url("img-dilson/fundo-dilson.png") center center / cover no-repeat;
+    url("img-dilson/fundo-preto.png") center center / cover no-repeat;
   border: 1px solid rgba(255, 255, 255, 0.22);
   box-shadow:
     0 28px 70px rgba(0, 0, 0, 0.48),
