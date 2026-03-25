@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/painel/painel.css?v=4">
+  <link rel="stylesheet" href="/painel/painel.css?v=5">
   <script src="/config.js?v=7"></script>
 </head>
 <body class="panel-page">
@@ -111,17 +111,52 @@
           <div class="tag-list" id="city-list"></div>
         </article>
 
-        <article class="panel-card">
+        <article class="panel-card panel-card--editor">
           <div class="card-header">
-            <h2>Gerenciar horários</h2>
+            <div>
+              <h2>Editar cidade</h2>
+              <p class="panel-subtitle">Selecione uma cidade ativa para ajustar informações e gerenciar os horários disponíveis apenas dela.</p>
+            </div>
           </div>
 
-          <form id="time-form" class="inline-form">
-            <input type="text" id="new-time" placeholder="Ex.: 15h30" required>
-            <button type="submit" class="primary-button">Adicionar horário</button>
-          </form>
+          <div class="editor-stack">
+            <label>
+              Cidade selecionada
+              <select id="editor-city-select">
+                <option value="">Selecione uma cidade</option>
+              </select>
+            </label>
 
-          <div class="tag-list" id="time-list"></div>
+            <form id="city-editor-form" class="inline-form">
+              <input type="text" id="edit-city" placeholder="Cidade" required>
+              <input type="text" id="edit-city-venue" placeholder="Nome do local" required>
+              <input type="text" id="edit-city-address" placeholder="Endereço completo" required>
+              <label class="switch-field">
+                <span>Status da cidade</span>
+                <select id="edit-city-active">
+                  <option value="true">Ativa</option>
+                  <option value="false">Inativa</option>
+                </select>
+              </label>
+              <button type="submit" class="primary-button">Salvar alterações da cidade</button>
+            </form>
+
+            <div class="editor-divider"></div>
+
+            <div class="card-header card-header--compact">
+              <div>
+                <h3>Horários da cidade</h3>
+                <p class="panel-subtitle">Cada cidade tem sua própria agenda. Ao criar uma cidade nova, ela já recebe os horários padrão atuais.</p>
+              </div>
+            </div>
+
+            <form id="city-time-form" class="inline-form">
+              <input type="text" id="new-city-time" placeholder="Ex.: 15h30" required>
+              <button type="submit" class="primary-button">Adicionar horário nesta cidade</button>
+            </form>
+
+            <div class="tag-list tag-list--stacked" id="city-time-list"></div>
+          </div>
         </article>
       </section>
 
@@ -176,6 +211,6 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-  <script src="/painel/dashboard.js?v=5"></script>
+  <script src="/painel/dashboard.js?v=6"></script>
 </body>
 </html>

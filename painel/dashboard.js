@@ -11,15 +11,23 @@ const applyFiltersButton = document.querySelector("#apply-filters");
 const clearFiltersButton = document.querySelector("#clear-filters");
 const exportCsvButton = document.querySelector("#export-csv");
 const cityForm = document.querySelector("#city-form");
-const timeForm = document.querySelector("#time-form");
+const cityEditorForm = document.querySelector("#city-editor-form");
+const cityTimeForm = document.querySelector("#city-time-form");
 const cityList = document.querySelector("#city-list");
-const timeList = document.querySelector("#time-list");
+const cityTimeList = document.querySelector("#city-time-list");
 const leadsTableBody = document.querySelector("#leads-table-body");
 const citySummary = document.querySelector("#city-summary");
 const timeSummary = document.querySelector("#time-summary");
 const alertSummary = document.querySelector("#alert-summary");
+const newCityInput = document.querySelector("#new-city");
 const newCityVenueInput = document.querySelector("#new-city-venue");
 const newCityAddressInput = document.querySelector("#new-city-address");
+const editorCitySelect = document.querySelector("#editor-city-select");
+const editCityInput = document.querySelector("#edit-city");
+const editCityVenueInput = document.querySelector("#edit-city-venue");
+const editCityAddressInput = document.querySelector("#edit-city-address");
+const editCityActiveInput = document.querySelector("#edit-city-active");
+const newCityTimeInput = document.querySelector("#new-city-time");
 
 const metricTotal = document.querySelector("#metric-total");
 const metricCities = document.querySelector("#metric-cities");
@@ -28,9 +36,11 @@ const metricFilter = document.querySelector("#metric-filter");
 const resultsCount = document.querySelector("#results-count");
 
 let cities = [];
-let times = [];
+let timeTemplates = [];
+let cityTimes = [];
 let leads = [];
 let filteredLeads = [];
+let selectedEditorCityId = "";
 
 guardRoute();
 refreshDashboard();
@@ -40,7 +50,9 @@ if (applyFiltersButton) applyFiltersButton.addEventListener("click", applyFilter
 if (clearFiltersButton) clearFiltersButton.addEventListener("click", clearFilters);
 if (exportCsvButton) exportCsvButton.addEventListener("click", exportLeadsSpreadsheet);
 if (cityForm) cityForm.addEventListener("submit", handleCityCreate);
-if (timeForm) timeForm.addEventListener("submit", handleTimeCreate);
+if (cityEditorForm) cityEditorForm.addEventListener("submit", handleCityUpdate);
+if (cityTimeForm) cityTimeForm.addEventListener("submit", handleCityTimeCreate);
+if (editorCitySelect) editorCitySelect.addEventListener("change", handleEditorCityChange);
 
 function guardRoute() {
   if (window.localStorage.getItem(PANEL_SESSION_KEY) !== "true") {
@@ -57,12 +69,16 @@ function logout(event) {
 async function refreshDashboard() {
   await Promise.all([
     loadCities(),
-    loadTimes(),
+    loadTimeTemplates(),
+    loadCityTimes(),
     loadLeads()
   ]);
 
+  syncSelectedEditorCity();
   renderOptionLists();
   populateFilters();
+  populateEditorCitySelect();
+  renderEditorCity();
   applyFilters();
 }
 
@@ -72,15 +88,23 @@ async function loadCities() {
   }));
 }
 
-async function loadTimes() {
-  times = await fetchTable("event_times", PANEL_CONFIG.scheduling?.defaultTimes?.map((label, index) => ({
-    id: `fallback-time-${index}`,
-    label,
-    sort_order: index + 1,
-    active: true
-  })) || [], {
-    order: "sort_order.asc,label.asc"
-  });
+async function loadTimeTemplates() {
+  timeTemplates = normalizeTimeTemplates(await fetchTable(
+    "event_times",
+    PANEL_CONFIG.scheduling?.defaultTimes?.map((label, index) => ({
+      id: `fallback-time-${index}`,
+      label,
+      sort_order: index + 1,
+      active: true
+    })) || [],
+    { order: "sort_order.asc,label.asc" }
+  ));
+}
+
+async function loadCityTimes() {
+  cityTimes = normalizeCityTimes(await fetchTable("event_city_times", [], {
+    order: "city_id.asc,sort_order.asc,label.asc"
+  }));
 }
 
 async function loadLeads() {
@@ -104,6 +128,9 @@ async function fetchTable(tableName, fallback = [], query = {}) {
 
   if (query.order) params.set("order", query.order);
   if (query.activeOnly) params.set("active", "eq.true");
+  if (query.extraParams) {
+    Object.entries(query.extraParams).forEach(([key, value]) => params.set(key, value));
+  }
 
   try {
     const response = await fetch(`${supabaseUrl}/rest/v1/${tableName}?${params.toString()}`, {
@@ -126,9 +153,17 @@ async function fetchTable(tableName, fallback = [], query = {}) {
 
 function populateFilters() {
   populateSelect(filterCity, cities.map((item) => item.label), "Todas as cidades");
-  populateSelect(filterTime, times.map((item) => item.label), "Todos os horários");
+  populateSelect(filterTime, buildActiveTimeLabels(), "Todos os horários");
   populateSelect(filterDdd, buildDddOptions(), "Todos os DDDs");
   populateSelect(filterState, buildStateOptions(), "Todos os estados");
+}
+
+function populateEditorCitySelect() {
+  populateSelect(editorCitySelect, cities.map((item) => item.label), "Selecione uma cidade");
+  const selectedCity = getSelectedEditorCity();
+  if (selectedCity) {
+    editorCitySelect.value = selectedCity.label;
+  }
 }
 
 function populateSelect(node, options, placeholder) {
@@ -146,76 +181,220 @@ function populateSelect(node, options, placeholder) {
 }
 
 function renderOptionLists() {
-  renderTagList(cityList, cities, "event_cities");
-  renderTagList(timeList, times, "event_times");
+  renderCityList();
 }
 
-function renderTagList(container, items, tableName) {
-  if (!container) return;
+function renderCityList() {
+  if (!cityList) return;
 
-  if (!items.length) {
-    container.innerHTML = `<p class="empty-state">Nenhum item cadastrado.</p>`;
+  if (!cities.length) {
+    cityList.innerHTML = `<p class="empty-state">Nenhuma cidade cadastrada.</p>`;
     return;
   }
 
-  container.innerHTML = items
-    .map((item) => tableName === "event_cities"
-      ? `
-        <article class="tag-item tag-item--city">
-          <div class="tag-item__content">
-            <strong>${escapeHtml(item.label)}</strong>
-            <p>${escapeHtml(item.venue_name || "Local a confirmar")}</p>
-            <small>${escapeHtml(item.address || "Endereço em confirmação.")}</small>
-          </div>
-          <button type="button" data-table="${tableName}" data-id="${item.id}">Excluir</button>
-        </article>
-      `
-      : `
-        <div class="tag-item">
-          <span>${escapeHtml(item.label)}</span>
-          <button type="button" data-table="${tableName}" data-id="${item.id}">Excluir</button>
+  cityList.innerHTML = cities
+    .map((item) => `
+      <article class="tag-item tag-item--city">
+        <div class="tag-item__content">
+          <strong>${escapeHtml(item.label)}</strong>
+          <p>${escapeHtml(item.venue_name || "Local a confirmar")}</p>
+          <small>${escapeHtml(item.address || "Endereço em confirmação.")}</small>
         </div>
-      `)
+        <div class="tag-item__actions">
+          <button type="button" class="ghost-button" data-action="edit-city" data-id="${item.id}">Editar</button>
+          <button type="button" data-action="delete-city" data-id="${item.id}">Excluir</button>
+        </div>
+      </article>
+    `)
     .join("");
 
-  container.querySelectorAll("button").forEach((button) => {
-    button.addEventListener("click", () => deleteOption(button.dataset.table, button.dataset.id));
+  cityList.querySelectorAll("button").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.dataset.action === "edit-city") {
+        selectedEditorCityId = button.dataset.id || "";
+        populateEditorCitySelect();
+        renderEditorCity();
+        return;
+      }
+
+      if (button.dataset.action === "delete-city") {
+        deleteCity(button.dataset.id);
+      }
+    });
+  });
+}
+
+function renderEditorCity() {
+  const selectedCity = getSelectedEditorCity();
+
+  if (!selectedCity) {
+    if (editCityInput) editCityInput.value = "";
+    if (editCityVenueInput) editCityVenueInput.value = "";
+    if (editCityAddressInput) editCityAddressInput.value = "";
+    if (editCityActiveInput) editCityActiveInput.value = "true";
+    if (cityTimeList) {
+      cityTimeList.innerHTML = `<p class="empty-state">Selecione uma cidade para editar os horários dela.</p>`;
+    }
+    return;
+  }
+
+  if (editCityInput) editCityInput.value = selectedCity.label;
+  if (editCityVenueInput) editCityVenueInput.value = selectedCity.venue_name;
+  if (editCityAddressInput) editCityAddressInput.value = selectedCity.address;
+  if (editCityActiveInput) editCityActiveInput.value = selectedCity.active === false ? "false" : "true";
+
+  renderCityTimeList(selectedCity.id);
+}
+
+function renderCityTimeList(cityId) {
+  if (!cityTimeList) return;
+
+  const rows = getCityTimes(cityId);
+  if (!rows.length) {
+    cityTimeList.innerHTML = `<p class="empty-state">Essa cidade ainda não tem horários configurados.</p>`;
+    return;
+  }
+
+  cityTimeList.innerHTML = rows
+    .map((item) => `
+      <article class="tag-item tag-item--time">
+        <div class="tag-item__content">
+          <strong>${escapeHtml(item.label)}</strong>
+          <small>${item.active === false ? "Horário inativo" : "Horário ativo"}</small>
+        </div>
+        <div class="tag-item__actions">
+          <button type="button" class="ghost-button" data-action="toggle-time" data-id="${item.id}">
+            ${item.active === false ? "Ativar" : "Inativar"}
+          </button>
+          <button type="button" data-action="delete-time" data-id="${item.id}">Excluir</button>
+        </div>
+      </article>
+    `)
+    .join("");
+
+  cityTimeList.querySelectorAll("button").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const id = button.dataset.id || "";
+      if (!id) return;
+
+      if (button.dataset.action === "toggle-time") {
+        await toggleCityTime(id);
+        return;
+      }
+
+      if (button.dataset.action === "delete-time") {
+        await deleteOption("event_city_times", id);
+      }
+    });
   });
 }
 
 async function handleCityCreate(event) {
   event.preventDefault();
-  const input = document.querySelector("#new-city");
-  const label = input?.value.trim();
+  const label = newCityInput?.value.trim();
   const venueName = newCityVenueInput?.value.trim();
   const address = newCityAddressInput?.value.trim();
   if (!label || !venueName || !address) return;
 
-  await createOption("event_cities", {
+  const createdRows = await mutateSupabase("event_cities", "POST", {
     label,
     venue_name: venueName,
-    address
-  }, cities.length + 1);
-  input.value = "";
+    address,
+    sort_order: cities.length + 1,
+    active: true
+  });
+
+  const createdCity = normalizeCityRecords(createdRows)[0];
+  if (createdCity) {
+    await seedCityTimes(createdCity);
+    selectedEditorCityId = String(createdCity.id);
+  }
+
+  if (newCityInput) newCityInput.value = "";
   if (newCityVenueInput) newCityVenueInput.value = "";
   if (newCityAddressInput) newCityAddressInput.value = "";
+  await refreshDashboard();
 }
 
-async function handleTimeCreate(event) {
+async function handleCityUpdate(event) {
   event.preventDefault();
-  const input = document.querySelector("#new-time");
-  const label = input?.value.trim();
-  if (!label) return;
+  const selectedCity = getSelectedEditorCity();
+  if (!selectedCity) return;
 
-  await createOption("event_times", { label }, times.length + 1);
-  input.value = "";
+  const label = editCityInput?.value.trim();
+  const venueName = editCityVenueInput?.value.trim();
+  const address = editCityAddressInput?.value.trim();
+  const active = editCityActiveInput?.value !== "false";
+  if (!label || !venueName || !address) return;
+
+  await mutateSupabase(`event_cities?id=eq.${selectedCity.id}`, "PATCH", {
+    label,
+    venue_name: venueName,
+    address,
+    active
+  });
+
+  await refreshDashboard();
 }
 
-async function createOption(tableName, values, sortOrder) {
-  await mutateSupabase(tableName, "POST", {
-    ...values,
-    sort_order: sortOrder,
+async function handleCityTimeCreate(event) {
+  event.preventDefault();
+  const selectedCity = getSelectedEditorCity();
+  const label = newCityTimeInput?.value.trim();
+  if (!selectedCity || !label) return;
+
+  await mutateSupabase("event_city_times", "POST", {
+    city_id: selectedCity.id,
+    label,
+    sort_order: getCityTimes(selectedCity.id).length + 1,
     active: true
+  });
+
+  if (newCityTimeInput) newCityTimeInput.value = "";
+  await refreshDashboard();
+}
+
+function handleEditorCityChange() {
+  const selectedLabel = editorCitySelect?.value || "";
+  const city = cities.find((item) => item.label === selectedLabel);
+  selectedEditorCityId = city ? String(city.id) : "";
+  renderEditorCity();
+}
+
+async function seedCityTimes(city) {
+  const templateRows = timeTemplates.length
+    ? timeTemplates
+    : normalizeTimeTemplates(PANEL_CONFIG.scheduling?.defaultTimes?.map((label, index) => ({
+      label,
+      sort_order: index + 1,
+      active: true
+    })) || []);
+
+  for (const time of templateRows) {
+    await mutateSupabase("event_city_times", "POST", {
+      city_id: city.id,
+      label: time.label,
+      sort_order: time.sort_order,
+      active: time.active !== false
+    });
+  }
+}
+
+async function deleteCity(id) {
+  await mutateSupabase(`event_city_times?city_id=eq.${id}`, "DELETE");
+  await mutateSupabase(`event_cities?id=eq.${id}`, "DELETE");
+  if (selectedEditorCityId === String(id)) {
+    selectedEditorCityId = "";
+  }
+  await refreshDashboard();
+}
+
+async function toggleCityTime(id) {
+  const row = cityTimes.find((item) => String(item.id) === String(id));
+  if (!row) return;
+
+  await mutateSupabase(`event_city_times?id=eq.${id}`, "PATCH", {
+    active: row.active === false
   });
 
   await refreshDashboard();
@@ -320,21 +499,28 @@ function renderSummaries() {
 function renderAlerts() {
   if (!alertSummary) return;
 
-  const activeCities = cities
-    .filter((item) => item.active !== false)
-    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || String(a.label).localeCompare(String(b.label)));
-  const activeTimes = times
-    .filter((item) => item.active !== false)
-    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || String(a.label).localeCompare(String(b.label)));
-
-  if (!activeCities.length || !activeTimes.length) {
-    alertSummary.innerHTML = `<p class="empty-state alert-empty">Cadastre cidades e horários para acompanhar a lotação.</p>`;
+  const activeCities = cities.filter((item) => item.active !== false);
+  if (!activeCities.length) {
+    alertSummary.innerHTML = `<p class="empty-state alert-empty">Cadastre cidades para acompanhar a lotação.</p>`;
     return;
   }
 
   alertSummary.innerHTML = activeCities
     .map((city) => {
-      const timeRows = activeTimes
+      const cityRows = getCityTimes(city.id).filter((item) => item.active !== false);
+      if (!cityRows.length) {
+        return `
+          <article class="alert-city">
+            <h3>
+              <span>${escapeHtml(city.label)}</span>
+              <b>${countCityRegistrations(city.label)}</b>
+            </h3>
+            <p class="empty-state">Nenhum horário ativo configurado para essa cidade.</p>
+          </article>
+        `;
+      }
+
+      const timeRows = cityRows
         .map((time) => {
           const total = leads.filter((lead) => lead.city === city.label && lead.time === time.label).length;
           let stateClass = "";
@@ -395,8 +581,8 @@ function renderSummaryList(container, rows, emptyText) {
 
 function updateMetrics(selectedCity, selectedTime, selectedDdd, selectedState, selectedCityStatus) {
   metricTotal.textContent = String(filteredLeads.length);
-  metricCities.textContent = String(cities.length);
-  metricTimes.textContent = String(times.length);
+  metricCities.textContent = String(cities.filter((item) => item.active !== false).length);
+  metricTimes.textContent = String(cityTimes.filter((item) => item.active !== false).length);
   const activeFilters = [
     selectedCity || "",
     selectedTime || "",
@@ -407,6 +593,29 @@ function updateMetrics(selectedCity, selectedTime, selectedDdd, selectedState, s
   ].filter(Boolean);
 
   metricFilter.textContent = activeFilters.join(" • ") || "Todos";
+}
+
+function syncSelectedEditorCity() {
+  if (selectedEditorCityId && cities.some((item) => String(item.id) === selectedEditorCityId)) {
+    return;
+  }
+
+  selectedEditorCityId = cities[0] ? String(cities[0].id) : "";
+}
+
+function getSelectedEditorCity() {
+  return cities.find((item) => String(item.id) === String(selectedEditorCityId)) || null;
+}
+
+function getCityTimes(cityId) {
+  return cityTimes
+    .filter((item) => String(item.city_id) === String(cityId))
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || String(a.label).localeCompare(String(b.label), "pt-BR"));
+}
+
+function buildActiveTimeLabels() {
+  return [...new Set(cityTimes.filter((item) => item.active !== false).map((item) => item.label))]
+    .sort((a, b) => a.localeCompare(b, "pt-BR"));
 }
 
 function normalizeCityRecords(items) {
@@ -436,6 +645,44 @@ function normalizeCityRecords(items) {
     })
     .filter(Boolean)
     .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || a.label.localeCompare(b.label, "pt-BR"));
+}
+
+function normalizeTimeTemplates(items) {
+  return (Array.isArray(items) ? items : [])
+    .map((item, index) => {
+      if (typeof item === "string") {
+        return {
+          id: `fallback-time-${index}`,
+          label: item,
+          sort_order: index + 1,
+          active: true
+        };
+      }
+
+      if (!item || !String(item.label || "").trim()) return null;
+      return {
+        id: item.id ?? `time-${index}`,
+        label: String(item.label || "").trim(),
+        sort_order: Number(item.sort_order || index + 1),
+        active: item.active !== false
+      };
+    })
+    .filter(Boolean);
+}
+
+function normalizeCityTimes(items) {
+  return (Array.isArray(items) ? items : [])
+    .map((item, index) => {
+      if (!item || !String(item.label || "").trim()) return null;
+      return {
+        id: item.id ?? `city-time-${index}`,
+        city_id: item.city_id,
+        label: String(item.label || "").trim(),
+        sort_order: Number(item.sort_order || index + 1),
+        active: item.active !== false
+      };
+    })
+    .filter(Boolean);
 }
 
 function countBy(items, key) {

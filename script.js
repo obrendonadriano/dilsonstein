@@ -28,6 +28,7 @@ let latestLeadPayload = null;
 let chatHistory = [];
 let chatTypingNode = null;
 let cityCatalog = [];
+let cityTimeCatalog = [];
 
 setupModal();
 setupCardGlowTouch();
@@ -668,9 +669,10 @@ function trackInitialPageView() {
 }
 
 async function setupSchedulingOptions() {
-  const cityOptions = await loadSchedulingOptions("event_cities", APP_CONFIG.scheduling?.defaultCities || []);
-  const timeOptions = await loadSchedulingOptions("event_times", APP_CONFIG.scheduling?.defaultTimes || []);
+  const cityOptions = await loadActiveCities();
+  const timeOptions = await loadActiveCityTimes(cityOptions);
   cityCatalog = cityOptions;
+  cityTimeCatalog = timeOptions;
 
   populateSelect(
     citySelect,
@@ -678,23 +680,17 @@ async function setupSchedulingOptions() {
     "Selecione a cidade que deseja participar da seleção"
   );
 
-  populateSelect(
-    timeSelect,
-    timeOptions,
-    "Selecione o horário para comparecer presencialmente à seleção"
-  );
+  populateTimeSelectForCity(citySelect?.value || "");
 
   populateActiveCities(cityOptions);
   populateHeroActiveCities(cityOptions);
   updateSelectionDetails();
 }
 
-async function loadSchedulingOptions(tableName, fallbackOptions) {
+async function loadActiveCities() {
   const supabaseUrl = APP_CONFIG.supabase?.url;
   const supabaseKey = APP_CONFIG.supabase?.anonKey;
-  const normalizedFallback = tableName === "event_cities"
-    ? normalizeCityRecords(fallbackOptions)
-    : normalizeTimeRecords(fallbackOptions);
+  const normalizedFallback = normalizeCityRecords(APP_CONFIG.scheduling?.defaultCities || []);
 
   if (!supabaseUrl || !supabaseKey) {
     return normalizedFallback;
@@ -702,7 +698,7 @@ async function loadSchedulingOptions(tableName, fallbackOptions) {
 
   try {
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/${tableName}?select=*&active=eq.true&order=sort_order.asc.nullslast,label.asc`,
+      `${supabaseUrl}/rest/v1/event_cities?select=*&active=eq.true&order=sort_order.asc.nullslast,label.asc`,
       {
         headers: {
           apikey: supabaseKey,
@@ -720,11 +716,45 @@ async function loadSchedulingOptions(tableName, fallbackOptions) {
       return normalizedFallback;
     }
 
-    return tableName === "event_cities"
-      ? normalizeCityRecords(items)
-      : normalizeTimeRecords(items);
+    return normalizeCityRecords(items);
   } catch (error) {
-    console.error(`Falha ao carregar ${tableName}:`, error);
+    console.error("Falha ao carregar event_cities:", error);
+    return normalizedFallback;
+  }
+}
+
+async function loadActiveCityTimes(cityOptions) {
+  const supabaseUrl = APP_CONFIG.supabase?.url;
+  const supabaseKey = APP_CONFIG.supabase?.anonKey;
+  const normalizedFallback = buildFallbackCityTimes(cityOptions, APP_CONFIG.scheduling?.defaultTimes || []);
+
+  if (!supabaseUrl || !supabaseKey) {
+    return normalizedFallback;
+  }
+
+  try {
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/event_city_times?select=*&active=eq.true&order=city_id.asc,sort_order.asc,label.asc`,
+      {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+
+    const items = await response.json();
+    if (!Array.isArray(items) || !items.length) {
+      return normalizedFallback;
+    }
+
+    return normalizeCityTimeRecords(items);
+  } catch (error) {
+    console.error("Falha ao carregar event_city_times:", error);
     return normalizedFallback;
   }
 }
@@ -778,6 +808,7 @@ function populateHeroActiveCities(cities) {
 }
 
 function handleCitySelectionChange() {
+  populateTimeSelectForCity(citySelect?.value || "");
   updateSelectionDetails();
   updateSubmitState();
 }
@@ -839,6 +870,58 @@ function normalizeTimeRecords(items) {
       return String(item?.label || "").trim() || `Horário ${index + 1}`;
     })
     .filter(Boolean);
+}
+
+function normalizeCityTimeRecords(items) {
+  return (Array.isArray(items) ? items : [])
+    .map((item, index) => {
+      if (!item || !String(item.label || "").trim()) return null;
+      return {
+        id: item.id ?? `city-time-${index}`,
+        city_id: String(item.city_id ?? ""),
+        label: String(item.label || "").trim(),
+        sort_order: Number(item.sort_order || index + 1),
+        active: item.active !== false
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || a.label.localeCompare(b.label, "pt-BR"));
+}
+
+function buildFallbackCityTimes(cityOptions, defaultTimes) {
+  return normalizeCityRecords(cityOptions).flatMap((city) =>
+    normalizeTimeRecords(defaultTimes).map((label, index) => ({
+      id: `fallback-${city.id}-${index}`,
+      city_id: String(city.id),
+      label,
+      sort_order: index + 1,
+      active: true
+    }))
+  );
+}
+
+function populateTimeSelectForCity(cityLabel) {
+  const selectedCity = getCityRecordByLabel(cityLabel);
+  const timeOptions = selectedCity
+    ? cityTimeCatalog
+      .filter((item) => String(item.city_id) === String(selectedCity.id) && item.active !== false)
+      .map((item) => item.label)
+    : [];
+
+  populateSelect(
+    timeSelect,
+    timeOptions,
+    selectedCity
+      ? "Selecione o horário para comparecer presencialmente à seleção"
+      : "Escolha a cidade para liberar os horários"
+  );
+
+  if (timeSelect) {
+    timeSelect.disabled = !selectedCity;
+    if (!selectedCity) {
+      timeSelect.value = "";
+    }
+  }
 }
 
 function buildLocationSentence(cityRecord) {

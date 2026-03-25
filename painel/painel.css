@@ -328,6 +328,10 @@ select:focus {
   align-items: start;
 }
 
+.panel-card--editor {
+  min-height: 100%;
+}
+
 .panel-card--cities {
   position: relative;
   overflow: hidden;
@@ -363,11 +367,41 @@ select:focus {
   margin-top: 18px;
 }
 
+.editor-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.editor-divider {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(19, 32, 51, 0.04), rgba(161, 135, 66, 0.3), rgba(19, 32, 51, 0.04));
+}
+
+.card-header--compact {
+  margin-bottom: 0;
+}
+
+.card-header--compact h3 {
+  margin: 0;
+  font-family: "Manrope", sans-serif;
+  font-size: 1.02rem;
+  line-height: 1.4;
+}
+
+.switch-field {
+  align-items: start;
+}
+
 .tag-list {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 18px;
+}
+
+.tag-list--stacked {
+  display: grid;
+  margin-top: 0;
 }
 
 .tag-item {
@@ -412,6 +446,19 @@ select:focus {
   padding: 8px 10px;
   background: rgba(19, 32, 51, 0.1);
   color: var(--text);
+}
+
+.tag-item__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tag-item--time {
+  width: 100%;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-radius: 18px;
 }
 
 .summary-list {

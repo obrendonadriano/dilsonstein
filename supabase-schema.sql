@@ -39,14 +39,26 @@ create table if not exists public.event_times (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.event_city_times (
+  id bigint generated always as identity primary key,
+  city_id bigint not null references public.event_cities (id) on delete cascade,
+  label text not null,
+  sort_order integer not null default 0,
+  active boolean not null default true,
+  created_at timestamptz not null default now(),
+  unique (city_id, label)
+);
+
 alter table public.leads enable row level security;
 alter table public.event_cities enable row level security;
 alter table public.event_times enable row level security;
+alter table public.event_city_times enable row level security;
 
 grant usage on schema public to anon, authenticated;
 grant select, insert on table public.leads to anon, authenticated;
 grant select, insert, update, delete on table public.event_cities to anon, authenticated;
 grant select, insert, update, delete on table public.event_times to anon, authenticated;
+grant select, insert, update, delete on table public.event_city_times to anon, authenticated;
 grant usage, select on all sequences in schema public to anon, authenticated;
 
 drop policy if exists "Allow public inserts on leads" on public.leads;
@@ -74,6 +86,14 @@ with check (true);
 drop policy if exists "Allow public manage event times" on public.event_times;
 create policy "Allow public manage event times"
 on public.event_times
+for all
+to anon, authenticated
+using (true)
+with check (true);
+
+drop policy if exists "Allow public manage city times" on public.event_city_times;
+create policy "Allow public manage city times"
+on public.event_city_times
 for all
 to anon, authenticated
 using (true)
