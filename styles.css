@@ -136,6 +136,12 @@ main {
   grid-template-columns: 1fr;
 }
 
+.hero-home-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 430px);
+  align-items: center;
+  gap: 56px;
+}
+
 .hero-copy {
   display: grid;
   gap: 8px;
@@ -149,6 +155,37 @@ main {
   text-align: center;
   padding-top: 56px;
   gap: 26px;
+}
+
+@media (min-width: 821px) {
+  .hero-copy-centered {
+    justify-items: flex-start;
+    text-align: left;
+    padding-top: 24px;
+  }
+
+  .hero-title-centered,
+  .hero-text-centered {
+    text-align: left;
+  }
+
+  .hero-cta {
+    justify-self: flex-start;
+  }
+}
+
+.hero-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-visual img {
+  display: block;
+  width: min(100%, 420px);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 28px 70px rgba(0, 0, 0, 0.35));
 }
 
 .card-glow {
@@ -284,7 +321,7 @@ main {
 }
 
 .hero-cta {
-  width: fit-content;
+  width: auto !important;
   min-width: 220px;
   max-width: none;
   min-height: 54px;
@@ -1384,6 +1421,10 @@ textarea {
     gap: 26px;
   }
 
+  .hero-home-layout {
+    grid-template-columns: 1fr;
+  }
+
   .signup-layout {
     width: min(100% - 24px, 620px);
     justify-content: stretch;
@@ -1580,6 +1621,10 @@ textarea {
     justify-items: center;
     text-align: center;
     padding-top: 0;
+  }
+
+  .hero-visual {
+    display: none;
   }
 
   .hero-title {
