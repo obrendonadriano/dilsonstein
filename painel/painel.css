@@ -205,6 +205,15 @@ body.panel-menu-open {
   border: 1px solid rgba(245, 224, 170, 0.18);
 }
 
+.ghost-button.panel-sidebar-logout,
+.ghost-button.panel-mobile-logout,
+.ghost-button.panel-sidebar-logout:hover,
+.ghost-button.panel-mobile-logout:hover,
+.ghost-button.panel-sidebar-logout:focus-visible,
+.ghost-button.panel-mobile-logout:focus-visible {
+  color: #ffffff;
+}
+
 .eyebrow {
   display: inline-flex;
   align-items: center;
