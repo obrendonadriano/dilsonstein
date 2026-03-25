@@ -325,6 +325,22 @@ async function generateChatReply(payload) {
 
   const history = Array.isArray(payload?.history) ? payload.history.slice(-8) : [];
   const leadContext = sanitizeLeadContext(payload?.leadContext || {});
+  const fastReply = buildFastLocalReply({
+    message,
+    memory,
+    leadContext
+  });
+
+  if (fastReply) {
+    return {
+      statusCode: 200,
+      data: {
+        local: true,
+        reply: fastReply
+      }
+    };
+  }
+
   const systemInstruction = buildSystemInstruction(memory, leadContext);
   const contents = buildGeminiContents(history, message);
 
@@ -598,4 +614,16 @@ function buildFallbackChatReply({ message, memory, leadContext }) {
   const donationHint = solidarityRequirement ? ` ${solidarityRequirement}` : "";
 
   return `Oi! Posso te ajudar com a seletiva da Dilson Stein.${cityHint}${timeHint}${donationHint} Se quiser, me fala sua duvida de forma mais direta, como por exemplo: cidade, horario, idade ou como participar.`;
+}
+
+function buildFastLocalReply({ message, memory, leadContext }) {
+  const normalizedMessage = String(message || "").toLowerCase().trim();
+  if (!normalizedMessage) return "";
+
+  const isShort = normalizedMessage.length <= 40;
+  const isFrequentQuestion = /^(oi|ola|olá|kkk|rs|rsrs|cidade\??|cidades\??|horario\??|horários\??|horarios\??|idade\??|como participar\??|como faço\??|quem pode\??|valor\??|preco\??|preço\??|taxa\??|roupa\??|vestido\??|onde\??|onde vai ser\??|onde vai acontecer\??)$/.test(normalizedMessage);
+
+  if (!isShort && !isFrequentQuestion) return "";
+
+  return buildFallbackChatReply({ message, memory, leadContext });
 }
