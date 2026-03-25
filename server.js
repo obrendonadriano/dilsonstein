@@ -8,7 +8,7 @@ const { URL } = require("url");
 loadDotEnv();
 
 const ROOT = __dirname;
-const PORT = 8080;
+const PORT = Number(process.env.PORT) || 3000;
 const META_PIXEL_ID = process.env.META_PIXEL_ID || "928735966754524";
 const META_ACCESS_TOKEN = process.env.META_ACCESS_TOKEN || "";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
