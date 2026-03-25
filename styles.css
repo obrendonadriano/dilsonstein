@@ -138,7 +138,7 @@ main {
 
 .hero-home-layout {
   grid-template-columns: minmax(0, 1fr) minmax(320px, 430px);
-  align-items: center;
+  align-items: end;
   gap: 56px;
 }
 
@@ -169,6 +169,11 @@ main {
     text-align: left;
   }
 
+  .hero-title-centered {
+    max-width: 900px;
+    font-size: clamp(3.1rem, 5.3vw, 5rem);
+  }
+
   .hero-cta {
     justify-self: flex-start;
   }
@@ -177,14 +182,17 @@ main {
 .hero-visual {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
+  align-self: stretch;
+  min-height: 100%;
+  padding-top: 36px;
 }
 
 .hero-visual::before {
   content: "";
   position: absolute;
-  inset: 12% 8%;
+  inset: 6% 4% 2% 4%;
   border-radius: 50%;
   background:
     radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.12) 34%, transparent 72%);
@@ -197,9 +205,11 @@ main {
   position: relative;
   z-index: 1;
   display: block;
-  width: min(100%, 520px);
+  width: min(100%, 560px);
   height: auto;
   object-fit: contain;
+  object-position: bottom center;
+  transform: translateY(28px);
   filter:
     drop-shadow(0 0 10px rgba(255, 255, 255, 0.58))
     drop-shadow(0 0 28px rgba(255, 255, 255, 0.26))
