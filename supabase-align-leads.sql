@@ -124,7 +124,7 @@ alter table public.event_times enable row level security;
 alter table public.event_city_times enable row level security;
 
 grant usage on schema public to anon, authenticated;
-grant select, insert on table public.leads to anon, authenticated;
+grant select, insert, update on table public.leads to anon, authenticated;
 grant select, insert, update, delete on table public.event_cities to anon, authenticated;
 grant select, insert, update, delete on table public.event_times to anon, authenticated;
 grant select, insert, update, delete on table public.event_city_times to anon, authenticated;
@@ -144,6 +144,14 @@ on public.leads
 for select
 to anon, authenticated
 using (true);
+
+drop policy if exists "Allow public updates on leads" on public.leads;
+create policy "Allow public updates on leads"
+on public.leads
+for update
+to anon, authenticated
+using (true)
+with check (true);
 
 drop policy if exists "Allow public manage event cities" on public.event_cities;
 create policy "Allow public manage event cities"
