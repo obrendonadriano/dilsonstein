@@ -45,6 +45,7 @@ let selectedEditorCityId = "";
 
 guardRoute();
 refreshDashboard();
+setupPanelCardTouch();
 
 if (logoutButton) logoutButton.addEventListener("click", logout);
 if (applyFiltersButton) applyFiltersButton.addEventListener("click", applyFilters);
@@ -55,6 +56,15 @@ if (cityEditorForm) cityEditorForm.addEventListener("submit", handleCityUpdate);
 if (cityTimeForm) cityTimeForm.addEventListener("submit", handleCityTimeCreate);
 if (editorCitySelect) editorCitySelect.addEventListener("change", handleEditorCityChange);
 if (leadDisplayLimitSelect) leadDisplayLimitSelect.addEventListener("change", renderLeadsTable);
+
+function setupPanelCardTouch() {
+  document.querySelectorAll(".panel-card, .metric-card").forEach((card) => {
+    card.addEventListener("pointerdown", () => {
+      card.classList.add("is-active");
+      window.setTimeout(() => card.classList.remove("is-active"), 1000);
+    });
+  });
+}
 
 function guardRoute() {
   if (window.localStorage.getItem(PANEL_SESSION_KEY) !== "true") {

@@ -192,42 +192,27 @@ p {
   mask-composite: exclude;
 }
 
-.panel-card::after,
-.metric-card::after {
-  inset: -3px;
-  padding: 3px;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    transparent 312deg,
-    rgba(161, 135, 66, 0.02) 324deg,
-    rgba(161, 135, 66, 0.34) 340deg,
-    rgba(255, 245, 222, 0.44) 350deg,
-    rgba(161, 135, 66, 0.28) 357deg,
-    transparent 360deg
-  );
-  filter: blur(8px);
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
+.panel-card:hover::before,
+.panel-card:focus-within::before,
+.panel-card:active::before,
+.panel-card.is-active::before,
+.metric-card:hover::before,
+.metric-card:focus-within::before,
+.metric-card:active::before,
+.metric-card.is-active::before {
+  opacity: 1;
+  animation: cardOrbit 2.4s linear infinite;
 }
 
-.panel-card:hover::before,
 .panel-card:hover::after,
-.panel-card:focus-within::before,
 .panel-card:focus-within::after,
-.panel-card:active::before,
 .panel-card:active::after,
-.metric-card:hover::before,
+.panel-card.is-active::after,
 .metric-card:hover::after,
-.metric-card:focus-within::before,
 .metric-card:focus-within::after,
-.metric-card:active::before,
-.metric-card:active::after {
-  opacity: 1;
-  animation: panelOrbit 2.4s linear infinite;
+.metric-card:active::after,
+.metric-card.is-active::after {
+  opacity: 0;
 }
 
 .auth-card {
@@ -697,13 +682,13 @@ td {
 
 @media (max-width: 820px) {
   .panel-shell {
-    width: min(100% - 20px, 1320px);
+    width: min(100% - 18px, 1320px);
   }
 
   .dashboard-shell,
   .auth-shell {
-    padding-top: 18px;
-    padding-bottom: 32px;
+    padding-top: 14px;
+    padding-bottom: 24px;
   }
 
   .panel-topbar {
@@ -742,8 +727,8 @@ td {
   }
 
   .panel-header h1 {
-    font-size: clamp(2.35rem, 12vw, 3.3rem);
-    line-height: 0.98;
+    font-size: clamp(2.2rem, 10.6vw, 3rem);
+    line-height: 0.94;
   }
 
   .button-row {
@@ -765,28 +750,82 @@ td {
   .auth-card,
   .metric-card,
   .panel-card {
-    border-radius: 22px;
+    border-radius: 20px;
   }
 
   .metric-card,
   .panel-card {
-    padding: 18px;
+    padding: 16px;
+  }
+
+  .dashboard {
+    gap: 16px;
+  }
+
+  .metrics-grid,
+  .panel-grid,
+  .analytics-grid,
+  .alert-grid {
+    gap: 14px;
+  }
+
+  .metric-card span {
+    margin-bottom: 8px;
+    font-size: 0.94rem;
+  }
+
+  .metric-card strong {
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .card-header {
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .panel-subtitle {
+    font-size: 0.96rem;
+    line-height: 1.55;
+  }
+
+  .tag-list {
+    gap: 12px;
+    margin-top: 14px;
   }
 
   .tag-item--city,
   .tag-item--time {
     flex-direction: column;
     align-items: stretch;
-    gap: 14px;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .tag-item__content {
+    gap: 4px;
+  }
+
+  .tag-item__content strong {
+    font-size: 0.98rem;
+  }
+
+  .tag-item__content p,
+  .tag-item__content small {
+    font-size: 0.84rem;
+    line-height: 1.45;
   }
 
   .tag-item__actions {
     width: 100%;
     flex-direction: column;
+    gap: 10px;
   }
 
   .tag-item__actions button {
     width: 100%;
+    min-height: 44px;
   }
 
   .table-visibility-filter {
@@ -799,18 +838,12 @@ td {
   }
 
   table {
-    min-width: 720px;
+    min-width: 680px;
   }
 
   th,
   td {
-    padding: 12px 10px;
-    font-size: 0.86rem;
-  }
-}
-
-@keyframes panelOrbit {
-  to {
-    transform: rotate(360deg);
+    padding: 11px 9px;
+    font-size: 0.82rem;
   }
 }
