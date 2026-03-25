@@ -940,7 +940,7 @@ textarea {
 .legacy-carousel {
   position: relative;
   overflow: hidden;
-  padding: 8px 0 0;
+  padding: 16px 0 8px;
   -webkit-mask-image: linear-gradient(
     90deg,
     transparent 0%,
@@ -979,25 +979,28 @@ textarea {
 .legacy-carousel-track {
   display: flex;
   align-items: stretch;
-  gap: 18px;
+  gap: 24px;
   flex: 0 0 auto;
   width: max-content;
-  padding-right: 18px;
+  padding-right: 24px;
 }
 
 .legacy-card {
   position: relative;
-  flex: 0 0 286px;
-  border-radius: 26px;
+  flex: 0 0 360px;
+  border-radius: 30px;
   overflow: hidden;
   background: #131313;
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.32);
 }
 
 .legacy-card img {
   width: 100%;
+  aspect-ratio: 0.76;
   height: auto;
   display: block;
+  object-fit: cover;
+  object-position: center top;
 }
 
 .section-heading h2,
@@ -1552,8 +1555,25 @@ textarea {
   }
 
   .legacy-carousel {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 12px 16px 6px;
     -webkit-mask-image: none;
     mask-image: none;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .legacy-carousel::-webkit-scrollbar {
+    display: none;
+  }
+
+  .legacy-carousel-motion {
+    width: auto;
+    animation: none;
+    transform: none;
+    padding-right: 0;
   }
 
   .legacy-carousel-track {
@@ -1561,14 +1581,14 @@ textarea {
     padding-right: 14px;
   }
 
-  .legacy-carousel-motion {
-    gap: 0;
-    animation-duration: 30s;
+  .legacy-carousel-track[aria-hidden="true"] {
+    display: none;
   }
 
   .legacy-card {
-    flex-basis: min(78vw, 290px);
+    flex: 0 0 min(84vw, 340px);
     border-radius: 22px;
+    scroll-snap-align: center;
   }
 
   .lead-card,
