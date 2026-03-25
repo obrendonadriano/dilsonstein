@@ -74,7 +74,10 @@ function setupNavigation() {
   setActiveView(activeView, false);
 
   homeButtons.forEach((button) => {
-    button.addEventListener("click", () => setActiveView("overview"));
+    button.addEventListener("click", () => {
+      setActiveView("overview");
+      closeMobileMenu();
+    });
   });
 
   navButtons.forEach((button) => {
@@ -95,6 +98,11 @@ function setupNavigation() {
   if (mobileOverlay) {
     mobileOverlay.addEventListener("click", closeMobileMenu);
   }
+
+  window.addEventListener("hashchange", () => {
+    const nextView = window.location.hash.replace("#", "").trim() || "overview";
+    setActiveView(nextView, false);
+  });
 }
 
 function setActiveView(viewName, pushHash = true) {

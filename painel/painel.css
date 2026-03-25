@@ -65,6 +65,12 @@ body {
   backdrop-filter: blur(8px);
 }
 
+.panel-mobile-overlay[hidden],
+.panel-mobile-drawer[hidden],
+.panel-view[hidden] {
+  display: none !important;
+}
+
 .panel-app-shell {
   position: relative;
   z-index: 1;
@@ -363,6 +369,7 @@ p {
 .panel-view {
   display: grid;
   gap: 24px;
+  align-content: start;
 }
 
 .panel-grid,
@@ -420,6 +427,15 @@ p {
   font-family: "Manrope", sans-serif;
   font-size: 1.02rem;
   line-height: 1.4;
+}
+
+.workspace-panel {
+  padding: 0 0 24px;
+  border-bottom: 1px solid rgba(19, 32, 51, 0.08);
+}
+
+.workspace-panel--compact {
+  padding-top: 6px;
 }
 
 .login-form,
@@ -602,7 +618,8 @@ select:focus {
   gap: 16px;
   padding: 12px 14px;
   border-radius: 16px;
-  background: rgba(237, 242, 248, 0.9);
+  background: rgba(255, 255, 255, 0.44);
+  border: 1px solid rgba(19, 32, 51, 0.08);
 }
 
 .alert-grid {
@@ -845,6 +862,10 @@ td {
     border-radius: 22px;
   }
 
+  .workspace-panel {
+    padding-bottom: 20px;
+  }
+
   .tag-item--city,
   .tag-item--time {
     flex-direction: column;
@@ -902,6 +923,10 @@ td {
   .panel-subtitle {
     font-size: 0.96rem;
     line-height: 1.55;
+  }
+
+  .workspace-panel {
+    padding-bottom: 18px;
   }
 
   th,

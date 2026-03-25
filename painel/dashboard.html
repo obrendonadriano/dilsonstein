@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/painel/painel.css?v=7">
+  <link rel="stylesheet" href="/painel/painel.css?v=8">
   <script src="/config.js?v=7"></script>
 </head>
 <body class="panel-page">
@@ -60,15 +60,15 @@
 
       <main class="panel-shell dashboard-shell">
         <section class="dashboard" id="dashboard">
-          <header class="panel-header panel-header--dashboard">
-            <div>
-              <span class="eyebrow">Gestão de agendamentos</span>
-              <h1>Dashboard da seleção</h1>
-              <p class="panel-subtitle">Acompanhe inscrições, visualize alertas e acesse rapidamente a exportação e o gerenciamento das cidades.</p>
-            </div>
-          </header>
-
           <section class="panel-view is-active" data-view="overview">
+            <header class="panel-header panel-header--dashboard">
+              <div>
+                <span class="eyebrow">Gestão de agendamentos</span>
+                <h1>Dashboard da seleção</h1>
+                <p class="panel-subtitle">Acompanhe inscrições, visualize alertas e acesse rapidamente a exportação e o gerenciamento das cidades.</p>
+              </div>
+            </header>
+
             <section class="metrics-grid">
               <article class="metric-card">
                 <span>Total de agendamentos</span>
@@ -141,7 +141,7 @@
               </div>
             </header>
 
-            <section class="panel-card">
+            <section class="workspace-panel">
               <div class="filters-grid">
                 <label>
                   Cidade
@@ -185,14 +185,14 @@
             </section>
 
             <section class="panel-grid analytics-grid">
-              <article class="panel-card">
+              <article class="workspace-panel workspace-panel--compact">
                 <div class="card-header">
                   <h2>Total por cidade</h2>
                 </div>
                 <div id="city-summary" class="summary-list"></div>
               </article>
 
-              <article class="panel-card">
+              <article class="workspace-panel workspace-panel--compact">
                 <div class="card-header">
                   <h2>Total por horário</h2>
                 </div>
@@ -211,7 +211,7 @@
             </header>
 
             <section class="panel-grid panel-grid--cities">
-              <article class="panel-card panel-card--cities">
+              <article class="workspace-panel workspace-panel--compact">
                 <div class="card-header">
                   <div>
                     <h2>Nova cidade</h2>
@@ -231,7 +231,7 @@
                 <div class="tag-list" id="city-list"></div>
               </article>
 
-              <article class="panel-card panel-card--editor">
+              <article class="workspace-panel workspace-panel--compact">
                 <div class="card-header">
                   <div>
                     <h2>Editar cidade</h2>
@@ -286,6 +286,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-  <script src="/painel/dashboard.js?v=8"></script>
+  <script src="/painel/dashboard.js?v=9"></script>
 </body>
 </html>
