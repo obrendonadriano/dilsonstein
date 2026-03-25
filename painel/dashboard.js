@@ -1,7 +1,13 @@
 const PANEL_CONFIG = window.APP_CONFIG || {};
 const PANEL_SESSION_KEY = "dilson_admin_session";
 
-const logoutButton = document.querySelector("#logout-button");
+const logoutButtons = document.querySelectorAll("#logout-button, #logout-button-mobile");
+const homeButtons = document.querySelectorAll("#nav-home-button, #nav-home-button-mobile");
+const navButtons = document.querySelectorAll("[data-view-target]");
+const panelViews = document.querySelectorAll(".panel-view");
+const mobileMenuToggle = document.querySelector("#panel-menu-toggle");
+const mobileDrawer = document.querySelector("#panel-mobile-drawer");
+const mobileOverlay = document.querySelector("#panel-mobile-overlay");
 const filterCity = document.querySelector("#filter-city");
 const filterTime = document.querySelector("#filter-time");
 const filterDdd = document.querySelector("#filter-ddd");
@@ -43,12 +49,14 @@ let leads = [];
 let filteredLeads = [];
 let selectedEditorCityId = "";
 let cityTimesFeatureEnabled = true;
+let activeView = "overview";
 
 guardRoute();
 refreshDashboard();
 setupPanelCardTouch();
+setupNavigation();
 
-if (logoutButton) logoutButton.addEventListener("click", logout);
+logoutButtons.forEach((button) => button.addEventListener("click", logout));
 if (applyFiltersButton) applyFiltersButton.addEventListener("click", applyFilters);
 if (clearFiltersButton) clearFiltersButton.addEventListener("click", clearFilters);
 if (exportCsvButton) exportCsvButton.addEventListener("click", exportLeadsSpreadsheet);
@@ -57,6 +65,67 @@ if (cityEditorForm) cityEditorForm.addEventListener("submit", handleCityUpdate);
 if (cityTimeForm) cityTimeForm.addEventListener("submit", handleCityTimeCreate);
 if (editorCitySelect) editorCitySelect.addEventListener("change", handleEditorCityChange);
 if (leadDisplayLimitSelect) leadDisplayLimitSelect.addEventListener("change", renderLeadsTable);
+
+function setupNavigation() {
+  const initialHash = window.location.hash.replace("#", "").trim();
+  if (["overview", "export", "cities"].includes(initialHash)) {
+    activeView = initialHash;
+  }
+  setActiveView(activeView, false);
+
+  homeButtons.forEach((button) => {
+    button.addEventListener("click", () => setActiveView("overview"));
+  });
+
+  navButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const nextView = button.dataset.viewTarget || "overview";
+      setActiveView(nextView);
+      closeMobileMenu();
+    });
+  });
+
+  if (mobileMenuToggle) {
+    mobileMenuToggle.addEventListener("click", () => {
+      const shouldOpen = mobileDrawer?.hidden !== false;
+      setMobileMenuOpen(shouldOpen);
+    });
+  }
+
+  if (mobileOverlay) {
+    mobileOverlay.addEventListener("click", closeMobileMenu);
+  }
+}
+
+function setActiveView(viewName, pushHash = true) {
+  activeView = ["overview", "export", "cities"].includes(viewName) ? viewName : "overview";
+
+  panelViews.forEach((section) => {
+    const isCurrent = section.dataset.view === activeView;
+    section.hidden = !isCurrent;
+    section.classList.toggle("is-active", isCurrent);
+  });
+
+  navButtons.forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.viewTarget === activeView);
+  });
+
+  if (pushHash) {
+    window.location.hash = activeView;
+  }
+}
+
+function setMobileMenuOpen(isOpen) {
+  if (!mobileDrawer || !mobileMenuToggle || !mobileOverlay) return;
+  mobileDrawer.hidden = !isOpen;
+  mobileDrawer.setAttribute("aria-hidden", isOpen ? "false" : "true");
+  mobileOverlay.hidden = !isOpen;
+  mobileMenuToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+}
+
+function closeMobileMenu() {
+  setMobileMenuOpen(false);
+}
 
 function setupPanelCardTouch() {
   document.querySelectorAll(".panel-card, .metric-card").forEach((card) => {
