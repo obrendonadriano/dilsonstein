@@ -27,6 +27,7 @@ const citySummary = document.querySelector("#city-summary");
 const timeSummary = document.querySelector("#time-summary");
 const alertSummary = document.querySelector("#alert-summary");
 const leadDisplayLimitSelect = document.querySelector("#lead-display-limit");
+const leadSearchInput = document.querySelector("#lead-search");
 const newCityInput = document.querySelector("#new-city");
 const newCityVenueInput = document.querySelector("#new-city-venue");
 const newCityAddressInput = document.querySelector("#new-city-address");
@@ -76,6 +77,7 @@ if (cityEditorForm) cityEditorForm.addEventListener("submit", handleCityUpdate);
 if (cityTimeForm) cityTimeForm.addEventListener("submit", handleCityTimeCreate);
 if (editorCitySelect) editorCitySelect.addEventListener("change", handleEditorCityChange);
 if (leadDisplayLimitSelect) leadDisplayLimitSelect.addEventListener("change", renderLeadsTable);
+if (leadSearchInput) leadSearchInput.addEventListener("input", applyFilters);
 
 function setupNavigation() {
   const initialHash = window.location.hash.replace("#", "").trim();
@@ -607,6 +609,7 @@ function applyFilters() {
     selectedState,
     selectedCityStatus
   } = getCurrentFilters();
+  const searchTerm = normalizeSearchTerm(leadSearchInput?.value || "");
 
   filteredLeads = leads.filter((lead) => {
     const cityMatch = !selectedCity || lead.city === selectedCity;
@@ -614,7 +617,8 @@ function applyFilters() {
     const dddMatch = !selectedDdd || extractDdd(lead.phone) === selectedDdd;
     const stateMatch = !selectedState || extractStateFromCity(lead.city) === selectedState;
     const cityStatusMatch = !selectedCityStatus || matchCityStatus(lead.city, selectedCityStatus);
-    return cityMatch && timeMatch && dddMatch && stateMatch && cityStatusMatch;
+    const searchMatch = !searchTerm || matchLeadSearch(lead, searchTerm);
+    return cityMatch && timeMatch && dddMatch && stateMatch && cityStatusMatch && searchMatch;
   });
 
   renderLeadsTable();
@@ -630,6 +634,7 @@ function clearFilters() {
   if (filterDdd) filterDdd.value = "";
   if (filterState) filterState.value = "";
   if (filterCityStatus) filterCityStatus.value = "";
+  if (leadSearchInput) leadSearchInput.value = "";
   applyFilters();
 }
 
@@ -641,7 +646,7 @@ function renderLeadsTable() {
   if (!filteredLeads.length) {
     leadsTableBody.innerHTML = `
       <tr>
-        <td colspan="6" class="empty-state">Nenhum agendamento encontrado para o filtro atual.</td>
+        <td colspan="7" class="empty-state">Nenhum agendamento encontrado para o filtro atual.</td>
       </tr>
     `;
     resultsCount.textContent = "0 registros";
@@ -657,9 +662,28 @@ function renderLeadsTable() {
         <td>${escapeHtml(lead.time || "-")}</td>
         <td>${formatPhone(lead.phone || "-")}</td>
         <td>${formatDateTime(lead.created_at)}</td>
+        <td>
+          <div class="lead-time-editor">
+            <select data-action="lead-time-select" data-id="${escapeHtml(lead.id)}">
+              ${buildLeadTimeOptions(lead)}
+            </select>
+            <button type="button" class="ghost-button" data-action="save-lead-time" data-id="${escapeHtml(lead.id)}">Salvar</button>
+          </div>
+        </td>
       </tr>
     `)
     .join("");
+
+  leadsTableBody.querySelectorAll('[data-action="save-lead-time"]').forEach((button) => {
+    button.addEventListener("click", async () => {
+      const leadId = button.dataset.id || "";
+      const select = [...leadsTableBody.querySelectorAll('[data-action="lead-time-select"]')]
+        .find((node) => node.dataset.id === leadId);
+      const nextTime = select?.value || "";
+      if (!leadId || !nextTime) return;
+      await updateLeadTime(leadId, nextTime);
+    });
+  });
 
   resultsCount.textContent = `${visibleLeads.length} de ${filteredLeads.length} registros`;
 }
@@ -926,6 +950,17 @@ async function exportLeadsSpreadsheet() {
   XLSX.writeFile(workbook, buildExportFilename(exportFilters), { compression: true });
 }
 
+async function updateLeadTime(leadId, nextTime) {
+  const lead = leads.find((item) => String(item.id) === String(leadId));
+  if (!lead || !nextTime || lead.time === nextTime) return;
+
+  await mutateSupabase(`leads?id=eq.${leadId}`, "PATCH", {
+    time: nextTime
+  });
+
+  await refreshDashboard();
+}
+
 function buildExportFilename(filters) {
   const city = (filters.selectedCity || "todas-cidades").replaceAll(/\s+/g, "-").toLowerCase();
   const time = (filters.selectedTime || "todos-horarios").replaceAll(/\s+/g, "-").toLowerCase();
@@ -1121,6 +1156,41 @@ function getExportFilters() {
     selectedState: exportUseState?.checked ? currentFilters.selectedState : "",
     selectedCityStatus: exportUseCityStatus?.checked ? currentFilters.selectedCityStatus : ""
   };
+}
+
+function buildLeadTimeOptions(lead) {
+  const cityRecord = cities.find((item) => item.label === lead.city);
+  const options = cityRecord ? getCityTimes(cityRecord.id) : [];
+  const labels = options
+    .filter((item) => item.active !== false)
+    .map((item) => item.label);
+
+  if (lead.time && !labels.includes(lead.time)) {
+    labels.unshift(lead.time);
+  }
+
+  const uniqueLabels = [...new Set(labels)];
+  if (!uniqueLabels.length && lead.time) uniqueLabels.push(lead.time);
+
+  return uniqueLabels
+    .map((label) => `<option value="${escapeHtml(label)}" ${label === lead.time ? "selected" : ""}>${escapeHtml(label)}</option>`)
+    .join("");
+}
+
+function normalizeSearchTerm(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function matchLeadSearch(lead, searchTerm) {
+  const normalizedName = normalizeSearchTerm(lead.name || "");
+  const normalizedPhone = String(lead.phone || "").replace(/\D/g, "");
+  const phoneQuery = String(searchTerm).replace(/\D/g, "");
+
+  return normalizedName.includes(searchTerm) || (phoneQuery && normalizedPhone.includes(phoneQuery));
 }
 
 function updateExportSelections() {
