@@ -511,7 +511,7 @@ function maybeAppendSignupNudge(reply, message, leadContext) {
   const shouldNudge = /quero|posso participar|como faço|como participar|tenho interesse|gostaria|onde me inscrevo|inscri|cadastro|cadastrar|horario|cidade/.test(normalizedMessage);
   if (!shouldNudge) return normalizedReply;
 
-  return `${normalizedReply}\n\nSe fizer sentido para voce, ja pode preencher seu cadastro no site para adiantar sua participacao.`;
+  return `${normalizedReply}\n\nSe fizer sentido para você, já pode preencher seu cadastro no site para adiantar sua participação.`;
 }
 
 function buildFallbackChatReply({ message, memory, leadContext }) {
@@ -535,45 +535,45 @@ function buildFallbackChatReply({ message, memory, leadContext }) {
   }
 
   if (/como participar|como faço|como faco|quero participar|participar|cadastro|cadastrar|inscri/.test(normalizedMessage)) {
-    const cityHint = cityText ? ` No momento, as cidades ativas sao ${cityText}.` : "";
-    const timeHint = timeText ? ` Os horarios disponiveis sao ${timeText}.` : "";
-    return `E super simples: voce faz o cadastro no site, escolhe a cidade e o horario disponivel e participa da seletiva presencial com a equipe.${cityHint}${timeHint} Se quiser, eu tambem posso te ajudar a escolher a melhor cidade para voce.`;
+    const cityHint = cityText ? ` No momento, as cidades ativas são ${cityText}.` : "";
+    const timeHint = timeText ? ` Os horários disponíveis são ${timeText}.` : "";
+    return `É super simples: você faz o cadastro no site, escolhe a cidade e o horário disponível e participa da seletiva presencial com a equipe.${cityHint}${timeHint} Se quiser, eu também posso te ajudar a escolher a melhor cidade para você.`;
   }
 
   if (/cidade|cidades|onde vai acontecer|onde acontece|onde sera|onde será/.test(normalizedMessage)) {
     if (cityText) {
-      return `No momento, as cidades ativas sao ${cityText}. Qual delas fica melhor para voce?`;
+      return `No momento, as cidades ativas são ${cityText}. Qual delas fica melhor para você?`;
     }
-    return "No momento, eu consigo te orientar pelas cidades ativas que aparecem no site. Quer me dizer sua regiao para eu te ajudar melhor?";
+    return "No momento, eu consigo te orientar pelas cidades ativas que aparecem no site. Quer me dizer sua região para eu te ajudar melhor?";
   }
 
   if (/horario|horarios|horários/.test(normalizedMessage)) {
     if (timeText) {
-      return `Os horarios disponiveis no momento sao ${timeText}. Qual horario voce prefere?`;
+      return `Os horários disponíveis no momento são ${timeText}. Qual horário você prefere?`;
     }
-    return "Posso te orientar sobre os horarios disponiveis da seletiva. Se quiser, me diz a cidade que eu continuo por aqui.";
+    return "Posso te orientar sobre os horários disponíveis da seletiva. Se quiser, me diz a cidade que eu continuo por aqui.";
   }
 
   if (/idade|quem pode|posso participar|tenho .* anos|anos/.test(normalizedMessage)) {
-    const ageRange = audience.age_range || "de 8 ate 60/70 anos";
-    const minorsRule = audience.minors_rule || "Menores devem estar acompanhados pelos responsaveis.";
+    const ageRange = audience.age_range || "de 8 até 60/70 anos";
+    const minorsRule = audience.minors_rule || "Menores devem estar acompanhados pelos responsáveis.";
     return `Podem participar ${audience.gender || "homens e mulheres"}, normalmente ${ageRange}. ${minorsRule} Se quiser, me fala sua idade que eu te oriento melhor.`;
   }
 
   if (/pagar|preco|valor|taxa|custa/.test(normalizedMessage) && solidarityRequirement) {
-    return `${solidarityRequirement} As informacoes completas sobre as proximas etapas sao apresentadas pela equipe responsavel durante o processo presencial.`;
+    return `${solidarityRequirement} As informações completas sobre as próximas etapas são apresentadas pela equipe responsável durante o processo presencial.`;
   }
 
   if (/roupa|vestido|vestida|como devo ir|como ir/.test(normalizedMessage)) {
-    return "A orientacao e ir com roupa confortavel, do dia a dia, algo em que voce se sinta bem, evitando roupas muito curtas e maquiagem pesada.";
+    return "A orientação é ir com roupa confortável, do dia a dia, algo em que você se sinta bem, evitando roupas muito curtas e maquiagem pesada.";
   }
 
   if (/o que acontece|como funciona no dia|no dia|dia da seletiva/.test(normalizedMessage) && selectionDayInfo.length) {
-    return `No dia da seletiva acontece assim: ${selectionDayInfo.join(", ")}. E uma avaliacao de perfil feita pela equipe, nao um concurso de beleza.`;
+    return `No dia da seletiva acontece assim: ${selectionDayInfo.join(", ")}. É uma avaliação de perfil feita pela equipe, não um concurso de beleza.`;
   }
 
   if (/nunca modelei|nunca trabalhei|sem experiencia|sem experiência/.test(normalizedMessage)) {
-    return "Pode sim. A seletiva existe justamente para identificar novos talentos, inclusive quem ainda nao teve experiencia. Se quiser, eu tambem posso te explicar como funciona a avaliacao.";
+    return "Pode sim. A seletiva existe justamente para identificar novos talentos, inclusive quem ainda não teve experiência. Se quiser, eu também posso te explicar como funciona a avaliação.";
   }
 
   if (/tenho vergonha|vergonha|nao sei se tenho perfil|não sei se tenho perfil|e golpe|é golpe|confiavel|confiável/.test(normalizedMessage)) {
@@ -609,11 +609,11 @@ function buildFallbackChatReply({ message, memory, leadContext }) {
     return maybeAppendSignupNudge(objectionMatch.response, message, leadContext);
   }
 
-  const cityHint = cityText ? ` No momento, as cidades ativas sao ${cityText}.` : "";
-  const timeHint = timeText ? ` Os horarios disponiveis sao ${timeText}.` : "";
+  const cityHint = cityText ? ` No momento, as cidades ativas são ${cityText}.` : "";
+  const timeHint = timeText ? ` Os horários disponíveis são ${timeText}.` : "";
   const donationHint = solidarityRequirement ? ` ${solidarityRequirement}` : "";
 
-  return `Oi! Posso te ajudar com a seletiva da Dilson Stein.${cityHint}${timeHint}${donationHint} Se quiser, me fala sua duvida de forma mais direta, como por exemplo: cidade, horario, idade ou como participar.`;
+  return `Oi! Posso te ajudar com a seletiva da Dilson Stein.${cityHint}${timeHint}${donationHint} Se quiser, me fala sua dúvida de forma mais direta, como por exemplo: cidade, horário, idade ou como participar.`;
 }
 
 function buildFastLocalReply({ message, memory, leadContext }) {
