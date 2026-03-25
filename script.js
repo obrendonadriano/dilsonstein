@@ -137,21 +137,22 @@ function setupInfiniteMarquees() {
 
 function setupLegacyMobileTicker() {
   const mediaQuery = window.matchMedia("(max-width: 820px)");
-  const carousel = document.querySelector(".legacy-carousel");
   const motion = document.querySelector(".legacy-carousel-motion");
   const firstTrack = motion?.querySelector(".legacy-carousel-track");
-  if (!carousel || !motion || !firstTrack) return;
+  if (!motion || !firstTrack) return;
 
   let frameId = 0;
   let previousTime = 0;
   let offset = 0;
   let loopDistance = 0;
+  let lastViewportWidth = window.innerWidth;
   const speed = 34;
 
   const measure = () => {
     loopDistance = firstTrack.getBoundingClientRect().width;
     if (loopDistance) {
       motion.style.setProperty("--marquee-loop-distance", `${loopDistance}px`);
+      offset = offset % loopDistance;
     }
   };
 
@@ -177,12 +178,14 @@ function setupLegacyMobileTicker() {
       frameId = 0;
     }
     previousTime = 0;
-    offset = 0;
-    motion.style.transform = "translate3d(0, 0, 0)";
   };
 
-  const start = () => {
+  const start = ({ resetOffset = false } = {}) => {
     stop();
+    if (resetOffset) {
+      offset = 0;
+      motion.style.transform = "translate3d(0, 0, 0)";
+    }
     measure();
     if (!mediaQuery.matches) {
       motion.style.transform = "";
@@ -191,13 +194,20 @@ function setupLegacyMobileTicker() {
     frameId = window.requestAnimationFrame(tick);
   };
 
-  start();
-  window.addEventListener("load", start, { passive: true });
-  window.addEventListener("resize", start, { passive: true });
-  mediaQuery.addEventListener("change", start);
+  const handleResize = () => {
+    const currentWidth = window.innerWidth;
+    if (Math.abs(currentWidth - lastViewportWidth) < 2) return;
+    lastViewportWidth = currentWidth;
+    start();
+  };
+
+  start({ resetOffset: true });
+  window.addEventListener("load", () => start(), { passive: true });
+  window.addEventListener("resize", handleResize, { passive: true });
+  mediaQuery.addEventListener("change", () => start({ resetOffset: true }));
 
   if ("ResizeObserver" in window) {
-    const resizeObserver = new ResizeObserver(start);
+    const resizeObserver = new ResizeObserver(() => start());
     resizeObserver.observe(firstTrack);
   }
 }
