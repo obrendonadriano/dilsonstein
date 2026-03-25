@@ -64,6 +64,7 @@ const server = http.createServer(async (req, res) => {
 
     let filePath = path.join(ROOT, decodeURIComponent(requestUrl.pathname));
     if (requestUrl.pathname === "/") filePath = path.join(ROOT, "index.html");
+    if (requestUrl.pathname === "/cadastro-formulario") filePath = path.join(ROOT, "cadastro-formulario.html");
 
     if (!filePath.startsWith(ROOT)) {
       res.writeHead(403);
