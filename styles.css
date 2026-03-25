@@ -723,6 +723,34 @@ textarea {
   gap: 28px;
 }
 
+.section-cta-block {
+  display: grid;
+  gap: 18px;
+  max-width: 520px;
+}
+
+.section-cta-block p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: rgba(17, 17, 17, 0.78);
+}
+
+.section-cta-block-centered {
+  justify-items: center;
+  margin: 8px auto 0;
+  text-align: center;
+}
+
+.section-cta-block-centered p {
+  color: rgba(248, 250, 252, 0.88);
+}
+
+.section-cta-button {
+  width: fit-content;
+  min-width: 320px;
+}
+
 .mentor-intro h2 {
   margin: 0;
   font-family: "Manrope", sans-serif;
@@ -971,6 +999,77 @@ textarea {
   display: block;
   width: 100%;
   height: auto;
+}
+
+.cities-section {
+  width: 100%;
+  padding: 24px 0 92px;
+  background: #03060c;
+}
+
+.cities-layout {
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(320px, 1.1fr);
+  align-items: center;
+  gap: 36px;
+}
+
+.cities-visual {
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: 0 26px 64px rgba(0, 0, 0, 0.3);
+}
+
+.cities-visual img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cities-copy {
+  display: grid;
+  gap: 18px;
+}
+
+.cities-copy .eyebrow {
+  color: var(--accent);
+}
+
+.cities-copy h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(2.3rem, 4vw, 4rem);
+  line-height: 1.02;
+}
+
+.cities-copy p {
+  margin: 0;
+  color: rgba(248, 250, 252, 0.84);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.cities-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.cities-list span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(161, 135, 66, 0.34);
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+  font-size: 0.98rem;
+  font-weight: 700;
 }
 
 .legacy-section {
@@ -1647,6 +1746,50 @@ textarea {
   .models-card {
     flex: 0 0 min(84vw, 360px);
     border-radius: 24px;
+  }
+
+  .cities-section {
+    padding: 10px 0 68px;
+  }
+
+  .cities-layout {
+    width: min(100% - 28px, 1180px);
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .cities-visual {
+    border-radius: 24px;
+  }
+
+  .cities-copy {
+    gap: 14px;
+  }
+
+  .cities-copy h2 {
+    font-size: clamp(2rem, 8vw, 3rem);
+    line-height: 1.08;
+  }
+
+  .cities-copy p,
+  .section-cta-block p {
+    font-size: 0.98rem;
+    line-height: 1.6;
+  }
+
+  .cities-list {
+    gap: 10px;
+  }
+
+  .cities-list span {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0 18px;
+  }
+
+  .section-cta-button {
+    width: 100%;
+    min-width: 0;
   }
 
   .legacy-copy {
