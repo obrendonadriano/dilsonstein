@@ -87,7 +87,7 @@ main {
   place-items: center;
   width: 100%;
   min-height: 100dvh;
-  padding: 112px 20px 88px;
+  padding: 76px 20px 88px;
   overflow: hidden;
 }
 
@@ -1617,7 +1617,7 @@ textarea {
 
   .hero {
     min-height: 100dvh;
-    padding: 110px 24px 84px;
+    padding: 92px 24px 84px;
   }
 
   .hero-copy {
