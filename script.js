@@ -791,6 +791,13 @@ function populateActiveCities(cities) {
       </article>
     `)
     .join("");
+
+  activeCitiesList.querySelectorAll(".city-card").forEach((card) => {
+    card.addEventListener("pointerdown", () => {
+      card.classList.add("is-active");
+      window.setTimeout(() => card.classList.remove("is-active"), 1000);
+    });
+  });
 }
 
 function populateHeroActiveCities(cities) {

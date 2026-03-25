@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/painel/painel.css?v=5">
+  <link rel="stylesheet" href="/painel/painel.css?v=6">
   <script src="/config.js?v=7"></script>
 </head>
 <body class="panel-page">
@@ -188,8 +188,19 @@
 
       <section class="panel-card">
         <div class="card-header">
-          <h2>Agendamentos</h2>
-          <span id="results-count">0 registros</span>
+          <div>
+            <h2>Agendamentos</h2>
+            <span id="results-count">0 registros</span>
+          </div>
+          <label class="table-visibility-filter">
+            Exibir
+            <select id="lead-display-limit">
+              <option value="10" selected>Últimos 10</option>
+              <option value="25">Últimos 25</option>
+              <option value="50">Últimos 50</option>
+              <option value="100">Últimos 100</option>
+            </select>
+          </label>
         </div>
         <div class="table-wrap">
           <table>
@@ -211,6 +222,6 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-  <script src="/painel/dashboard.js?v=6"></script>
+  <script src="/painel/dashboard.js?v=7"></script>
 </body>
 </html>

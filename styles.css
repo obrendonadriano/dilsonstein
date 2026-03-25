@@ -1090,15 +1090,81 @@ textarea {
 }
 
 .city-card {
+  position: relative;
+  isolation: isolate;
   display: grid;
   gap: 8px;
   padding: 16px 18px;
   border-radius: 20px;
-  background: linear-gradient(145deg, rgba(11, 17, 26, 0.88), rgba(18, 26, 38, 0.98));
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(145deg, rgba(11, 17, 26, 0.42), rgba(18, 26, 38, 0.58));
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px);
   box-shadow:
     0 18px 34px rgba(0, 0, 0, 0.2),
     inset 1px 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.city-card::before,
+.city-card::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.city-card::before {
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--card-angle),
+    transparent 0deg,
+    transparent 312deg,
+    rgba(161, 135, 66, 0.08) 324deg,
+    rgba(161, 135, 66, 0.95) 340deg,
+    rgba(255, 245, 222, 1) 350deg,
+    rgba(161, 135, 66, 0.88) 357deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.city-card::after {
+  inset: -3px;
+  padding: 3px;
+  background: conic-gradient(
+    from var(--card-angle),
+    transparent 0deg,
+    transparent 312deg,
+    rgba(161, 135, 66, 0.02) 324deg,
+    rgba(161, 135, 66, 0.34) 340deg,
+    rgba(255, 245, 222, 0.44) 350deg,
+    rgba(161, 135, 66, 0.28) 357deg,
+    transparent 360deg
+  );
+  filter: blur(8px);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.city-card:hover::before,
+.city-card:hover::after,
+.city-card:focus-within::before,
+.city-card:focus-within::after,
+.city-card:active::before,
+.city-card:active::after,
+.city-card.is-active::before,
+.city-card.is-active::after {
+  opacity: 1;
+  animation: cardOrbit 2.4s linear infinite;
 }
 
 .city-card__head {

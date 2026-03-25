@@ -19,6 +19,7 @@ const leadsTableBody = document.querySelector("#leads-table-body");
 const citySummary = document.querySelector("#city-summary");
 const timeSummary = document.querySelector("#time-summary");
 const alertSummary = document.querySelector("#alert-summary");
+const leadDisplayLimitSelect = document.querySelector("#lead-display-limit");
 const newCityInput = document.querySelector("#new-city");
 const newCityVenueInput = document.querySelector("#new-city-venue");
 const newCityAddressInput = document.querySelector("#new-city-address");
@@ -53,6 +54,7 @@ if (cityForm) cityForm.addEventListener("submit", handleCityCreate);
 if (cityEditorForm) cityEditorForm.addEventListener("submit", handleCityUpdate);
 if (cityTimeForm) cityTimeForm.addEventListener("submit", handleCityTimeCreate);
 if (editorCitySelect) editorCitySelect.addEventListener("change", handleEditorCityChange);
+if (leadDisplayLimitSelect) leadDisplayLimitSelect.addEventListener("change", renderLeadsTable);
 
 function guardRoute() {
   if (window.localStorage.getItem(PANEL_SESSION_KEY) !== "true") {
@@ -464,6 +466,8 @@ function clearFilters() {
 
 function renderLeadsTable() {
   if (!leadsTableBody) return;
+  const visualLimit = Number(leadDisplayLimitSelect?.value || 10);
+  const visibleLeads = filteredLeads.slice(0, Math.max(1, visualLimit));
 
   if (!filteredLeads.length) {
     leadsTableBody.innerHTML = `
@@ -475,7 +479,7 @@ function renderLeadsTable() {
     return;
   }
 
-  leadsTableBody.innerHTML = filteredLeads
+  leadsTableBody.innerHTML = visibleLeads
     .map((lead) => `
       <tr>
         <td>${escapeHtml(lead.name || "-")}</td>
@@ -488,7 +492,7 @@ function renderLeadsTable() {
     `)
     .join("");
 
-  resultsCount.textContent = `${filteredLeads.length} registros`;
+  resultsCount.textContent = `${visibleLeads.length} de ${filteredLeads.length} registros`;
 }
 
 function renderSummaries() {
