@@ -345,11 +345,17 @@ async function generateChatReply(payload) {
     };
   } catch (error) {
     console.error("[Chat] Falha ao consultar Gemini:", error);
+    const fallbackReply = buildFallbackChatReply({
+      message,
+      memory,
+      leadContext
+    });
+
     return {
       statusCode: 500,
       data: {
         error: error.message,
-        reply: "Tive uma instabilidade aqui agora, mas você pode seguir normalmente pelo botão 'Quero cadastrar meu perfil' e concluir seu cadastro."
+        reply: fallbackReply
       }
     };
   }
@@ -489,4 +495,61 @@ function maybeAppendSignupNudge(reply, message, leadContext) {
   if (!shouldNudge) return normalizedReply;
 
   return `${normalizedReply}\n\nSe fizer sentido para voce, ja pode preencher seu cadastro no site para adiantar sua participacao.`;
+}
+
+function buildFallbackChatReply({ message, memory, leadContext }) {
+  const normalizedMessage = String(message || "").toLowerCase();
+  const activeCities = Array.isArray(leadContext?.activeCities) ? leadContext.activeCities.filter(Boolean) : [];
+  const availableTimes = Array.isArray(memory?.campaign_data?.available_times)
+    ? memory.campaign_data.available_times.filter(Boolean)
+    : [];
+  const solidarityRequirement = memory?.campaign_data?.solidarity_requirement || "";
+  const audience = memory?.campaign_data?.eligible_audience || {};
+  const faq = Array.isArray(memory?.faq) ? memory.faq : [];
+  const objections = Array.isArray(memory?.objection_handling) ? memory.objection_handling : [];
+
+  const faqMatch = faq.find((item) => {
+    const question = String(item?.question || "").toLowerCase();
+    return question && normalizedMessage.includes(question.replace("?", ""));
+  });
+
+  if (faqMatch?.answer) {
+    return maybeAppendSignupNudge(faqMatch.answer, message, leadContext);
+  }
+
+  const objectionMatch = objections.find((item) => {
+    const objection = String(item?.objection || "").toLowerCase();
+    return objection && normalizedMessage.includes(objection);
+  });
+
+  if (objectionMatch?.response) {
+    return maybeAppendSignupNudge(objectionMatch.response, message, leadContext);
+  }
+
+  if (/cidade|cidades|onde vai acontecer|onde acontece/.test(normalizedMessage)) {
+    const cityText = activeCities.length
+      ? activeCities.join(", ")
+      : "No momento, posso te orientar pelas cidades ativas exibidas no site.";
+    return `${cityText}. Qual delas faz mais sentido para voce?`;
+  }
+
+  if (/horario|horários|horarios/.test(normalizedMessage) && availableTimes.length) {
+    return `Os horarios disponiveis no momento sao ${availableTimes.join(", ")}. Qual horario voce prefere?`;
+  }
+
+  if (/idade|quem pode|posso participar|tenho .* anos|anos/.test(normalizedMessage)) {
+    const ageRange = audience.age_range || "de 8 ate 60/70 anos";
+    const minorsRule = audience.minors_rule || "Menores devem estar acompanhados pelos responsaveis.";
+    return `Podem participar ${audience.gender || "homens e mulheres"}, normalmente ${ageRange}. ${minorsRule}`;
+  }
+
+  if (/pagar|preco|valor|taxa|custa/.test(normalizedMessage) && solidarityRequirement) {
+    return `${solidarityRequirement} As informacoes completas sobre as proximas etapas sao apresentadas pela equipe responsavel durante o processo presencial.`;
+  }
+
+  const cityHint = activeCities.length ? `No momento, as cidades ativas sao ${activeCities.join(", ")}.` : "";
+  const timeHint = availableTimes.length ? ` Os horarios disponiveis sao ${availableTimes.join(", ")}.` : "";
+  const donationHint = solidarityRequirement ? ` ${solidarityRequirement}` : "";
+
+  return `Oi! Posso te ajudar com a seletiva da Dilson Stein.${cityHint}${timeHint}${donationHint} Se quiser, me diga sua duvida sobre cidade, horario, idade ou como participar.`;
 }
