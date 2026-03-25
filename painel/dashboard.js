@@ -109,6 +109,14 @@ function setupNavigation() {
     mobileOverlay.addEventListener("click", closeMobileMenu);
   }
 
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeMobileMenu();
+    }
+  });
+
+  window.addEventListener("resize", handleViewportChange, { passive: true });
+
   window.addEventListener("hashchange", () => {
     const nextView = window.location.hash.replace("#", "").trim() || "overview";
     setActiveView(nextView, false);
@@ -139,10 +147,17 @@ function setMobileMenuOpen(isOpen) {
   mobileDrawer.setAttribute("aria-hidden", isOpen ? "false" : "true");
   mobileOverlay.hidden = !isOpen;
   mobileMenuToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  document.body.classList.toggle("panel-menu-open", isOpen);
 }
 
 function closeMobileMenu() {
   setMobileMenuOpen(false);
+}
+
+function handleViewportChange() {
+  if (window.innerWidth > 1120) {
+    closeMobileMenu();
+  }
 }
 
 function setupPanelCardTouch() {
