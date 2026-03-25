@@ -747,7 +747,11 @@ function setupSiteChat() {
     setChatOpen(shouldOpen);
   });
 
-  chatClose?.addEventListener("click", () => setChatOpen(false));
+  chatClose?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setChatOpen(false);
+  });
 
   chatForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -811,6 +815,7 @@ function setChatOpen(isOpen) {
 
   chatRoot.classList.toggle("is-open", isOpen);
   chatPanel.hidden = !isOpen;
+  chatPanel.setAttribute("aria-hidden", String(!isOpen));
   chatToggle.setAttribute("aria-expanded", String(isOpen));
 
   if (isOpen) {
