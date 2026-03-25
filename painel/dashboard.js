@@ -105,15 +105,13 @@ function setupNavigation() {
     });
   }
 
-  if (mobileOverlay) {
-    mobileOverlay.addEventListener("click", closeMobileMenu);
-  }
-
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeMobileMenu();
     }
   });
+
+  document.addEventListener("click", handleDocumentClick);
 
   window.addEventListener("resize", handleViewportChange, { passive: true });
 
@@ -142,16 +140,24 @@ function setActiveView(viewName, pushHash = true) {
 }
 
 function setMobileMenuOpen(isOpen) {
-  if (!mobileDrawer || !mobileMenuToggle || !mobileOverlay) return;
+  if (!mobileDrawer || !mobileMenuToggle) return;
   mobileDrawer.hidden = !isOpen;
   mobileDrawer.setAttribute("aria-hidden", isOpen ? "false" : "true");
-  mobileOverlay.hidden = !isOpen;
+  if (mobileOverlay) mobileOverlay.hidden = !isOpen;
   mobileMenuToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
   document.body.classList.toggle("panel-menu-open", isOpen);
 }
 
 function closeMobileMenu() {
   setMobileMenuOpen(false);
+}
+
+function handleDocumentClick(event) {
+  if (!mobileDrawer || mobileDrawer.hidden) return;
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  if (mobileDrawer.contains(target) || mobileMenuToggle?.contains(target)) return;
+  closeMobileMenu();
 }
 
 function handleViewportChange() {

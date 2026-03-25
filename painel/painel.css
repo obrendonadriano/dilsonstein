@@ -71,9 +71,10 @@ body.panel-menu-open {
 .panel-mobile-overlay {
   position: fixed;
   inset: 0;
-  z-index: 35;
-  background: rgba(7, 10, 15, 0.18);
-  backdrop-filter: blur(2px);
+  z-index: 0;
+  pointer-events: none;
+  background: transparent;
+  backdrop-filter: none;
 }
 
 .panel-mobile-overlay[hidden],
@@ -97,6 +98,7 @@ body.panel-menu-open {
   z-index: 1;
   width: min(1320px, calc(100% - 40px));
   margin: 0 auto;
+  max-width: 100%;
 }
 
 .auth-shell {
@@ -199,7 +201,7 @@ body.panel-menu-open {
   margin-top: auto;
   width: 100%;
   background: rgba(161, 135, 66, 0.16);
-  color: #f5e0aa;
+  color: #ffffff;
   border: 1px solid rgba(245, 224, 170, 0.18);
 }
 
@@ -397,6 +399,8 @@ p {
   display: grid;
   gap: 24px;
   align-content: start;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .panel-grid,
@@ -459,6 +463,8 @@ p {
 .workspace-panel {
   padding: 0 0 24px;
   border-bottom: 1px solid rgba(19, 32, 51, 0.08);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .workspace-panel:last-child {
@@ -513,6 +519,7 @@ label {
   display: grid;
   gap: 8px;
   font-weight: 700;
+  min-width: 0;
 }
 
 input,
@@ -890,13 +897,12 @@ td {
     z-index: 45;
     display: grid;
     gap: 14px;
-    width: calc(100vw - 32px);
-    max-width: calc(100vw - 32px);
     padding: 16px;
     border-radius: 22px;
     background: rgba(5, 7, 10, 0.98);
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 24px 64px rgba(5, 8, 14, 0.22);
+    max-width: calc(100% - 32px);
   }
 
   .dashboard-shell {
@@ -982,7 +988,7 @@ td {
   }
 
   table {
-    min-width: 640px;
+    min-width: 560px;
   }
 }
 
@@ -1000,6 +1006,7 @@ td {
 
   .dashboard-shell {
     padding: 20px 14px 24px;
+    overflow-x: clip;
   }
 
   .metrics-grid {
@@ -1011,6 +1018,7 @@ td {
   .panel-card {
     padding: 16px;
     border-radius: 20px;
+    min-width: 0;
   }
 
   .metric-card span {
@@ -1027,6 +1035,16 @@ td {
   .panel-subtitle {
     font-size: 0.96rem;
     line-height: 1.55;
+  }
+
+  .panel-header h1,
+  .panel-page-title,
+  h2,
+  h3,
+  p,
+  strong,
+  span {
+    overflow-wrap: anywhere;
   }
 
   .lead-time-editor {
