@@ -263,7 +263,8 @@ main {
 
 .hero-rotating-name {
   display: inline-block;
-  min-width: 5.5ch;
+  min-width: 18ch;
+  vertical-align: baseline;
   white-space: nowrap;
 }
 
@@ -313,7 +314,7 @@ main {
   width: min(100%, 396px);
   padding: 28px;
   background:
-    linear-gradient(180deg, rgba(5, 7, 11, 0.24), rgba(5, 7, 11, 0.6)),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.34)),
     url("img-dilson/fundo-dilson.png") center center / cover no-repeat;
   border: 1px solid rgba(255, 255, 255, 0.22);
   box-shadow:
@@ -328,6 +329,10 @@ main {
 .hero-form-card .checkbox,
 .hero-form-card .form-status {
   color: #f8fafc;
+}
+
+.hero-form-card .lead-card-header .eyebrow {
+  color: #c2a14b;
 }
 
 .hero-form-card .lead-card-header h2 {
@@ -369,6 +374,10 @@ main {
 
 .hero-form-card form {
   gap: 14px;
+}
+
+.hero-form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 form {
@@ -1465,6 +1474,10 @@ textarea {
     line-height: 1.02;
   }
 
+  .hero-rotating-name {
+    min-width: 14ch;
+  }
+
   .hero-text {
     font-size: 1rem;
     line-height: 1.65;
@@ -1473,6 +1486,10 @@ textarea {
   .hero-form-card {
     width: min(100%, 420px);
     padding: 24px;
+  }
+
+  .hero-form-grid {
+    grid-template-columns: 1fr;
   }
 
   .checkbox {

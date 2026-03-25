@@ -71,28 +71,32 @@
           </div>
 
           <form id="lead-form" novalidate>
-            <div class="field">
-              <label for="name">Nome</label>
-              <input id="name" name="name" type="text" autocomplete="name" placeholder="Seu Nome" required>
+            <div class="field-grid hero-form-grid">
+              <div class="field">
+                <label for="name">Nome</label>
+                <input id="name" name="name" type="text" autocomplete="name" placeholder="Seu Nome" required>
+              </div>
+
+              <div class="field">
+                <label for="age">Idade</label>
+                <input id="age" name="age" type="number" min="0" max="120" placeholder="Ex.: 19" required>
+              </div>
             </div>
 
-            <div class="field">
-              <label for="age">Idade</label>
-              <input id="age" name="age" type="number" min="0" max="120" placeholder="Ex.: 19" required>
-            </div>
+            <div class="field-grid hero-form-grid">
+              <div class="field">
+                <label for="city">Cidade da seleção</label>
+                <select id="city" name="city" required>
+                  <option value="">Selecione a cidade que deseja participar da seleção</option>
+                </select>
+              </div>
 
-            <div class="field">
-              <label for="city">Cidade da seleção</label>
-              <select id="city" name="city" required>
-                <option value="">Selecione a cidade que deseja participar da seleção</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="time">Horário da seleção</label>
-              <select id="time" name="time" required>
-                <option value="">Selecione o horário para comparecer presencialmente à seleção</option>
-              </select>
+              <div class="field">
+                <label for="time">Horário da seleção</label>
+                <select id="time" name="time" required>
+                  <option value="">Selecione o horário para comparecer presencialmente à seleção</option>
+                </select>
+              </div>
             </div>
 
             <div class="field">

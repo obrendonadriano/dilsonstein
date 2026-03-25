@@ -50,6 +50,9 @@ function setupHeroModelLoop() {
   const phrases = JSON.parse(rotatingNode.dataset.modelPhrases || "[]");
   if (!phrases.length) return;
 
+  const widestPhraseLength = phrases.reduce((max, phrase) => Math.max(max, phrase.length), 0);
+  rotatingNode.style.minWidth = `${widestPhraseLength}ch`;
+
   let phraseIndex = 0;
   let charIndex = phrases[0].length;
   let isDeleting = false;
