@@ -972,6 +972,7 @@ textarea {
   width: max-content;
   animation: legacyMarquee 34s linear infinite;
   transform: translate3d(0, 0, 0);
+  will-change: transform;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
@@ -992,12 +993,20 @@ textarea {
   overflow: hidden;
   background: #131313;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.32);
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .legacy-card img {
   width: 100%;
   height: auto;
   display: block;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .section-heading h2,
