@@ -64,7 +64,7 @@ body.signup-page {
 .signup-page input,
 .signup-page select,
 .signup-page textarea {
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(161, 135, 66, 0.34);
   color: #ffffff;
   background: rgba(255, 255, 255, 0.04);
   border-radius: 18px;
@@ -87,7 +87,7 @@ body.signup-page {
 }
 
 .signup-page .checkbox input {
-  border-color: rgba(255, 255, 255, 0.24);
+  border-color: rgba(161, 135, 66, 0.34);
   background: transparent;
 }
 
