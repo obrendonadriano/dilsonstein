@@ -9,6 +9,12 @@
   --shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
 }
 
+@property --card-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -176,7 +182,7 @@ p {
 .metric-card::before {
   padding: 1.5px;
   background: conic-gradient(
-    from 0deg,
+    from var(--card-angle),
     transparent 0deg,
     transparent 312deg,
     rgba(161, 135, 66, 0.08) 324deg,
@@ -192,27 +198,46 @@ p {
   mask-composite: exclude;
 }
 
-.panel-card:hover::before,
-.panel-card:focus-within::before,
-.panel-card:active::before,
-.panel-card.is-active::before,
-.metric-card:hover::before,
-.metric-card:focus-within::before,
-.metric-card:active::before,
-.metric-card.is-active::before {
-  opacity: 1;
-  animation: cardOrbit 2.4s linear infinite;
+.panel-card::after,
+.metric-card::after {
+  inset: -3px;
+  padding: 3px;
+  background: conic-gradient(
+    from var(--card-angle),
+    transparent 0deg,
+    transparent 312deg,
+    rgba(161, 135, 66, 0.02) 324deg,
+    rgba(161, 135, 66, 0.34) 340deg,
+    rgba(255, 245, 222, 0.44) 350deg,
+    rgba(161, 135, 66, 0.28) 357deg,
+    transparent 360deg
+  );
+  filter: blur(8px);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
 }
 
+.panel-card:hover::before,
 .panel-card:hover::after,
+.panel-card:focus-within::before,
 .panel-card:focus-within::after,
+.panel-card:active::before,
 .panel-card:active::after,
+.panel-card.is-active::before,
 .panel-card.is-active::after,
+.metric-card:hover::before,
 .metric-card:hover::after,
+.metric-card:focus-within::before,
 .metric-card:focus-within::after,
+.metric-card:active::before,
 .metric-card:active::after,
+.metric-card.is-active::before,
 .metric-card.is-active::after {
-  opacity: 0;
+  opacity: 1;
+  animation: cardOrbit 2.4s linear infinite;
 }
 
 .auth-card {
@@ -845,5 +870,11 @@ td {
   td {
     padding: 11px 9px;
     font-size: 0.82rem;
+  }
+}
+
+@keyframes cardOrbit {
+  to {
+    --card-angle: 360deg;
   }
 }

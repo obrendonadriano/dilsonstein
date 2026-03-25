@@ -266,7 +266,7 @@ async function renderEditorCity() {
 function renderCityTimeList(cityId) {
   if (!cityTimeList) return;
 
-  const rows = getCityTimes(cityId);
+  const rows = getEditorCityTimes(cityId);
   if (!rows.length) {
     cityTimeList.innerHTML = `<p class="empty-state">Essa cidade ainda não tem horários configurados.</p>`;
     return;
@@ -277,13 +277,17 @@ function renderCityTimeList(cityId) {
       <article class="tag-item tag-item--time">
         <div class="tag-item__content">
           <strong>${escapeHtml(item.label)}</strong>
-          <small>${item.active === false ? "Horário inativo" : "Horário ativo"}</small>
+          <small>${item.active === false ? "Horário inativo" : item.isTemplateFallback ? "Horário padrão" : "Horário ativo"}</small>
         </div>
         <div class="tag-item__actions">
-          <button type="button" class="ghost-button" data-action="toggle-time" data-id="${item.id}">
-            ${item.active === false ? "Ativar" : "Inativar"}
-          </button>
-          <button type="button" data-action="delete-time" data-id="${item.id}">Excluir</button>
+          ${item.isTemplateFallback ? `
+            <button type="button" class="ghost-button" data-action="create-template-time" data-label="${escapeHtml(item.label)}">Ativar na cidade</button>
+          ` : `
+            <button type="button" class="ghost-button" data-action="toggle-time" data-id="${item.id}">
+              ${item.active === false ? "Ativar" : "Inativar"}
+            </button>
+            <button type="button" data-action="delete-time" data-id="${item.id}">Excluir</button>
+          `}
         </div>
       </article>
     `)
@@ -292,6 +296,13 @@ function renderCityTimeList(cityId) {
   cityTimeList.querySelectorAll("button").forEach((button) => {
     button.addEventListener("click", async () => {
       const id = button.dataset.id || "";
+      const label = button.dataset.label || "";
+
+      if (button.dataset.action === "create-template-time") {
+        await createCityTimeFromTemplate(label);
+        return;
+      }
+
       if (!id) return;
 
       if (button.dataset.action === "toggle-time") {
@@ -368,6 +379,21 @@ async function handleCityTimeCreate(event) {
   });
 
   if (newCityTimeInput) newCityTimeInput.value = "";
+  await refreshDashboard();
+}
+
+async function createCityTimeFromTemplate(label) {
+  const selectedCity = getSelectedEditorCity();
+  const normalizedLabel = String(label || "").trim();
+  if (!selectedCity || !normalizedLabel) return;
+
+  await mutateSupabase("event_city_times", "POST", {
+    city_id: selectedCity.id,
+    label: normalizedLabel,
+    sort_order: getNextCityTimeSortOrder(selectedCity.id),
+    active: true
+  });
+
   await refreshDashboard();
 }
 
@@ -645,6 +671,30 @@ function getCityTimes(cityId) {
       isTemplateFallback: true
     }))
     .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || String(a.label).localeCompare(String(b.label), "pt-BR"));
+}
+
+function getEditorCityTimes(cityId) {
+  const linkedTimes = getCityTimes(cityId);
+  const linkedLabels = new Set(linkedTimes.map((item) => item.label));
+  const templateFallbacks = timeTemplates
+    .filter((item) => !linkedLabels.has(item.label))
+    .map((item, index) => ({
+      id: `template-only-${cityId}-${index}`,
+      city_id: cityId,
+      label: item.label,
+      sort_order: item.sort_order || index + 1,
+      active: item.active !== false,
+      isTemplateFallback: true
+    }));
+
+  return [...linkedTimes, ...templateFallbacks]
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || String(a.label).localeCompare(String(b.label), "pt-BR"));
+}
+
+function getNextCityTimeSortOrder(cityId) {
+  const rows = getEditorCityTimes(cityId);
+  const lastSortOrder = rows.reduce((max, item) => Math.max(max, Number(item.sort_order || 0)), 0);
+  return lastSortOrder + 1;
 }
 
 function buildActiveTimeLabels() {
