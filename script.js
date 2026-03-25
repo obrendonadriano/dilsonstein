@@ -733,6 +733,7 @@ function escapeHtml(value) {
 function setupSiteChat() {
   if (!chatRoot || !chatToggle || !chatPanel || !chatMessages || !chatForm || !chatInput) return;
 
+  setChatOpen(false);
   chatHistory = loadChatHistory();
   renderChatHistory();
 
@@ -743,7 +744,7 @@ function setupSiteChat() {
   }
 
   chatToggle.addEventListener("click", () => {
-    const shouldOpen = chatPanel.hidden;
+    const shouldOpen = chatPanel.hidden || !chatRoot.classList.contains("is-open");
     setChatOpen(shouldOpen);
   });
 
@@ -808,13 +809,13 @@ function setupSiteChat() {
 function setChatOpen(isOpen) {
   if (!chatPanel || !chatToggle || !chatRoot) return;
 
-  chatRoot.classList.toggle("is-open", isOpen);
-  chatPanel.hidden = !isOpen;
-  chatPanel.setAttribute("aria-hidden", String(!isOpen));
-  chatToggle.setAttribute("aria-expanded", String(isOpen));
-  chatToggle.hidden = isOpen;
-
   if (isOpen) {
+    chatRoot.classList.add("is-open");
+    chatPanel.hidden = false;
+    chatPanel.setAttribute("aria-hidden", "false");
+    chatToggle.hidden = true;
+    chatToggle.setAttribute("aria-expanded", "true");
+
     window.setTimeout(() => {
       chatMessages.scrollTop = chatMessages.scrollHeight;
       chatInput?.focus();
@@ -822,6 +823,11 @@ function setChatOpen(isOpen) {
     return;
   }
 
+  chatRoot.classList.remove("is-open");
+  chatPanel.hidden = true;
+  chatPanel.setAttribute("aria-hidden", "true");
+  chatToggle.hidden = false;
+  chatToggle.setAttribute("aria-expanded", "false");
   chatInput?.blur();
 }
 
