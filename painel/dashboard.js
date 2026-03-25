@@ -80,7 +80,7 @@ async function refreshDashboard() {
   renderOptionLists();
   populateFilters();
   populateEditorCitySelect();
-  renderEditorCity();
+  await renderEditorCity();
   applyFilters();
 }
 
@@ -226,7 +226,7 @@ function renderCityList() {
   });
 }
 
-function renderEditorCity() {
+async function renderEditorCity() {
   const selectedCity = getSelectedEditorCity();
 
   if (!selectedCity) {
@@ -238,6 +238,11 @@ function renderEditorCity() {
       cityTimeList.innerHTML = `<p class="empty-state">Selecione uma cidade para editar os horários dela.</p>`;
     }
     return;
+  }
+
+  if (!cityTimes.some((item) => String(item.city_id) === String(selectedCity.id))) {
+    await seedCityTimes(selectedCity);
+    await loadCityTimes();
   }
 
   if (editCityInput) editCityInput.value = selectedCity.label;
@@ -356,11 +361,11 @@ async function handleCityTimeCreate(event) {
   await refreshDashboard();
 }
 
-function handleEditorCityChange() {
+async function handleEditorCityChange() {
   const selectedLabel = editorCitySelect?.value || "";
   const city = cities.find((item) => item.label === selectedLabel);
   selectedEditorCityId = city ? String(city.id) : "";
-  renderEditorCity();
+  await renderEditorCity();
 }
 
 async function seedCityTimes(city) {
@@ -612,8 +617,23 @@ function getSelectedEditorCity() {
 }
 
 function getCityTimes(cityId) {
-  return cityTimes
+  const linkedTimes = cityTimes
     .filter((item) => String(item.city_id) === String(cityId))
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || String(a.label).localeCompare(String(b.label), "pt-BR"));
+
+  if (linkedTimes.length) {
+    return linkedTimes;
+  }
+
+  return timeTemplates
+    .map((item, index) => ({
+      id: `template-${cityId}-${index}`,
+      city_id: cityId,
+      label: item.label,
+      sort_order: item.sort_order || index + 1,
+      active: item.active !== false,
+      isTemplateFallback: true
+    }))
     .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || String(a.label).localeCompare(String(b.label), "pt-BR"));
 }
 
