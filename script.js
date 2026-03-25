@@ -9,9 +9,17 @@ const modal = document.querySelector("#success-modal");
 const whatsappLink = document.querySelector("#whatsapp-link");
 const activeCitiesList = document.querySelector("#active-cities-list");
 const heroActiveCitiesText = document.querySelector("#hero-active-cities-text");
+const heroHighlightCard = document.querySelector("#hero-highlight-card");
+const heroHighlightCity = document.querySelector("#hero-highlight-city");
+const heroHighlightVenue = document.querySelector("#hero-highlight-venue");
+const heroHighlightAddress = document.querySelector("#hero-highlight-address");
 const heroVideo = document.querySelector(".hero-video");
 const glowCards = document.querySelectorAll(".card-glow");
 const submitButton = document.querySelector('#lead-form button[type="submit"]');
+const selectionDetailsCard = document.querySelector("#selection-details-card");
+const selectionDetailsCity = document.querySelector("#selection-details-city");
+const selectionDetailsVenue = document.querySelector("#selection-details-venue");
+const selectionDetailsAddress = document.querySelector("#selection-details-address");
 const chatRoot = document.querySelector("#site-chat");
 const chatToggle = document.querySelector("#site-chat-toggle");
 const chatPanel = document.querySelector("#site-chat-panel");
@@ -23,6 +31,7 @@ const chatSubmit = document.querySelector("#site-chat-submit");
 let latestLeadPayload = null;
 let chatHistory = [];
 let chatTypingNode = null;
+let cityCatalog = [];
 
 setupModal();
 setupCardGlowTouch();
@@ -38,6 +47,7 @@ trackInitialPageView();
 if (form) form.addEventListener("submit", handleSubmit);
 if (phoneInput) phoneInput.addEventListener("input", maskPhone);
 if (whatsappLink) whatsappLink.addEventListener("click", handleWhatsAppClick);
+if (citySelect) citySelect.addEventListener("change", handleCitySelectionChange);
 
 function maskPhone(event) {
   const digits = event.target.value.replace(/\D/g, "").slice(0, 11);
@@ -555,12 +565,19 @@ function configureWhatsAppLink(payload) {
 
   const rawPhone = APP_CONFIG.whatsapp?.number || "5511999999999";
   const template = APP_CONFIG.whatsapp?.message
-    || "Olá, meu nome é {name}, tenho {age} anos e me cadastrei para participar da seleção em {city}. Gostaria de mais informações sobre como participar.";
-  const text = template
+    || "Olá, meu nome é {name}, tenho {age} anos e me cadastrei para participar da seleção em {city}, {location_sentence}, às {time}. Gostaria de mais informações sobre como participar.";
+  const selectedCity = getCityRecordByLabel(payload.city);
+  const venueName = selectedCity?.venue_name || "";
+  const address = selectedCity?.address || "";
+  const locationSentence = buildLocationSentence(selectedCity);
+  const text = normalizeWhatsAppMessage(template
     .replaceAll("{name}", payload.name || "")
     .replaceAll("{age}", payload.age || "")
     .replaceAll("{city}", payload.city || "")
-    .replaceAll("{time}", payload.time || "");
+    .replaceAll("{time}", payload.time || "")
+    .replaceAll("{venue_name}", venueName)
+    .replaceAll("{address}", address)
+    .replaceAll("{location_sentence}", locationSentence));
   const url = buildWhatsAppUrl(rawPhone, text);
   whatsappLink.href = url;
 }
@@ -657,10 +674,11 @@ function trackInitialPageView() {
 async function setupSchedulingOptions() {
   const cityOptions = await loadSchedulingOptions("event_cities", APP_CONFIG.scheduling?.defaultCities || []);
   const timeOptions = await loadSchedulingOptions("event_times", APP_CONFIG.scheduling?.defaultTimes || []);
+  cityCatalog = cityOptions;
 
   populateSelect(
     citySelect,
-    cityOptions,
+    cityOptions.map((item) => item.label),
     "Selecione a cidade que deseja participar da seleção"
   );
 
@@ -672,19 +690,24 @@ async function setupSchedulingOptions() {
 
   populateActiveCities(cityOptions);
   populateHeroActiveCities(cityOptions);
+  populateHeroHighlight(cityOptions);
+  updateSelectionDetails();
 }
 
 async function loadSchedulingOptions(tableName, fallbackOptions) {
   const supabaseUrl = APP_CONFIG.supabase?.url;
   const supabaseKey = APP_CONFIG.supabase?.anonKey;
+  const normalizedFallback = tableName === "event_cities"
+    ? normalizeCityRecords(fallbackOptions)
+    : normalizeTimeRecords(fallbackOptions);
 
   if (!supabaseUrl || !supabaseKey) {
-    return fallbackOptions;
+    return normalizedFallback;
   }
 
   try {
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/${tableName}?select=label,sort_order,active&active=eq.true&order=sort_order.asc.nullslast,label.asc`,
+      `${supabaseUrl}/rest/v1/${tableName}?select=*&active=eq.true&order=sort_order.asc.nullslast,label.asc`,
       {
         headers: {
           apikey: supabaseKey,
@@ -699,13 +722,15 @@ async function loadSchedulingOptions(tableName, fallbackOptions) {
 
     const items = await response.json();
     if (!Array.isArray(items) || !items.length) {
-      return fallbackOptions;
+      return normalizedFallback;
     }
 
-    return items.map((item) => item.label).filter(Boolean);
+    return tableName === "event_cities"
+      ? normalizeCityRecords(items)
+      : normalizeTimeRecords(items);
   } catch (error) {
     console.error(`Falha ao carregar ${tableName}:`, error);
-    return fallbackOptions;
+    return normalizedFallback;
   }
 }
 
@@ -728,24 +753,130 @@ function populateSelect(selectNode, options, placeholder) {
 function populateActiveCities(cities) {
   if (!activeCitiesList) return;
 
-  const items = (Array.isArray(cities) ? cities : []).filter(Boolean);
+  const items = normalizeCityRecords(cities);
   activeCitiesList.innerHTML = items
-    .map((city) => `<span>${escapeHtml(city)}</span>`)
+    .map((city) => `
+      <article class="city-card">
+        <div class="city-card__head">
+          <span class="city-card__badge">Cidade ativa</span>
+          <strong>${escapeHtml(city.label)}</strong>
+        </div>
+        <p>${escapeHtml(city.venue_name || "Local a confirmar")}</p>
+        <small>${escapeHtml(city.address || "Endereço em confirmação no painel admin.")}</small>
+      </article>
+    `)
     .join("");
 }
 
 function populateHeroActiveCities(cities) {
   if (!heroActiveCitiesText) return;
 
-  const items = (Array.isArray(cities) ? cities : []).filter(Boolean);
+  const items = normalizeCityRecords(cities);
   if (!items.length) {
     heroActiveCitiesText.textContent = "Seleção presencial já confirmada nas cidades ativas.";
     return;
   }
 
-  const visibleCities = items.slice(0, 3);
+  const visibleCities = items.slice(0, 3).map((item) => item.label);
   const cityText = visibleCities.join(", ");
   heroActiveCitiesText.textContent = ` Seleção presencial já confirmada em ${cityText}.`;
+}
+
+function populateHeroHighlight(cities) {
+  if (!heroHighlightCard || !heroHighlightCity || !heroHighlightVenue || !heroHighlightAddress) return;
+
+  const [featuredCity] = normalizeCityRecords(cities);
+  if (!featuredCity) {
+    heroHighlightCard.hidden = true;
+    return;
+  }
+
+  heroHighlightCity.textContent = featuredCity.label;
+  heroHighlightVenue.textContent = featuredCity.venue_name || "Local a confirmar";
+  heroHighlightAddress.textContent = featuredCity.address || "Endereço em confirmação.";
+  heroHighlightCard.hidden = false;
+}
+
+function handleCitySelectionChange() {
+  updateSelectionDetails();
+  updateSubmitState();
+}
+
+function updateSelectionDetails() {
+  if (!selectionDetailsCard || !citySelect) return;
+
+  const selectedCity = getCityRecordByLabel(citySelect.value);
+  if (!selectedCity) {
+    selectionDetailsCard.hidden = true;
+    return;
+  }
+
+  selectionDetailsCity.textContent = selectedCity.label || "Cidade da seleção";
+  selectionDetailsVenue.textContent = selectedCity.venue_name || "Local a confirmar";
+  selectionDetailsAddress.textContent = selectedCity.address || "Endereço em confirmação.";
+  selectionDetailsCard.hidden = false;
+}
+
+function getCityRecordByLabel(label) {
+  const normalizedLabel = String(label || "").trim();
+  if (!normalizedLabel) return null;
+  return cityCatalog.find((item) => item.label === normalizedLabel) || null;
+}
+
+function normalizeCityRecords(items) {
+  return (Array.isArray(items) ? items : [])
+    .map((item, index) => {
+      if (typeof item === "string") {
+        return {
+          id: `fallback-city-${index}`,
+          label: item,
+          venue_name: "",
+          address: "",
+          sort_order: index + 1,
+          active: true
+        };
+      }
+
+      if (!item || !String(item.label || "").trim()) return null;
+
+      return {
+        id: item.id ?? `city-${index}`,
+        label: String(item.label || "").trim(),
+        venue_name: String(item.venue_name || item.venue || "").trim(),
+        address: String(item.address || item.endereco || "").trim(),
+        sort_order: Number(item.sort_order || index + 1),
+        active: item.active !== false
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || a.label.localeCompare(b.label, "pt-BR"));
+}
+
+function normalizeTimeRecords(items) {
+  return (Array.isArray(items) ? items : [])
+    .map((item, index) => {
+      if (typeof item === "string") return item;
+      return String(item?.label || "").trim() || `Horário ${index + 1}`;
+    })
+    .filter(Boolean);
+}
+
+function buildLocationSentence(cityRecord) {
+  const venueName = String(cityRecord?.venue_name || "").trim();
+  const address = String(cityRecord?.address || "").trim();
+
+  if (venueName && address) return `no ${venueName}, ${address}`;
+  if (venueName) return `no ${venueName}`;
+  if (address) return `no endereço ${address}`;
+  return "com local a confirmar";
+}
+
+function normalizeWhatsAppMessage(message) {
+  return String(message || "")
+    .replace(/\s+,/g, ",")
+    .replace(/\s+\./g, ".")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }
 
 function escapeHtml(value) {
@@ -939,9 +1070,7 @@ function autoResizeChatInput() {
 }
 
 function getLeadContext() {
-  const activeCities = Array.from(document.querySelectorAll("#active-cities-list span"))
-    .map((node) => node.textContent.trim())
-    .filter(Boolean);
+  const activeCities = cityCatalog.map((item) => item.label).filter(Boolean);
 
   return {
     page: window.location.pathname,

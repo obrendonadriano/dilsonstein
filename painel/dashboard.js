@@ -18,6 +18,8 @@ const leadsTableBody = document.querySelector("#leads-table-body");
 const citySummary = document.querySelector("#city-summary");
 const timeSummary = document.querySelector("#time-summary");
 const alertSummary = document.querySelector("#alert-summary");
+const newCityVenueInput = document.querySelector("#new-city-venue");
+const newCityAddressInput = document.querySelector("#new-city-address");
 
 const metricTotal = document.querySelector("#metric-total");
 const metricCities = document.querySelector("#metric-cities");
@@ -65,14 +67,9 @@ async function refreshDashboard() {
 }
 
 async function loadCities() {
-  cities = await fetchTable("event_cities", PANEL_CONFIG.scheduling?.defaultCities?.map((label, index) => ({
-    id: `fallback-city-${index}`,
-    label,
-    sort_order: index + 1,
-    active: true
-  })) || [], {
+  cities = normalizeCityRecords(await fetchTable("event_cities", PANEL_CONFIG.scheduling?.defaultCities || [], {
     order: "sort_order.asc,label.asc"
-  });
+  }));
 }
 
 async function loadTimes() {
@@ -162,12 +159,23 @@ function renderTagList(container, items, tableName) {
   }
 
   container.innerHTML = items
-    .map((item) => `
-      <div class="tag-item">
-        <span>${escapeHtml(item.label)}</span>
-        <button type="button" data-table="${tableName}" data-id="${item.id}">Excluir</button>
-      </div>
-    `)
+    .map((item) => tableName === "event_cities"
+      ? `
+        <article class="tag-item tag-item--city">
+          <div class="tag-item__content">
+            <strong>${escapeHtml(item.label)}</strong>
+            <p>${escapeHtml(item.venue_name || "Local a confirmar")}</p>
+            <small>${escapeHtml(item.address || "Endereço em confirmação.")}</small>
+          </div>
+          <button type="button" data-table="${tableName}" data-id="${item.id}">Excluir</button>
+        </article>
+      `
+      : `
+        <div class="tag-item">
+          <span>${escapeHtml(item.label)}</span>
+          <button type="button" data-table="${tableName}" data-id="${item.id}">Excluir</button>
+        </div>
+      `)
     .join("");
 
   container.querySelectorAll("button").forEach((button) => {
@@ -179,10 +187,18 @@ async function handleCityCreate(event) {
   event.preventDefault();
   const input = document.querySelector("#new-city");
   const label = input?.value.trim();
-  if (!label) return;
+  const venueName = newCityVenueInput?.value.trim();
+  const address = newCityAddressInput?.value.trim();
+  if (!label || !venueName || !address) return;
 
-  await createOption("event_cities", label, cities.length + 1);
+  await createOption("event_cities", {
+    label,
+    venue_name: venueName,
+    address
+  }, cities.length + 1);
   input.value = "";
+  if (newCityVenueInput) newCityVenueInput.value = "";
+  if (newCityAddressInput) newCityAddressInput.value = "";
 }
 
 async function handleTimeCreate(event) {
@@ -191,13 +207,13 @@ async function handleTimeCreate(event) {
   const label = input?.value.trim();
   if (!label) return;
 
-  await createOption("event_times", label, times.length + 1);
+  await createOption("event_times", { label }, times.length + 1);
   input.value = "";
 }
 
-async function createOption(tableName, label, sortOrder) {
+async function createOption(tableName, values, sortOrder) {
   await mutateSupabase(tableName, "POST", {
-    label,
+    ...values,
     sort_order: sortOrder,
     active: true
   });
@@ -391,6 +407,35 @@ function updateMetrics(selectedCity, selectedTime, selectedDdd, selectedState, s
   ].filter(Boolean);
 
   metricFilter.textContent = activeFilters.join(" • ") || "Todos";
+}
+
+function normalizeCityRecords(items) {
+  return (Array.isArray(items) ? items : [])
+    .map((item, index) => {
+      if (typeof item === "string") {
+        return {
+          id: `fallback-city-${index}`,
+          label: item,
+          venue_name: "",
+          address: "",
+          sort_order: index + 1,
+          active: true
+        };
+      }
+
+      if (!item || !String(item.label || "").trim()) return null;
+
+      return {
+        id: item.id ?? `city-${index}`,
+        label: String(item.label || "").trim(),
+        venue_name: String(item.venue_name || item.venue || "").trim(),
+        address: String(item.address || item.endereco || "").trim(),
+        sort_order: Number(item.sort_order || index + 1),
+        active: item.active !== false
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || a.label.localeCompare(b.label, "pt-BR"));
 }
 
 function countBy(items, key) {

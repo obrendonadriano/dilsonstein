@@ -1,7 +1,7 @@
 window.APP_CONFIG = {
   whatsapp: {
     number: "5511925517859",
-    message: "Olá, meu nome é {name}, tenho {age} anos e me cadastrei para participar da seleção em {city}. Gostaria de mais informações sobre como participar."
+    message: "Olá, meu nome é {name}, tenho {age} anos e me cadastrei para participar da seleção em {city}, {location_sentence}, às {time}. Gostaria de mais informações sobre como participar."
   },
   supabase: {
     url: "https://grohztewndqwfyvdgjar.supabase.co",
@@ -19,9 +19,21 @@ window.APP_CONFIG = {
   },
   scheduling: {
     defaultCities: [
-      "Campinas 10/04",
-      "São Paulo 12/04",
-      "Sorocaba 14/04"
+      {
+        label: "Campinas 10/04",
+        venue_name: "Hotel Leon Park",
+        address: "Av. Francisco Glicério, 641"
+      },
+      {
+        label: "São Paulo 12/04",
+        venue_name: "Local a confirmar",
+        address: "Endereço a confirmar"
+      },
+      {
+        label: "Sorocaba 14/04",
+        venue_name: "Local a confirmar",
+        address: "Endereço a confirmar"
+      }
     ],
     defaultTimes: [
       "10h",

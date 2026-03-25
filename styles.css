@@ -324,6 +324,47 @@ main {
   text-align: center;
 }
 
+.hero-highlight-card {
+  display: grid;
+  gap: 6px;
+  width: min(100%, 520px);
+  padding: 18px 22px;
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(7, 12, 20, 0.78), rgba(18, 26, 38, 0.92));
+  border: 1px solid rgba(255, 245, 222, 0.14);
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.24);
+}
+
+.hero-highlight-card__label,
+.selection-details-card__label,
+.city-card__badge {
+  display: inline-flex;
+  width: fit-content;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(194, 161, 75, 0.16);
+  color: #f4ddb1;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero-highlight-card strong,
+.selection-details-card strong {
+  font-size: clamp(1.24rem, 2vw, 1.55rem);
+  line-height: 1.2;
+}
+
+.hero-highlight-card p,
+.hero-highlight-card small,
+.selection-details-card p,
+.selection-details-card small {
+  margin: 0;
+  color: rgba(248, 250, 252, 0.82);
+  line-height: 1.6;
+}
+
 .hero-text-mobile-break {
   display: none;
 }
@@ -1059,32 +1100,48 @@ textarea {
 
 .cities-list {
   display: grid;
+  gap: 14px;
+}
+
+.city-card {
+  display: grid;
+  gap: 10px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(11, 17, 26, 0.88), rgba(18, 26, 38, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 20px 42px rgba(0, 0, 0, 0.22),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.city-card__head {
+  display: grid;
   gap: 10px;
 }
 
-.cities-list span {
-  display: inline-flex;
-  align-items: center;
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+.city-card strong {
+  font-size: 1.16rem;
+  line-height: 1.3;
   color: #ffffff;
-  font-size: 1.02rem;
-  font-weight: 600;
-  line-height: 1.5;
 }
 
-.cities-list span::before {
-  content: "";
-  width: 8px;
-  height: 8px;
-  margin-right: 12px;
-  border-radius: 999px;
-  background: var(--accent);
-  box-shadow: 0 0 0 6px rgba(161, 135, 66, 0.1);
-  flex: 0 0 auto;
+.city-card p,
+.city-card small {
+  margin: 0;
+  color: rgba(248, 250, 252, 0.82);
+  line-height: 1.6;
+}
+
+.selection-details-card {
+  display: grid;
+  gap: 8px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(11, 17, 26, 0.92), rgba(18, 26, 38, 0.96));
+  border: 1px solid rgba(194, 161, 75, 0.18);
+  color: #ffffff;
+  box-shadow: 0 22px 48px rgba(15, 23, 42, 0.16);
 }
 
 .legacy-section {
@@ -1796,9 +1853,9 @@ textarea {
     gap: 12px;
   }
 
-  .cities-list span {
+  .city-card {
     width: 100%;
-    padding: 0;
+    padding: 16px 18px;
     font-size: 0.98rem;
   }
 

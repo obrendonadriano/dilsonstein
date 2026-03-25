@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=34">
+  <link rel="stylesheet" href="styles.css?v=38">
   <link rel="stylesheet" href="cadastro-formulario.css?v=1">
   <script src="config.js?v=7"></script>
   <script>
@@ -75,6 +75,13 @@
               <option value="">Selecione o horário para comparecer presencialmente à seleção</option>
             </select>
           </div>
+        </div>
+
+        <div class="selection-details-card" id="selection-details-card" hidden>
+          <span class="selection-details-card__label">Local da seleção</span>
+          <strong id="selection-details-city">Cidade da seleção</strong>
+          <p id="selection-details-venue">Nome do local</p>
+          <small id="selection-details-address">Endereço completo</small>
         </div>
 
         <div class="field">

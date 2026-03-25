@@ -201,6 +201,12 @@ p {
   gap: 16px;
 }
 
+.inline-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
 .filters-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -322,6 +328,22 @@ select:focus {
   align-items: start;
 }
 
+.panel-card--cities {
+  position: relative;
+  overflow: hidden;
+}
+
+.panel-card--cities::after {
+  content: "";
+  position: absolute;
+  inset: auto -80px -90px auto;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(161, 135, 66, 0.16), transparent 68%);
+  pointer-events: none;
+}
+
 .analytics-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -356,6 +378,34 @@ select:focus {
   border: 1px solid rgba(19, 32, 51, 0.08);
   border-radius: 999px;
   padding: 10px 12px;
+}
+
+.tag-item--city {
+  width: 100%;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 18px;
+  border-radius: 22px;
+}
+
+.tag-item__content {
+  display: grid;
+  gap: 6px;
+}
+
+.tag-item__content strong {
+  font-size: 1.02rem;
+}
+
+.tag-item__content p,
+.tag-item__content small {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.tag-item__content small {
+  font-size: 0.86rem;
 }
 
 .tag-item button {
@@ -565,6 +615,10 @@ td {
   }
 
   .filters-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .inline-form-grid {
     grid-template-columns: 1fr;
   }
 

@@ -87,10 +87,18 @@ $$;
 create table if not exists public.event_cities (
   id bigint generated always as identity primary key,
   label text not null unique,
+  venue_name text,
+  address text,
   sort_order integer not null default 0,
   active boolean not null default true,
   created_at timestamptz not null default now()
 );
+
+alter table public.event_cities
+add column if not exists venue_name text;
+
+alter table public.event_cities
+add column if not exists address text;
 
 create table if not exists public.event_times (
   id bigint generated always as identity primary key,
@@ -147,6 +155,20 @@ values
   ('São Paulo 12/04', 2),
   ('Sorocaba 14/04', 3)
 on conflict (label) do nothing;
+
+update public.event_cities
+set venue_name = case label
+    when 'Campinas 10/04' then coalesce(nullif(venue_name, ''), 'Hotel Leon Park')
+    when 'São Paulo 12/04' then coalesce(nullif(venue_name, ''), 'Local a confirmar')
+    when 'Sorocaba 14/04' then coalesce(nullif(venue_name, ''), 'Local a confirmar')
+    else venue_name
+  end,
+  address = case label
+    when 'Campinas 10/04' then coalesce(nullif(address, ''), 'Av. Francisco Glicério, 641')
+    when 'São Paulo 12/04' then coalesce(nullif(address, ''), 'Endereço a confirmar')
+    when 'Sorocaba 14/04' then coalesce(nullif(address, ''), 'Endereço a confirmar')
+    else address
+  end;
 
 insert into public.event_times (label, sort_order)
 values

@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/painel/painel.css?v=3">
+  <link rel="stylesheet" href="/painel/painel.css?v=4">
   <script src="/config.js?v=7"></script>
 </head>
 <body class="panel-page">
@@ -91,13 +91,20 @@
           </div>
         </article>
 
-        <article class="panel-card">
+        <article class="panel-card panel-card--cities">
           <div class="card-header">
-            <h2>Gerenciar cidades</h2>
+            <div>
+              <h2>Gerenciar cidades</h2>
+              <p class="panel-subtitle">Cadastre a cidade, o nome do local e o endereço completo para refletir essas informações no site e no WhatsApp.</p>
+            </div>
           </div>
 
           <form id="city-form" class="inline-form">
-            <input type="text" id="new-city" placeholder="Ex.: Campinas 10/04" required>
+            <div class="inline-form-grid">
+              <input type="text" id="new-city" placeholder="Ex.: Campinas 10/04" required>
+              <input type="text" id="new-city-venue" placeholder="Ex.: Hotel Leon Park" required>
+            </div>
+            <input type="text" id="new-city-address" placeholder="Ex.: Av. Francisco Glicério, 641" required>
             <button type="submit" class="primary-button">Adicionar cidade</button>
           </form>
 
@@ -169,6 +176,6 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-  <script src="/painel/dashboard.js?v=4"></script>
+  <script src="/painel/dashboard.js?v=5"></script>
 </body>
 </html>

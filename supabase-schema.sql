@@ -24,6 +24,8 @@ create table if not exists public.leads (
 create table if not exists public.event_cities (
   id bigint generated always as identity primary key,
   label text not null unique,
+  venue_name text,
+  address text,
   sort_order integer not null default 0,
   active boolean not null default true,
   created_at timestamptz not null default now()
