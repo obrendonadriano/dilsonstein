@@ -50,6 +50,13 @@ function setupHeroModelLoop() {
   const phrases = JSON.parse(rotatingNode.dataset.modelPhrases || "[]");
   if (!phrases.length) return;
 
+  const desktopOnlyLoop = window.matchMedia("(min-width: 821px)");
+  if (!desktopOnlyLoop.matches) {
+    rotatingNode.textContent = phrases[0];
+    rotatingNode.style.minWidth = "0";
+    return;
+  }
+
   const widestPhraseLength = phrases.reduce((max, phrase) => Math.max(max, phrase.length), 0);
   rotatingNode.style.minWidth = `${widestPhraseLength}ch`;
 

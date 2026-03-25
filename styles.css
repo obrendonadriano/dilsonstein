@@ -127,9 +127,9 @@ main {
   width: min(1180px, 100%);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(340px, 420px);
-  align-items: center;
-  gap: 48px;
+  grid-template-columns: minmax(0, 1fr) minmax(390px, 470px);
+  align-items: start;
+  gap: 62px;
 }
 
 .hero-copy {
@@ -137,6 +137,7 @@ main {
   gap: 18px;
   justify-items: flex-start;
   text-align: left;
+  padding-top: 84px;
 }
 
 .card-glow {
@@ -248,7 +249,7 @@ main {
 }
 
 .hero-title {
-  max-width: 760px;
+  max-width: 700px;
   font-family: "Manrope", sans-serif;
   color: #ffffff;
   font-size: clamp(2.9rem, 5vw, 4.9rem);
@@ -311,8 +312,8 @@ main {
 }
 
 .hero-form-card {
-  width: min(100%, 396px);
-  padding: 28px;
+  width: min(100%, 452px);
+  padding: 30px;
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.34)),
     url("img-dilson/fundo-dilson.png") center center / cover no-repeat;
@@ -321,6 +322,7 @@ main {
     0 28px 70px rgba(0, 0, 0, 0.48),
     inset 0 1px 0 rgba(255, 255, 255, 0.16);
   backdrop-filter: blur(4px);
+  transform: translateY(20px);
 }
 
 .hero-form-card .lead-card-header h2,
@@ -1467,6 +1469,7 @@ textarea {
   .hero-copy {
     justify-items: center;
     text-align: center;
+    padding-top: 0;
   }
 
   .hero-title {
@@ -1475,7 +1478,8 @@ textarea {
   }
 
   .hero-rotating-name {
-    min-width: 14ch;
+    min-width: 0;
+    white-space: normal;
   }
 
   .hero-text {
@@ -1486,6 +1490,7 @@ textarea {
   .hero-form-card {
     width: min(100%, 420px);
     padding: 24px;
+    transform: none;
   }
 
   .hero-form-grid {
