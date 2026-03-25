@@ -137,9 +137,9 @@ main {
 }
 
 .hero-home-layout {
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 430px);
-  align-items: end;
-  gap: 56px;
+  grid-template-columns: minmax(0, 720px) minmax(420px, 1fr);
+  align-items: stretch;
+  gap: 28px;
 }
 
 .hero-copy {
@@ -161,7 +161,8 @@ main {
   .hero-copy-centered {
     justify-items: flex-start;
     text-align: left;
-    padding-top: 24px;
+    padding-top: 10px;
+    max-width: 720px;
   }
 
   .hero-title-centered,
@@ -170,8 +171,8 @@ main {
   }
 
   .hero-title-centered {
-    max-width: 900px;
-    font-size: clamp(3.1rem, 5.3vw, 5rem);
+    max-width: 760px;
+    font-size: clamp(3rem, 5vw, 4.65rem);
   }
 
   .hero-cta {
@@ -185,18 +186,20 @@ main {
   align-items: flex-end;
   justify-content: center;
   align-self: stretch;
-  min-height: 100%;
-  padding-top: 36px;
+  min-height: 620px;
+  padding-top: 12px;
+  padding-bottom: 8px;
+  overflow: hidden;
 }
 
 .hero-visual::before {
   content: "";
   position: absolute;
-  inset: 6% 4% 2% 4%;
-  border-radius: 50%;
+  inset: 2% 2% 0 2%;
+  border-radius: 28px;
   background:
-    radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.12) 34%, transparent 72%);
-  filter: blur(34px);
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0.12) 28%, transparent 72%);
+  filter: blur(26px);
   opacity: 0.9;
   pointer-events: none;
 }
@@ -205,11 +208,12 @@ main {
   position: relative;
   z-index: 1;
   display: block;
-  width: min(100%, 560px);
+  width: min(100%, 700px);
+  max-width: none;
   height: auto;
   object-fit: contain;
   object-position: bottom center;
-  transform: translateY(28px);
+  transform: translate(18px, 42px);
   filter:
     drop-shadow(0 0 10px rgba(255, 255, 255, 0.58))
     drop-shadow(0 0 28px rgba(255, 255, 255, 0.26))
