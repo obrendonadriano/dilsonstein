@@ -21,6 +21,7 @@ const cityEditorForm = document.querySelector("#city-editor-form");
 const cityTimeForm = document.querySelector("#city-time-form");
 const cityList = document.querySelector("#city-list");
 const cityTimeList = document.querySelector("#city-time-list");
+const cityEditorSection = document.querySelector("#city-editor-section");
 const leadsTableBody = document.querySelector("#leads-table-body");
 const citySummary = document.querySelector("#city-summary");
 const timeSummary = document.querySelector("#time-summary");
@@ -35,6 +36,16 @@ const editCityVenueInput = document.querySelector("#edit-city-venue");
 const editCityAddressInput = document.querySelector("#edit-city-address");
 const editCityActiveInput = document.querySelector("#edit-city-active");
 const newCityTimeInput = document.querySelector("#new-city-time");
+const exportUseCity = document.querySelector("#export-use-city");
+const exportUseTime = document.querySelector("#export-use-time");
+const exportUseDdd = document.querySelector("#export-use-ddd");
+const exportUseState = document.querySelector("#export-use-state");
+const exportUseCityStatus = document.querySelector("#export-use-city-status");
+const exportCityValue = document.querySelector("#export-city-value");
+const exportTimeValue = document.querySelector("#export-time-value");
+const exportDddValue = document.querySelector("#export-ddd-value");
+const exportStateValue = document.querySelector("#export-state-value");
+const exportCityStatusValue = document.querySelector("#export-city-status-value");
 
 const metricTotal = document.querySelector("#metric-total");
 const metricCities = document.querySelector("#metric-cities");
@@ -299,7 +310,7 @@ function renderCityList() {
         </div>
         <div class="tag-item__actions">
           <button type="button" class="ghost-button" data-action="edit-city" data-id="${item.id}">Editar</button>
-          <button type="button" data-action="delete-city" data-id="${item.id}">Excluir</button>
+          <button type="button" class="ghost-button" data-action="delete-city" data-id="${item.id}">Excluir</button>
         </div>
       </article>
     `)
@@ -309,8 +320,10 @@ function renderCityList() {
     button.addEventListener("click", () => {
       if (button.dataset.action === "edit-city") {
         selectedEditorCityId = button.dataset.id || "";
+        setActiveView("cities");
         populateEditorCitySelect();
         renderEditorCity();
+        cityEditorSection?.scrollIntoView({ behavior: "smooth", block: "start" });
         return;
       }
 
@@ -323,6 +336,9 @@ function renderCityList() {
 
 async function renderEditorCity() {
   const selectedCity = getSelectedEditorCity();
+  if (cityEditorSection) {
+    cityEditorSection.hidden = !selectedCity;
+  }
 
   if (!selectedCity) {
     if (editCityInput) editCityInput.value = "";
@@ -366,7 +382,7 @@ function renderCityTimeList(cityId) {
             <button type="button" class="ghost-button" data-action="toggle-time" data-id="${item.id}">
               ${item.active === false ? "Ativar" : "Inativar"}
             </button>
-            <button type="button" data-action="delete-time" data-id="${item.id}">Excluir</button>
+            <button type="button" class="ghost-button" data-action="delete-time" data-id="${item.id}">Excluir</button>
           `}
         </div>
       </article>
@@ -584,11 +600,13 @@ async function mutateSupabase(path, method, body) {
 }
 
 function applyFilters() {
-  const selectedCity = filterCity?.value || "";
-  const selectedTime = filterTime?.value || "";
-  const selectedDdd = filterDdd?.value || "";
-  const selectedState = filterState?.value || "";
-  const selectedCityStatus = filterCityStatus?.value || "";
+  const {
+    selectedCity,
+    selectedTime,
+    selectedDdd,
+    selectedState,
+    selectedCityStatus
+  } = getCurrentFilters();
 
   filteredLeads = leads.filter((lead) => {
     const cityMatch = !selectedCity || lead.city === selectedCity;
@@ -603,6 +621,7 @@ function applyFilters() {
   renderSummaries();
   renderAlerts();
   updateMetrics(selectedCity, selectedTime, selectedDdd, selectedState, selectedCityStatus);
+  updateExportSelections();
 }
 
 function clearFilters() {
@@ -750,11 +769,8 @@ function updateMetrics(selectedCity, selectedTime, selectedDdd, selectedState, s
 }
 
 function syncSelectedEditorCity() {
-  if (selectedEditorCityId && cities.some((item) => String(item.id) === selectedEditorCityId)) {
-    return;
-  }
-
-  selectedEditorCityId = cities[0] ? String(cities[0].id) : "";
+  if (selectedEditorCityId && cities.some((item) => String(item.id) === selectedEditorCityId)) return;
+  selectedEditorCityId = "";
 }
 
 function getSelectedEditorCity() {
@@ -893,7 +909,9 @@ async function exportLeadsSpreadsheet() {
     return;
   }
 
-  const rows = filteredLeads.map((lead) => ({
+  const exportFilters = getExportFilters();
+  const exportRows = getLeadsByFilters(exportFilters);
+  const rows = exportRows.map((lead) => ({
     nome: lead.name || "",
     idade: lead.age || "",
     cidade: lead.city || "",
@@ -903,17 +921,17 @@ async function exportLeadsSpreadsheet() {
   }));
 
   const workbook = XLSX.utils.book_new();
-  const worksheet = buildWorkbookSheet(rows);
+  const worksheet = buildWorkbookSheet(rows, exportFilters);
   XLSX.utils.book_append_sheet(workbook, worksheet, "Agendamentos");
-  XLSX.writeFile(workbook, buildExportFilename(), { compression: true });
+  XLSX.writeFile(workbook, buildExportFilename(exportFilters), { compression: true });
 }
 
-function buildExportFilename() {
-  const city = (filterCity?.value || "todas-cidades").replaceAll(/\s+/g, "-").toLowerCase();
-  const time = (filterTime?.value || "todos-horarios").replaceAll(/\s+/g, "-").toLowerCase();
-  const ddd = (filterDdd?.value || "todos-ddds").replaceAll(/\s+/g, "-").toLowerCase();
-  const state = (filterState?.value || "todos-estados").replaceAll(/\s+/g, "-").toLowerCase();
-  const cityStatus = (filterCityStatus?.value || "ativas-inativas").replaceAll(/\s+/g, "-").toLowerCase();
+function buildExportFilename(filters) {
+  const city = (filters.selectedCity || "todas-cidades").replaceAll(/\s+/g, "-").toLowerCase();
+  const time = (filters.selectedTime || "todos-horarios").replaceAll(/\s+/g, "-").toLowerCase();
+  const ddd = (filters.selectedDdd || "todos-ddds").replaceAll(/\s+/g, "-").toLowerCase();
+  const state = (filters.selectedState || "todos-estados").replaceAll(/\s+/g, "-").toLowerCase();
+  const cityStatus = (filters.selectedCityStatus || "ativas-inativas").replaceAll(/\s+/g, "-").toLowerCase();
   return `agendamentos-${city}-${time}-${ddd}-${state}-${cityStatus}.xlsx`;
 }
 
@@ -942,15 +960,15 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
-function buildWorkbookSheet(rows) {
-  const selectedCity = filterCity?.value || "Todas as cidades";
-  const selectedTime = filterTime?.value || "Todos os horários";
-  const selectedDdd = filterDdd?.value || "Todos os DDDs";
-  const selectedState = filterState?.value || "Todos os estados";
+function buildWorkbookSheet(rows, filters) {
+  const selectedCity = filters.selectedCity || "Todas as cidades";
+  const selectedTime = filters.selectedTime || "Todos os horários";
+  const selectedDdd = filters.selectedDdd || "Todos os DDDs";
+  const selectedState = filters.selectedState || "Todos os estados";
   const selectedCityStatus =
-    filterCityStatus?.value === "active"
+    filters.selectedCityStatus === "active"
       ? "Somente ativas"
-      : filterCityStatus?.value === "inactive"
+      : filters.selectedCityStatus === "inactive"
         ? "Somente inativas"
         : "Ativas e inativas";
   const generatedAt = new Intl.DateTimeFormat("pt-BR", {
@@ -1071,6 +1089,53 @@ function buildBorder(color) {
     bottom: { style: "thin", color: { rgb: color } },
     left: { style: "thin", color: { rgb: color } }
   };
+}
+
+function getCurrentFilters() {
+  return {
+    selectedCity: filterCity?.value || "",
+    selectedTime: filterTime?.value || "",
+    selectedDdd: filterDdd?.value || "",
+    selectedState: filterState?.value || "",
+    selectedCityStatus: filterCityStatus?.value || ""
+  };
+}
+
+function getLeadsByFilters(filters) {
+  return leads.filter((lead) => {
+    const cityMatch = !filters.selectedCity || lead.city === filters.selectedCity;
+    const timeMatch = !filters.selectedTime || lead.time === filters.selectedTime;
+    const dddMatch = !filters.selectedDdd || extractDdd(lead.phone) === filters.selectedDdd;
+    const stateMatch = !filters.selectedState || extractStateFromCity(lead.city) === filters.selectedState;
+    const cityStatusMatch = !filters.selectedCityStatus || matchCityStatus(lead.city, filters.selectedCityStatus);
+    return cityMatch && timeMatch && dddMatch && stateMatch && cityStatusMatch;
+  });
+}
+
+function getExportFilters() {
+  const currentFilters = getCurrentFilters();
+  return {
+    selectedCity: exportUseCity?.checked ? currentFilters.selectedCity : "",
+    selectedTime: exportUseTime?.checked ? currentFilters.selectedTime : "",
+    selectedDdd: exportUseDdd?.checked ? currentFilters.selectedDdd : "",
+    selectedState: exportUseState?.checked ? currentFilters.selectedState : "",
+    selectedCityStatus: exportUseCityStatus?.checked ? currentFilters.selectedCityStatus : ""
+  };
+}
+
+function updateExportSelections() {
+  if (exportCityValue) exportCityValue.textContent = filterCity?.value || "Todas as cidades";
+  if (exportTimeValue) exportTimeValue.textContent = filterTime?.value || "Todos os horários";
+  if (exportDddValue) exportDddValue.textContent = filterDdd?.value || "Todos os DDDs";
+  if (exportStateValue) exportStateValue.textContent = filterState?.value || "Todos os estados";
+  if (exportCityStatusValue) {
+    exportCityStatusValue.textContent =
+      filterCityStatus?.value === "active"
+        ? "Somente ativas"
+        : filterCityStatus?.value === "inactive"
+          ? "Somente inativas"
+          : "Ativas e inativas";
+  }
 }
 
 function buildDddOptions() {

@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/painel/painel.css?v=8">
+  <link rel="stylesheet" href="/painel/painel.css?v=9">
   <script src="/config.js?v=7"></script>
 </head>
 <body class="panel-page">
@@ -21,6 +21,9 @@
       </button>
 
       <nav class="panel-sidebar-nav" aria-label="Menu do painel">
+        <button class="panel-sidebar-link is-active" type="button" data-view-target="overview">
+          Dashboard
+        </button>
         <button class="panel-sidebar-link" type="button" data-view-target="export">
           Baixar Planilha
         </button>
@@ -49,6 +52,7 @@
 
       <aside class="panel-mobile-drawer" id="panel-mobile-drawer" hidden aria-hidden="true">
         <nav class="panel-mobile-nav" aria-label="Menu mobile do painel">
+          <button class="panel-mobile-link is-active" type="button" data-view-target="overview">Dashboard</button>
           <button class="panel-mobile-link" type="button" data-view-target="export">Baixar Planilha</button>
           <button class="panel-mobile-link" type="button" data-view-target="cities">Gerenciar Cidades</button>
         </nav>
@@ -65,9 +69,51 @@
               <div>
                 <span class="eyebrow">Gestão de agendamentos</span>
                 <h1>Dashboard da seleção</h1>
-                <p class="panel-subtitle">Acompanhe inscrições, visualize alertas e acesse rapidamente a exportação e o gerenciamento das cidades.</p>
+                <p class="panel-subtitle">Acompanhe inscrições, filtre os resultados e visualize os alertas da seleção presencial em um só lugar.</p>
               </div>
             </header>
+
+            <section class="workspace-panel">
+              <div class="filters-grid">
+                <label>
+                  Cidade
+                  <select id="filter-city">
+                    <option value="">Todas as cidades</option>
+                  </select>
+                </label>
+                <label>
+                  Horário
+                  <select id="filter-time">
+                    <option value="">Todos os horários</option>
+                  </select>
+                </label>
+                <label>
+                  DDD
+                  <select id="filter-ddd">
+                    <option value="">Todos os DDDs</option>
+                  </select>
+                </label>
+                <label>
+                  Estado
+                  <select id="filter-state">
+                    <option value="">Todos os estados</option>
+                  </select>
+                </label>
+                <label>
+                  Status da cidade
+                  <select id="filter-city-status">
+                    <option value="">Ativas e inativas</option>
+                    <option value="active">Somente ativas</option>
+                    <option value="inactive">Somente inativas</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="button-row">
+                <button type="button" class="primary-button" id="apply-filters">Aplicar filtros</button>
+                <button type="button" class="ghost-button" id="clear-filters">Limpar</button>
+              </div>
+            </section>
 
             <section class="metrics-grid">
               <article class="metric-card">
@@ -85,6 +131,22 @@
               <article class="metric-card">
                 <span>Filtro atual</span>
                 <strong id="metric-filter">Todos</strong>
+              </article>
+            </section>
+
+            <section class="panel-grid analytics-grid">
+              <article class="workspace-panel workspace-panel--compact">
+                <div class="card-header">
+                  <h2>Total por cidade</h2>
+                </div>
+                <div id="city-summary" class="summary-list"></div>
+              </article>
+
+              <article class="workspace-panel workspace-panel--compact">
+                <div class="card-header">
+                  <h2>Total por horário</h2>
+                </div>
+                <div id="time-summary" class="summary-list"></div>
               </article>
             </section>
 
@@ -137,67 +199,63 @@
               <div>
                 <span class="eyebrow">Exportação</span>
                 <h2>Baixar Planilha</h2>
-                <p class="panel-subtitle">Filtre os agendamentos do jeito que precisar e baixe a planilha sem afetar os números gerais do dashboard.</p>
+                <p class="panel-subtitle">Escolha quais filtros da Dashboard devem entrar no arquivo e gere a planilha do jeito que ficar melhor para você.</p>
               </div>
             </header>
 
             <section class="workspace-panel">
-              <div class="filters-grid">
-                <label>
-                  Cidade
-                  <select id="filter-city">
-                    <option value="">Todas as cidades</option>
-                  </select>
+              <div class="card-header">
+                <div>
+                  <h2>Filtros que entram na planilha</h2>
+                  <p class="panel-subtitle">Os filtros abaixo usam a seleção atual da Dashboard. Marque o que você quer considerar no download.</p>
+                </div>
+              </div>
+
+              <div class="export-grid">
+                <label class="export-choice">
+                  <input type="checkbox" id="export-use-city" checked>
+                  <span>
+                    <strong>Cidade</strong>
+                    <small id="export-city-value">Todas as cidades</small>
+                  </span>
                 </label>
-                <label>
-                  Horário
-                  <select id="filter-time">
-                    <option value="">Todos os horários</option>
-                  </select>
+
+                <label class="export-choice">
+                  <input type="checkbox" id="export-use-time" checked>
+                  <span>
+                    <strong>Horário</strong>
+                    <small id="export-time-value">Todos os horários</small>
+                  </span>
                 </label>
-                <label>
-                  DDD
-                  <select id="filter-ddd">
-                    <option value="">Todos os DDDs</option>
-                  </select>
+
+                <label class="export-choice">
+                  <input type="checkbox" id="export-use-ddd" checked>
+                  <span>
+                    <strong>DDD</strong>
+                    <small id="export-ddd-value">Todos os DDDs</small>
+                  </span>
                 </label>
-                <label>
-                  Estado
-                  <select id="filter-state">
-                    <option value="">Todos os estados</option>
-                  </select>
+
+                <label class="export-choice">
+                  <input type="checkbox" id="export-use-state" checked>
+                  <span>
+                    <strong>Estado</strong>
+                    <small id="export-state-value">Todos os estados</small>
+                  </span>
                 </label>
-                <label>
-                  Status da cidade
-                  <select id="filter-city-status">
-                    <option value="">Ativas e inativas</option>
-                    <option value="active">Somente ativas</option>
-                    <option value="inactive">Somente inativas</option>
-                  </select>
+
+                <label class="export-choice">
+                  <input type="checkbox" id="export-use-city-status" checked>
+                  <span>
+                    <strong>Status da cidade</strong>
+                    <small id="export-city-status-value">Ativas e inativas</small>
+                  </span>
                 </label>
               </div>
 
               <div class="button-row">
-                <button type="button" class="primary-button" id="apply-filters">Aplicar filtros</button>
-                <button type="button" class="ghost-button" id="clear-filters">Limpar</button>
                 <button type="button" class="ghost-button" id="export-csv">Baixar planilha XLSX</button>
               </div>
-            </section>
-
-            <section class="panel-grid analytics-grid">
-              <article class="workspace-panel workspace-panel--compact">
-                <div class="card-header">
-                  <h2>Total por cidade</h2>
-                </div>
-                <div id="city-summary" class="summary-list"></div>
-              </article>
-
-              <article class="workspace-panel workspace-panel--compact">
-                <div class="card-header">
-                  <h2>Total por horário</h2>
-                </div>
-                <div id="time-summary" class="summary-list"></div>
-              </article>
             </section>
           </section>
 
@@ -205,79 +263,77 @@
             <header class="panel-section-header">
               <div>
                 <span class="eyebrow">Gestão de cidades</span>
-                <h2>Gerenciar Cidades</h2>
+                <h1 class="panel-page-title">Gerenciar Cidades</h1>
                 <p class="panel-subtitle">Cadastre novas cidades, atualize local e endereço e ajuste os horários de cada agenda presencial.</p>
               </div>
             </header>
 
-            <section class="panel-grid panel-grid--cities">
-              <article class="workspace-panel workspace-panel--compact">
-                <div class="card-header">
-                  <div>
-                    <h2>Nova cidade</h2>
-                    <p class="panel-subtitle">Cadastre a cidade, o nome do local e o endereço completo para refletir essas informações no site e no WhatsApp.</p>
-                  </div>
+            <section class="workspace-panel workspace-panel--compact">
+              <div class="card-header">
+                <div>
+                  <h2>Nova cidade</h2>
+                  <p class="panel-subtitle">Cadastre a cidade, o nome do local e o endereço completo para refletir essas informações no site e no WhatsApp.</p>
                 </div>
+              </div>
 
-                <form id="city-form" class="inline-form">
-                  <div class="inline-form-grid">
-                    <input type="text" id="new-city" placeholder="Ex.: Campinas 10/04" required>
-                    <input type="text" id="new-city-venue" placeholder="Ex.: Hotel Leon Park" required>
-                  </div>
-                  <input type="text" id="new-city-address" placeholder="Ex.: Av. Francisco Glicério, 641" required>
-                  <button type="submit" class="primary-button">Adicionar cidade</button>
-                </form>
-
-                <div class="tag-list" id="city-list"></div>
-              </article>
-
-              <article class="workspace-panel workspace-panel--compact">
-                <div class="card-header">
-                  <div>
-                    <h2>Editar cidade</h2>
-                    <p class="panel-subtitle">Selecione uma cidade ativa para ajustar informações e gerenciar os horários disponíveis apenas dela.</p>
-                  </div>
+              <form id="city-form" class="inline-form">
+                <div class="inline-form-grid">
+                  <input type="text" id="new-city" placeholder="Ex.: Campinas 10/04" required>
+                  <input type="text" id="new-city-venue" placeholder="Ex.: Hotel Leon Park" required>
                 </div>
+                <input type="text" id="new-city-address" placeholder="Ex.: Av. Francisco Glicério, 641" required>
+                <button type="submit" class="primary-button">Adicionar cidade</button>
+              </form>
 
-                <div class="editor-stack">
-                  <label>
-                    Cidade selecionada
-                    <select id="editor-city-select">
-                      <option value="">Selecione uma cidade</option>
+              <div class="tag-list" id="city-list"></div>
+            </section>
+
+            <section class="workspace-panel workspace-panel--compact" id="city-editor-section" hidden>
+              <div class="card-header">
+                <div>
+                  <h2>Editar cidade</h2>
+                  <p class="panel-subtitle">Selecione uma cidade ativa para ajustar informações e gerenciar os horários disponíveis apenas dela.</p>
+                </div>
+              </div>
+
+              <div class="editor-stack">
+                <label>
+                  Cidade selecionada
+                  <select id="editor-city-select">
+                    <option value="">Selecione uma cidade</option>
+                  </select>
+                </label>
+
+                <form id="city-editor-form" class="inline-form">
+                  <input type="text" id="edit-city" placeholder="Cidade" required>
+                  <input type="text" id="edit-city-venue" placeholder="Nome do local" required>
+                  <input type="text" id="edit-city-address" placeholder="Endereço completo" required>
+                  <label class="switch-field">
+                    <span>Status da cidade</span>
+                    <select id="edit-city-active">
+                      <option value="true">Ativa</option>
+                      <option value="false">Inativa</option>
                     </select>
                   </label>
+                  <button type="submit" class="primary-button">Salvar alterações da cidade</button>
+                </form>
 
-                  <form id="city-editor-form" class="inline-form">
-                    <input type="text" id="edit-city" placeholder="Cidade" required>
-                    <input type="text" id="edit-city-venue" placeholder="Nome do local" required>
-                    <input type="text" id="edit-city-address" placeholder="Endereço completo" required>
-                    <label class="switch-field">
-                      <span>Status da cidade</span>
-                      <select id="edit-city-active">
-                        <option value="true">Ativa</option>
-                        <option value="false">Inativa</option>
-                      </select>
-                    </label>
-                    <button type="submit" class="primary-button">Salvar alterações da cidade</button>
-                  </form>
+                <div class="editor-divider"></div>
 
-                  <div class="editor-divider"></div>
-
-                  <div class="card-header card-header--compact">
-                    <div>
-                      <h3>Horários da cidade</h3>
-                      <p class="panel-subtitle">Cada cidade tem sua própria agenda. Ao criar uma cidade nova, ela já recebe os horários padrão atuais.</p>
-                    </div>
+                <div class="card-header card-header--compact">
+                  <div>
+                    <h3>Horários da cidade</h3>
+                    <p class="panel-subtitle">Cada cidade tem sua própria agenda. Ao criar uma cidade nova, ela já recebe os horários padrão atuais.</p>
                   </div>
-
-                  <form id="city-time-form" class="inline-form">
-                    <input type="text" id="new-city-time" placeholder="Ex.: 15h30" required>
-                    <button type="submit" class="primary-button">Adicionar horário nesta cidade</button>
-                  </form>
-
-                  <div class="tag-list tag-list--stacked" id="city-time-list"></div>
                 </div>
-              </article>
+
+                <form id="city-time-form" class="inline-form">
+                  <input type="text" id="new-city-time" placeholder="Ex.: 15h30" required>
+                  <button type="submit" class="primary-button">Adicionar horário nesta cidade</button>
+                </form>
+
+                <div class="tag-list tag-list--stacked" id="city-time-list"></div>
+              </div>
             </section>
           </section>
         </section>
@@ -286,6 +342,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-  <script src="/painel/dashboard.js?v=9"></script>
+  <script src="/painel/dashboard.js?v=10"></script>
 </body>
 </html>
