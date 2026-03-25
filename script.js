@@ -9,7 +9,6 @@ const modal = document.querySelector("#success-modal");
 const whatsappLink = document.querySelector("#whatsapp-link");
 const activeCitiesList = document.querySelector("#active-cities-list");
 const heroActiveCitiesText = document.querySelector("#hero-active-cities-text");
-const heroSection = document.querySelector(".hero");
 const heroVideo = document.querySelector(".hero-video");
 const glowCards = document.querySelectorAll(".card-glow");
 const submitButton = document.querySelector('#lead-form button[type="submit"]');
@@ -62,41 +61,28 @@ function setupCardGlowTouch() {
 }
 
 function setupHeroVideo() {
-  if (!heroVideo || !heroSection) return;
+  if (!heroVideo) return;
 
   heroVideo.muted = true;
   heroVideo.defaultMuted = true;
   heroVideo.setAttribute("muted", "");
   heroVideo.setAttribute("playsinline", "");
-
-  const enableFallback = () => {
-    heroSection.classList.add("is-video-fallback");
-  };
+  heroVideo.setAttribute("webkit-playsinline", "");
+  heroVideo.setAttribute("autoplay", "");
 
   const tryPlay = () => {
     const playPromise = heroVideo.play();
     if (playPromise && typeof playPromise.catch === "function") {
-      playPromise.catch(() => {
-        enableFallback();
-      });
+      playPromise.catch(() => {});
     }
   };
 
-  heroVideo.addEventListener("loadeddata", () => {
-    heroSection.classList.remove("is-video-fallback");
-    tryPlay();
-  });
-
-  heroVideo.addEventListener("error", enableFallback);
-  heroVideo.addEventListener("stalled", enableFallback);
-
+  heroVideo.addEventListener("loadeddata", tryPlay);
+  heroVideo.addEventListener("canplay", tryPlay);
   window.addEventListener("load", tryPlay, { passive: true });
-
-  window.setTimeout(() => {
-    if (heroVideo.readyState < 2) {
-      enableFallback();
-    }
-  }, 2200);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) tryPlay();
+  });
 }
 
 function setupHeroModelLoop() {
