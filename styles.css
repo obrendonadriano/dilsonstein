@@ -996,11 +996,8 @@ textarea {
 
 .legacy-card img {
   width: 100%;
-  aspect-ratio: 0.76;
   height: auto;
   display: block;
-  object-fit: cover;
-  object-position: center top;
 }
 
 .section-heading h2,
