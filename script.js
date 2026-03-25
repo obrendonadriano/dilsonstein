@@ -9,10 +9,6 @@ const modal = document.querySelector("#success-modal");
 const whatsappLink = document.querySelector("#whatsapp-link");
 const activeCitiesList = document.querySelector("#active-cities-list");
 const heroActiveCitiesText = document.querySelector("#hero-active-cities-text");
-const heroHighlightCard = document.querySelector("#hero-highlight-card");
-const heroHighlightCity = document.querySelector("#hero-highlight-city");
-const heroHighlightVenue = document.querySelector("#hero-highlight-venue");
-const heroHighlightAddress = document.querySelector("#hero-highlight-address");
 const heroVideo = document.querySelector(".hero-video");
 const glowCards = document.querySelectorAll(".card-glow");
 const submitButton = document.querySelector('#lead-form button[type="submit"]');
@@ -690,7 +686,6 @@ async function setupSchedulingOptions() {
 
   populateActiveCities(cityOptions);
   populateHeroActiveCities(cityOptions);
-  populateHeroHighlight(cityOptions);
   updateSelectionDetails();
 }
 
@@ -780,21 +775,6 @@ function populateHeroActiveCities(cities) {
   const visibleCities = items.slice(0, 3).map((item) => item.label);
   const cityText = visibleCities.join(", ");
   heroActiveCitiesText.textContent = ` Seleção presencial já confirmada em ${cityText}.`;
-}
-
-function populateHeroHighlight(cities) {
-  if (!heroHighlightCard || !heroHighlightCity || !heroHighlightVenue || !heroHighlightAddress) return;
-
-  const [featuredCity] = normalizeCityRecords(cities);
-  if (!featuredCity) {
-    heroHighlightCard.hidden = true;
-    return;
-  }
-
-  heroHighlightCity.textContent = featuredCity.label;
-  heroHighlightVenue.textContent = featuredCity.venue_name || "Local a confirmar";
-  heroHighlightAddress.textContent = featuredCity.address || "Endereço em confirmação.";
-  heroHighlightCard.hidden = false;
 }
 
 function handleCitySelectionChange() {
