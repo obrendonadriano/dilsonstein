@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro | Dilson Stein</title>
+  <meta
+    name="description"
+    content="Cadastre seu perfil na Dilson Stein e dê o primeiro passo para entrar no universo da moda."
+  >
+  <meta property="og:title" content="Cadastro | Dilson Stein">
+  <meta property="og:description" content="Preencha seu perfil e finalize seu cadastro com a equipe Dilson Stein.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <link rel="icon" type="image/png" href="../img/fivecoin.png">
+  <link rel="apple-touch-icon" href="../img/fivecoin.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css?v=30">
+  <link rel="stylesheet" href="../cadastro-formulario.css?v=1">
+  <script src="../config.js?v=7"></script>
+  <script>
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '928735966754524');
+  </script>
+</head>
+<body class="signup-page">
+  <header class="topbar">
+    <div class="topbar-shell">
+      <a href="/" class="signup-back-link" aria-label="Voltar para a página inicial">
+        <img class="brand-logo" src="../img/logo-dourada.png" alt="Dilson Stein">
+      </a>
+    </div>
+  </header>
+
+  <main class="signup-page-main">
+    <section class="signup-standalone">
+      <div class="signup-standalone-copy">
+        <span class="eyebrow">Faça parte</span>
+        <h1>Cadastre seu perfil</h1>
+        <p>Preencha seus dados, selecione a cidade e o horário desejados para participar da seleção e avance para a finalização via WhatsApp.</p>
+      </div>
+
+      <form id="lead-form" class="signup-standalone-form" novalidate>
+        <div class="field-grid hero-form-grid">
+          <div class="field">
+            <label for="name">Nome</label>
+            <input id="name" name="name" type="text" autocomplete="name" placeholder="Seu Nome" required>
+          </div>
+
+          <div class="field">
+            <label for="age">Idade</label>
+            <input id="age" name="age" type="number" min="0" max="120" placeholder="Ex.: 19" required>
+          </div>
+        </div>
+
+        <div class="field-grid hero-form-grid">
+          <div class="field">
+            <label for="city">Cidade da seleção</label>
+            <select id="city" name="city" required>
+              <option value="">Selecione a cidade que deseja participar da seleção</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="time">Horário da seleção</label>
+            <select id="time" name="time" required>
+              <option value="">Selecione o horário para comparecer presencialmente à seleção</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="phone">Número / WhatsApp</label>
+          <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="(00) 00000-0000" required>
+        </div>
+
+        <div class="field consent">
+          <label class="checkbox">
+            <input id="consent" name="consent" type="checkbox" required>
+            <span>Autorizo o contato da equipe Dilson Stein e o uso dos meus dados para avaliação do cadastro.</span>
+          </label>
+        </div>
+
+        <button class="primary-button" type="submit">
+          <span>Quero iniciar meu cadastro</span>
+        </button>
+
+        <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+  </main>
+
+  <div class="success-modal" id="success-modal" aria-hidden="true">
+    <div class="success-modal-backdrop" data-close-modal></div>
+    <div class="success-modal-dialog card-glow" role="dialog" aria-modal="true" aria-labelledby="success-title">
+      <button class="modal-close" type="button" aria-label="Fechar" data-close-modal>×</button>
+      <span class="eyebrow">Cadastro recebido</span>
+      <h2 id="success-title">Seu cadastro está quase concluído.</h2>
+      <p>
+        Clique no botão abaixo para finalizar sua avaliação e agilizar o atendimento com a equipe Dilson Stein no WhatsApp.
+      </p>
+      <a
+        class="primary-button whatsapp-button"
+        id="whatsapp-link"
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Finalizar no WhatsApp
+      </a>
+    </div>
+  </div>
+
+  <script src="../script.js?v=8"></script>
+</body>
+</html>

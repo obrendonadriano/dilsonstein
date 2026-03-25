@@ -64,7 +64,6 @@ const server = http.createServer(async (req, res) => {
 
     let filePath = path.join(ROOT, decodeURIComponent(requestUrl.pathname));
     if (requestUrl.pathname === "/") filePath = path.join(ROOT, "index.html");
-    if (requestUrl.pathname === "/cadastro-formulario") filePath = path.join(ROOT, "cadastro-formulario.html");
 
     if (!filePath.startsWith(ROOT)) {
       res.writeHead(403);
@@ -72,24 +71,41 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    fs.readFile(filePath, (error, content) => {
-      if (error) {
-        if (error.code === "ENOENT") {
-          res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
-          res.end("Not Found");
+    fs.stat(filePath, (statError, stats) => {
+      let resolvedPath = filePath;
+
+      if (!statError && stats.isDirectory()) {
+        resolvedPath = path.join(filePath, "index.html");
+      } else if (statError && !path.extname(filePath)) {
+        const htmlPath = `${filePath}.html`;
+        const nestedIndexPath = path.join(filePath, "index.html");
+
+        if (fs.existsSync(htmlPath)) {
+          resolvedPath = htmlPath;
+        } else if (fs.existsSync(nestedIndexPath)) {
+          resolvedPath = nestedIndexPath;
+        }
+      }
+
+      fs.readFile(resolvedPath, (error, content) => {
+        if (error) {
+          if (error.code === "ENOENT") {
+            res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+            res.end("Not Found");
+            return;
+          }
+
+          res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
+          res.end("Internal Server Error");
           return;
         }
 
-        res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
-        res.end("Internal Server Error");
-        return;
-      }
-
-      const ext = path.extname(filePath).toLowerCase();
-      res.writeHead(200, {
-        "Content-Type": MIME_TYPES[ext] || "application/octet-stream"
+        const ext = path.extname(resolvedPath).toLowerCase();
+        res.writeHead(200, {
+          "Content-Type": MIME_TYPES[ext] || "application/octet-stream"
+        });
+        res.end(content);
       });
-      res.end(content);
     });
   } catch (error) {
     res.writeHead(500, { "Content-Type": "application/json; charset=utf-8" });
