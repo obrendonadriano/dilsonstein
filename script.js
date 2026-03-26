@@ -1014,8 +1014,7 @@ function setupSiteChat() {
         body: JSON.stringify({
           message,
           history: chatHistory.slice(0, -1).slice(-8),
-          leadContext: getLeadContext(),
-          chatWebhookUrl: APP_CONFIG.chat?.webhookUrl || ""
+          leadContext: getLeadContext()
         })
       });
 

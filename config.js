@@ -17,9 +17,6 @@ window.APP_CONFIG = {
     conversionProxyUrl: "/api/facebook-conversion",
     testEventCode: "TEST37800"
   },
-  chat: {
-    webhookUrl: "https://api.lailla.io/v1/webhook/custom/56b816fe-62f7-4c4b-9259-993cd0140307"
-  },
   scheduling: {
     defaultCities: [
       {
