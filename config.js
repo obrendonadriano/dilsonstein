@@ -1,7 +1,7 @@
 window.APP_CONFIG = {
   whatsapp: {
     number: "5511925517859",
-    message: "Olá, meu nome é {name}, tenho {age} anos e me cadastrei para participar da seleção em {city}, {location_sentence}, às {time}. Gostaria de mais informações sobre como participar."
+    message: "Olá! Me cadastrei para participar da seleção presencial e gostaria de saber mais informações sobre como vai funcionar."
   },
   supabase: {
     url: "https://grohztewndqwfyvdgjar.supabase.co",

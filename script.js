@@ -570,7 +570,7 @@ function configureWhatsAppLink(payload) {
 
   const rawPhone = APP_CONFIG.whatsapp?.number || "5511999999999";
   const template = APP_CONFIG.whatsapp?.message
-    || "Olá, meu nome é {name}, tenho {age} anos e me cadastrei para participar da seleção em {city}, {location_sentence}, às {time}. Gostaria de mais informações sobre como participar.";
+    || "Olá! Me cadastrei para participar da seleção presencial e gostaria de saber mais informações sobre como vai funcionar.";
   const selectedCity = getCityRecordByLabel(payload.city);
   const venueName = selectedCity?.venue_name || "";
   const address = selectedCity?.address || "";
