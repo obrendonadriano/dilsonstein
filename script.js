@@ -3,6 +3,7 @@ const APP_CONFIG = window.APP_CONFIG || {};
 const phoneInput = document.querySelector("#phone");
 const citySelect = document.querySelector("#city");
 const timeSelect = document.querySelector("#time");
+const consentInput = document.querySelector("#consent");
 const form = document.querySelector("#lead-form");
 const statusNode = document.querySelector("#form-status");
 const modal = document.querySelector("#success-modal");
@@ -34,6 +35,7 @@ setupModal();
 setupCardGlowTouch();
 setupHeroVideo();
 setupFormGate();
+setupDefaultConsent();
 setupHeroModelLoop();
 setupInfiniteMarquees();
 setupModelsScrollLoop();
@@ -268,6 +270,11 @@ function setupFormGate() {
   updateSubmitState();
 }
 
+function setupDefaultConsent() {
+  if (!consentInput) return;
+  consentInput.checked = true;
+}
+
 function updateSubmitState() {
   if (!form || !submitButton) return;
 
@@ -276,7 +283,7 @@ function updateSubmitState() {
   const city = document.querySelector("#city")?.value.trim();
   const time = document.querySelector("#time")?.value.trim();
   const phoneDigits = document.querySelector("#phone")?.value.replace(/\D/g, "");
-  const consent = document.querySelector("#consent")?.checked;
+  const consent = consentInput?.checked;
 
   const isReady = Boolean(
     name &&
@@ -339,6 +346,7 @@ async function handleSubmit(event) {
     }
 
     form.reset();
+    if (consentInput) consentInput.checked = true;
     statusNode.textContent = "Cadastro enviado com sucesso.";
     configureWhatsAppLink(payload);
     openModal();
