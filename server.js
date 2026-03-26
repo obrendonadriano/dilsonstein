@@ -13,6 +13,7 @@ const META_PIXEL_ID = process.env.META_PIXEL_ID || "928735966754524";
 const META_ACCESS_TOKEN = process.env.META_ACCESS_TOKEN || "";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const CHAT_WEBHOOK_URL = process.env.LAILLA_CHAT_WEBHOOK_URL || "";
 const CHAT_MEMORY_FILE = path.join(ROOT, "momery-chat.json");
 
 const MIME_TYPES = {
@@ -305,16 +306,6 @@ async function generateChatReply(payload) {
     };
   }
 
-  if (!GEMINI_API_KEY) {
-    return {
-      statusCode: 500,
-      data: {
-        error: "GEMINI_API_KEY ausente no servidor.",
-        reply: "O chat está em configuração no momento. Enquanto isso, clique em 'Quero cadastrar meu perfil' para seguir com o seu cadastro."
-      }
-    };
-  }
-
   let memory = {};
 
   try {
@@ -325,18 +316,71 @@ async function generateChatReply(payload) {
 
   const history = Array.isArray(payload?.history) ? payload.history.slice(-8) : [];
   const leadContext = sanitizeLeadContext(payload?.leadContext || {});
+  const chatWebhookUrl = sanitizeWebhookUrl(payload?.chatWebhookUrl || CHAT_WEBHOOK_URL);
   const fastReply = buildFastLocalReply({
     message,
     memory,
     leadContext
   });
 
-  if (fastReply) {
+  if (!chatWebhookUrl && fastReply) {
     return {
       statusCode: 200,
       data: {
         local: true,
         reply: fastReply
+      }
+    };
+  }
+
+  if (chatWebhookUrl) {
+    try {
+      const webhookData = await callChatWebhook({
+        url: chatWebhookUrl,
+        message,
+        history,
+        leadContext
+      });
+      const webhookReply = extractChatWebhookReply(webhookData);
+
+      if (webhookReply) {
+        return {
+          statusCode: 200,
+          data: {
+            reply: maybeAppendSignupNudge(webhookReply, message, leadContext),
+            source: "lailla-webhook"
+          }
+        };
+      }
+
+      console.warn("[Chat] Webhook sem resposta textual utilizável:", webhookData);
+    } catch (error) {
+      console.error("[Chat] Falha ao consultar webhook externo:", error);
+    }
+  }
+
+  if (fastReply) {
+    return {
+      statusCode: 200,
+      data: {
+        local: true,
+        source: "local-fast-fallback",
+        reply: fastReply
+      }
+    };
+  }
+
+  if (!GEMINI_API_KEY) {
+    return {
+      statusCode: 200,
+      data: {
+        fallback: true,
+        error: "GEMINI_API_KEY ausente no servidor.",
+        reply: buildFallbackChatReply({
+          message,
+          memory,
+          leadContext
+        })
       }
     };
   }
@@ -390,6 +434,18 @@ function sanitizeLeadContext(leadContext) {
       ? leadContext.activeCities.map((item) => String(item || "").slice(0, 120)).filter(Boolean).slice(0, 20)
       : []
   };
+}
+
+function sanitizeWebhookUrl(value) {
+  const url = String(value || "").trim();
+  if (!url) return "";
+
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" ? parsed.toString() : "";
+  } catch {
+    return "";
+  }
 }
 
 function buildSystemInstruction(memory, leadContext) {
@@ -487,6 +543,55 @@ function callGeminiApi(payload) {
   });
 }
 
+function callChatWebhook(payload) {
+  return new Promise((resolve, reject) => {
+    const target = new URL(payload.url);
+    const postData = JSON.stringify({
+      message: payload.message,
+      history: payload.history,
+      leadContext: payload.leadContext,
+      source: "site-chat",
+      channel: "web"
+    });
+
+    const request = https.request({
+      hostname: target.hostname,
+      port: target.port || 443,
+      path: `${target.pathname}${target.search}`,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(postData)
+      }
+    }, (response) => {
+      let raw = "";
+
+      response.on("data", (chunk) => {
+        raw += chunk;
+      });
+
+      response.on("end", () => {
+        try {
+          const data = raw ? JSON.parse(raw) : {};
+
+          if ((response.statusCode || 500) >= 400) {
+            reject(new Error(data.error || data.message || "Falha ao consultar webhook externo."));
+            return;
+          }
+
+          resolve(data);
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
+
+    request.on("error", reject);
+    request.write(postData);
+    request.end();
+  });
+}
+
 function extractGeminiText(responseData) {
   const parts = responseData?.candidates?.[0]?.content?.parts;
   if (!Array.isArray(parts)) return "";
@@ -495,6 +600,53 @@ function extractGeminiText(responseData) {
     .map((part) => part?.text || "")
     .join("")
     .trim();
+}
+
+function extractChatWebhookReply(data) {
+  const directCandidates = [
+    data?.reply,
+    data?.response,
+    data?.message,
+    data?.text,
+    data?.answer,
+    data?.output,
+    data?.content,
+    data?.data?.reply,
+    data?.data?.response,
+    data?.data?.message,
+    data?.request_response?.reply,
+    data?.request_response?.response,
+    data?.request_response?.message
+  ];
+
+  const directMatch = directCandidates.find((value) => typeof value === "string" && value.trim());
+  if (directMatch) return directMatch.trim();
+
+  const collectionCandidates = [
+    data?.messages,
+    data?.outputs,
+    data?.responses,
+    data?.data?.messages,
+    data?.data?.outputs
+  ];
+
+  for (const collection of collectionCandidates) {
+    if (!Array.isArray(collection)) continue;
+
+    for (const entry of collection) {
+      const nestedText = [
+        entry?.text,
+        entry?.message,
+        entry?.reply,
+        entry?.content,
+        entry?.output
+      ].find((value) => typeof value === "string" && value.trim());
+
+      if (nestedText) return nestedText.trim();
+    }
+  }
+
+  return "";
 }
 
 function maybeAppendSignupNudge(reply, message, leadContext) {
