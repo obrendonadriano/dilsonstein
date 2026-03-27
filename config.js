@@ -1,6 +1,6 @@
 window.APP_CONFIG = {
   whatsapp: {
-    number: "5511925517859",
+    number: "5514991542734",
     message: "Olá! Me cadastrei para participar da seleção presencial e gostaria de saber mais informações sobre como vai funcionar."
   },
   supabase: {
