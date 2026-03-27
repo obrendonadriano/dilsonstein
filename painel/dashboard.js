@@ -11,7 +11,6 @@ const mobileOverlay = document.querySelector("#panel-mobile-overlay");
 const filterCity = document.querySelector("#filter-city");
 const filterTime = document.querySelector("#filter-time");
 const filterDdd = document.querySelector("#filter-ddd");
-const filterState = document.querySelector("#filter-state");
 const filterCityStatus = document.querySelector("#filter-city-status");
 const applyFiltersButton = document.querySelector("#apply-filters");
 const clearFiltersButton = document.querySelector("#clear-filters");
@@ -41,7 +40,6 @@ const newCityTimeInput = document.querySelector("#new-city-time");
 const exportFilterCity = document.querySelector("#export-filter-city");
 const exportFilterTime = document.querySelector("#export-filter-time");
 const exportFilterDdd = document.querySelector("#export-filter-ddd");
-const exportFilterState = document.querySelector("#export-filter-state");
 const exportFilterCityStatus = document.querySelector("#export-filter-city-status");
 
 const metricTotal = document.querySelector("#metric-total");
@@ -284,14 +282,12 @@ function populateFilters() {
   populateSelect(filterCity, cities.map((item) => item.label), "Todas as cidades");
   populateSelect(filterTime, buildActiveTimeLabels(), "Todos os horários");
   populateSelect(filterDdd, buildDddOptions(), "Todos os DDDs");
-  populateSelect(filterState, buildStateOptions(), "Todos os estados");
 }
 
 function populateExportFilters() {
   populateSelect(exportFilterCity, cities.map((item) => item.label), "Todas as cidades");
   populateSelect(exportFilterTime, buildActiveTimeLabels(), "Todos os horários");
   populateSelect(exportFilterDdd, buildDddOptions(), "Todos os DDDs");
-  populateSelect(exportFilterState, buildStateOptions(), "Todos os estados");
 }
 
 function populateEditorCitySelect() {
@@ -632,7 +628,6 @@ function applyFilters() {
     selectedCity,
     selectedTime,
     selectedDdd,
-    selectedState,
     selectedCityStatus
   } = getCurrentFilters();
   const searchTerm = normalizeSearchTerm(leadSearchInput?.value || "");
@@ -641,23 +636,21 @@ function applyFilters() {
     const cityMatch = !selectedCity || lead.city === selectedCity;
     const timeMatch = !selectedTime || lead.time === selectedTime;
     const dddMatch = !selectedDdd || extractDdd(lead.phone) === selectedDdd;
-    const stateMatch = !selectedState || extractStateFromCity(lead.city) === selectedState;
     const cityStatusMatch = !selectedCityStatus || matchCityStatus(lead.city, selectedCityStatus);
     const searchMatch = !searchTerm || matchLeadSearch(lead, searchTerm);
-    return cityMatch && timeMatch && dddMatch && stateMatch && cityStatusMatch && searchMatch;
+    return cityMatch && timeMatch && dddMatch && cityStatusMatch && searchMatch;
   });
 
   renderLeadsTable();
   renderSummaries();
   renderAlerts();
-  updateMetrics(selectedCity, selectedTime, selectedDdd, selectedState, selectedCityStatus);
+  updateMetrics(selectedCity, selectedTime, selectedDdd, selectedCityStatus);
 }
 
 function clearFilters() {
   if (filterCity) filterCity.value = "";
   if (filterTime) filterTime.value = "";
   if (filterDdd) filterDdd.value = "";
-  if (filterState) filterState.value = "";
   if (filterCityStatus) filterCityStatus.value = "";
   if (leadSearchInput) leadSearchInput.value = "";
   applyFilters();
@@ -667,7 +660,6 @@ function clearExportFilters() {
   if (exportFilterCity) exportFilterCity.value = "";
   if (exportFilterTime) exportFilterTime.value = "";
   if (exportFilterDdd) exportFilterDdd.value = "";
-  if (exportFilterState) exportFilterState.value = "";
   if (exportFilterCityStatus) exportFilterCityStatus.value = "";
 }
 
@@ -809,7 +801,7 @@ function renderSummaryList(container, rows, emptyText) {
     .join("");
 }
 
-function updateMetrics(selectedCity, selectedTime, selectedDdd, selectedState, selectedCityStatus) {
+function updateMetrics(selectedCity, selectedTime, selectedDdd, selectedCityStatus) {
   metricTotal.textContent = String(filteredLeads.length);
   metricCities.textContent = String(cities.filter((item) => item.active !== false).length);
   metricTimes.textContent = String(cityTimes.filter((item) => item.active !== false).length);
@@ -817,7 +809,6 @@ function updateMetrics(selectedCity, selectedTime, selectedDdd, selectedState, s
     selectedCity || "",
     selectedTime || "",
     selectedDdd ? `DDD ${selectedDdd}` : "",
-    selectedState || "",
     selectedCityStatus === "active" ? "Cidades ativas" : "",
     selectedCityStatus === "inactive" ? "Cidades inativas" : ""
   ].filter(Boolean);
@@ -1032,9 +1023,8 @@ function buildExportFilename(filters) {
   const city = (filters.selectedCity || "todas-cidades").replaceAll(/\s+/g, "-").toLowerCase();
   const time = (filters.selectedTime || "todos-horarios").replaceAll(/\s+/g, "-").toLowerCase();
   const ddd = (filters.selectedDdd || "todos-ddds").replaceAll(/\s+/g, "-").toLowerCase();
-  const state = (filters.selectedState || "todos-estados").replaceAll(/\s+/g, "-").toLowerCase();
   const cityStatus = (filters.selectedCityStatus || "ativas-inativas").replaceAll(/\s+/g, "-").toLowerCase();
-  return `agendamentos-${city}-${time}-${ddd}-${state}-${cityStatus}.xlsx`;
+  return `agendamentos-${city}-${time}-${ddd}-${cityStatus}.xlsx`;
 }
 
 function formatPhone(phone) {
@@ -1066,7 +1056,6 @@ function buildWorkbookSheet(rows, filters) {
   const selectedCity = filters.selectedCity || "Todas as cidades";
   const selectedTime = filters.selectedTime || "Todos os horários";
   const selectedDdd = filters.selectedDdd || "Todos os DDDs";
-  const selectedState = filters.selectedState || "Todos os estados";
   const selectedCityStatus =
     filters.selectedCityStatus === "active"
       ? "Somente ativas"
@@ -1082,8 +1071,7 @@ function buildWorkbookSheet(rows, filters) {
     [],
     ["Cidade filtrada:", selectedCity, "", "Horário filtrado:", selectedTime, ""],
     ["Total de agendamentos:", String(rows.length), "", "Exportado em:", generatedAt, ""],
-    ["DDD filtrado:", selectedDdd, "", "Estado filtrado:", selectedState, ""],
-    ["Status da cidade:", selectedCityStatus, "", "", "", ""],
+    ["DDD filtrado:", selectedDdd, "", "Status da cidade:", selectedCityStatus, ""],
     [],
     ["Nome", "Idade", "Cidade", "Horário", "WhatsApp", "Cadastrado em"]
   ];
@@ -1198,7 +1186,6 @@ function getCurrentFilters() {
     selectedCity: filterCity?.value || "",
     selectedTime: filterTime?.value || "",
     selectedDdd: filterDdd?.value || "",
-    selectedState: filterState?.value || "",
     selectedCityStatus: filterCityStatus?.value || ""
   };
 }
@@ -1208,9 +1195,8 @@ function getLeadsByFilters(filters) {
     const cityMatch = !filters.selectedCity || lead.city === filters.selectedCity;
     const timeMatch = !filters.selectedTime || lead.time === filters.selectedTime;
     const dddMatch = !filters.selectedDdd || extractDdd(lead.phone) === filters.selectedDdd;
-    const stateMatch = !filters.selectedState || extractStateFromCity(lead.city) === filters.selectedState;
     const cityStatusMatch = !filters.selectedCityStatus || matchCityStatus(lead.city, filters.selectedCityStatus);
-    return cityMatch && timeMatch && dddMatch && stateMatch && cityStatusMatch;
+    return cityMatch && timeMatch && dddMatch && cityStatusMatch;
   });
 }
 
@@ -1219,7 +1205,6 @@ function getExportFilters() {
     selectedCity: exportFilterCity?.value || "",
     selectedTime: exportFilterTime?.value || "",
     selectedDdd: exportFilterDdd?.value || "",
-    selectedState: exportFilterState?.value || "",
     selectedCityStatus: exportFilterCityStatus?.value || ""
   };
 }
@@ -1262,11 +1247,6 @@ function matchLeadSearch(lead, searchTerm) {
 function buildDddOptions() {
   return [...new Set(leads.map((lead) => extractDdd(lead.phone)).filter(Boolean))]
     .sort((a, b) => Number(a) - Number(b));
-}
-
-function buildStateOptions() {
-  return [...new Set(leads.map((lead) => extractStateFromCity(lead.city)).filter(Boolean))]
-    .sort((a, b) => a.localeCompare(b, "pt-BR"));
 }
 
 function extractDdd(phone) {
