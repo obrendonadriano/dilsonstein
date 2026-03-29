@@ -568,13 +568,14 @@ async function handleWhatsAppClick(event) {
 function configureWhatsAppLink(payload) {
   if (!whatsappLink) return;
 
-  const rawPhone = APP_CONFIG.whatsapp?.number || "5511999999999";
-  const template = APP_CONFIG.whatsapp?.message
-    || "Olá! Me cadastrei para participar da seleção presencial e gostaria de saber mais informações sobre como vai funcionar.";
   const selectedCity = getCityRecordByLabel(payload.city);
-  const venueName = selectedCity?.venue_name || "";
-  const address = selectedCity?.address || "";
-  const locationSentence = buildLocationSentence(selectedCity);
+  const rawPhone = resolveWhatsAppPhone(selectedCity?.label || payload.city || "");
+  const template = APP_CONFIG.whatsapp?.message
+    || "Olá! Meu nome é {nome}, tenho {idade} anos e me cadastrei para participar da seleção em {cidade}, no dia {dia}, no {hotel}, localizado no endereço {endereco}. Gostaria de receber mais informações sobre como participar.";
+  const venueName = selectedCity?.venue_name || "local a confirmar";
+  const address = selectedCity?.address || "endereço a confirmar";
+  const firstName = splitName(payload.name || "").firstName || "";
+  const cityParts = extractCityLabelParts(selectedCity?.label || payload.city || "");
   const text = normalizeWhatsAppMessage(template
     .replaceAll("{name}", payload.name || "")
     .replaceAll("{age}", payload.age || "")
@@ -582,9 +583,50 @@ function configureWhatsAppLink(payload) {
     .replaceAll("{time}", payload.time || "")
     .replaceAll("{venue_name}", venueName)
     .replaceAll("{address}", address)
-    .replaceAll("{location_sentence}", locationSentence));
+    .replaceAll("{location_sentence}", buildLocationSentence(selectedCity))
+    .replaceAll("{nome}", firstName)
+    .replaceAll("{idade}", payload.age || "")
+    .replaceAll("{cidade}", cityParts.city)
+    .replaceAll("{dia}", cityParts.day)
+    .replaceAll("{hotel}", venueName)
+    .replaceAll("{endereco}", address));
   const url = buildWhatsAppUrl(rawPhone, text);
   whatsappLink.href = url;
+}
+
+function resolveWhatsAppPhone(cityLabel) {
+  const fallbackPhone = APP_CONFIG.whatsapp?.number || "5511999999999";
+  const normalizedCity = String(cityLabel || "").toLowerCase();
+  const numbersByCity = APP_CONFIG.whatsapp?.numbersByCity || {};
+
+  if (normalizedCity.includes("santos") && numbersByCity.santos) {
+    return numbersByCity.santos;
+  }
+
+  if (normalizedCity.includes("campinas") && numbersByCity.campinas) {
+    return numbersByCity.campinas;
+  }
+
+  return fallbackPhone;
+}
+
+function extractCityLabelParts(label) {
+  const normalizedLabel = String(label || "").trim();
+  if (!normalizedLabel) {
+    return {
+      city: "",
+      day: ""
+    };
+  }
+
+  const dayMatch = normalizedLabel.match(/\b\d{2}\/\d{2}\b/);
+  const day = dayMatch?.[0] || "";
+  const city = normalizedLabel.replace(/\b\d{2}\/\d{2}\b/, "").trim();
+
+  return {
+    city,
+    day
+  };
 }
 
 function buildWhatsAppUrl(phone, text) {
