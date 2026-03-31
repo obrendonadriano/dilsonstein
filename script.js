@@ -588,6 +588,7 @@ function configureWhatsAppLink(payload) {
     .replaceAll("{idade}", payload.age || "")
     .replaceAll("{cidade}", cityParts.city)
     .replaceAll("{dia}", cityParts.day)
+    .replaceAll("{horario}", payload.time || "")
     .replaceAll("{hotel}", venueName)
     .replaceAll("{endereco}", address));
   const url = buildWhatsAppUrl(rawPhone, text);

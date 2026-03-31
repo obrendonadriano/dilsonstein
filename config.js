@@ -5,7 +5,7 @@ window.APP_CONFIG = {
       santos: "5511919792976",
       campinas: "5511925517859"
     },
-    message: "Olá! Meu nome é {nome}, tenho {idade} anos e me cadastrei para participar da seleção em {cidade}, no dia {dia}, no {hotel}, localizado no endereço {endereco}. Gostaria de receber mais informações sobre como participar."
+    message: "Olá! Meu nome é {nome}, tenho {idade} anos e me cadastrei para participar da seleção em {cidade}, no dia {dia}, às {horario}, no {hotel}, localizado no endereço {endereco}. Gostaria de receber mais informações sobre como participar."
   },
   supabase: {
     url: "https://grohztewndqwfyvdgjar.supabase.co",
