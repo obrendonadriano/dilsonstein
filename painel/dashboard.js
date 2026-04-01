@@ -1029,7 +1029,10 @@ function buildExportFilename(filters) {
 
 function formatPhone(phone) {
   const digits = String(phone || "").replace(/\D/g, "");
-  if (digits.length !== 11) return escapeHtml(phone || "-");
+  if (!digits) return "-";
+  if (digits.length === 11) return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  if (digits.length === 13 && digits.startsWith("55")) return `+55 (${digits.slice(2, 4)}) ${digits.slice(4, 9)}-${digits.slice(9)}`;
+  if (digits.length > 11) return `+${digits.slice(0, digits.length - 11)} ${formatPhone(digits.slice(-11))}`;
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 }
 
@@ -1251,8 +1254,9 @@ function buildDddOptions() {
 
 function extractDdd(phone) {
   const digits = String(phone || "").replace(/\D/g, "");
-  if (digits.length < 10) return "";
-  return digits.slice(0, 2);
+  if (digits.length >= 13 && digits.startsWith("55")) return digits.slice(2, 4);
+  if (digits.length >= 10 && digits.length <= 11) return digits.slice(0, 2);
+  return "";
 }
 
 function extractStateFromCity(city) {

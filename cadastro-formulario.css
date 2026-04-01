@@ -99,6 +99,17 @@ body.signup-page {
   color: #d3c08f;
 }
 
+.phone-field {
+  display: grid;
+  grid-template-columns: minmax(150px, 220px) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.signup-page .phone-country,
+.signup-page #phone-local {
+  min-width: 0;
+}
+
 @media (max-width: 820px) {
   .signup-page-main {
     width: min(100% - 24px, 980px);
@@ -124,5 +135,9 @@ body.signup-page {
 
   .signup-page .primary-button {
     justify-self: stretch;
+  }
+
+  .phone-field {
+    grid-template-columns: 1fr;
   }
 }

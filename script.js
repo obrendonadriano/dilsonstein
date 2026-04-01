@@ -1,6 +1,8 @@
 const APP_CONFIG = window.APP_CONFIG || {};
 
 const phoneInput = document.querySelector("#phone");
+const phoneLocalInput = document.querySelector("#phone-local");
+const phoneCountrySelect = document.querySelector("#phone-country");
 const citySelect = document.querySelector("#city");
 const timeSelect = document.querySelector("#time");
 const consentInput = document.querySelector("#consent");
@@ -44,19 +46,24 @@ setupSiteChat();
 trackInitialPageView();
 
 if (form) form.addEventListener("submit", handleSubmit);
-if (phoneInput) phoneInput.addEventListener("input", maskPhone);
+if (phoneLocalInput) phoneLocalInput.addEventListener("input", handlePhoneInput);
+if (phoneCountrySelect) phoneCountrySelect.addEventListener("change", handlePhoneCountryChange);
 if (whatsappLink) whatsappLink.addEventListener("click", handleWhatsAppClick);
 if (citySelect) citySelect.addEventListener("change", handleCitySelectionChange);
 
-function maskPhone(event) {
-  const digits = event.target.value.replace(/\D/g, "").slice(0, 11);
-  const parts = [];
+function handlePhoneInput(event) {
+  const countryCode = phoneCountrySelect?.value || "55";
+  const digits = String(event.target.value || "").replace(/\D/g, "");
 
-  if (digits.length > 0) parts.push(`(${digits.slice(0, 2)}`);
-  if (digits.length >= 3) parts.push(`) ${digits.slice(2, 7)}`);
-  if (digits.length >= 8) parts.push(`-${digits.slice(7, 11)}`);
+  event.target.value = formatNationalPhoneInput(countryCode, digits);
+  syncPhoneValue();
+}
 
-  event.target.value = parts.join("");
+function handlePhoneCountryChange() {
+  if (phoneLocalInput) {
+    phoneLocalInput.value = formatNationalPhoneInput(phoneCountrySelect?.value || "55", phoneLocalInput.value);
+  }
+  syncPhoneValue();
   updateSubmitState();
 }
 
@@ -282,7 +289,7 @@ function updateSubmitState() {
   const age = document.querySelector("#age")?.value.trim();
   const city = document.querySelector("#city")?.value.trim();
   const time = document.querySelector("#time")?.value.trim();
-  const phoneDigits = document.querySelector("#phone")?.value.replace(/\D/g, "");
+  const phoneDigits = getCombinedPhoneDigits();
   const consent = consentInput?.checked;
 
   const isReady = Boolean(
@@ -291,7 +298,7 @@ function updateSubmitState() {
     city &&
     time &&
     phoneDigits &&
-    phoneDigits.length >= 10 &&
+    phoneDigits.length >= getPhoneMinLength() &&
     consent
   );
 
@@ -347,6 +354,9 @@ async function handleSubmit(event) {
 
     form.reset();
     if (consentInput) consentInput.checked = true;
+    if (phoneCountrySelect) phoneCountrySelect.value = "55";
+    if (phoneLocalInput) phoneLocalInput.value = "";
+    syncPhoneValue();
     statusNode.textContent = "Cadastro enviado com sucesso.";
     configureWhatsAppLink(payload);
     openModal();
@@ -360,6 +370,7 @@ async function handleSubmit(event) {
 }
 
 function buildPayload(formData) {
+  syncPhoneValue();
   const payload = Object.fromEntries(formData.entries());
   const now = new Date().toISOString();
   const pageUrl = window.location.href;
@@ -593,6 +604,37 @@ function configureWhatsAppLink(payload) {
     .replaceAll("{endereco}", address));
   const url = buildWhatsAppUrl(rawPhone, text);
   whatsappLink.href = url;
+}
+
+function syncPhoneValue() {
+  if (!phoneInput) return;
+  phoneInput.value = getCombinedPhoneDigits();
+}
+
+function getCombinedPhoneDigits() {
+  const countryCode = String(phoneCountrySelect?.value || "55").replace(/\D/g, "");
+  const nationalDigits = String(phoneLocalInput?.value || "").replace(/\D/g, "");
+  if (!countryCode && !nationalDigits) return "";
+  return `${countryCode}${nationalDigits}`;
+}
+
+function getPhoneMinLength() {
+  const countryCode = String(phoneCountrySelect?.value || "55").replace(/\D/g, "");
+  return countryCode === "55" ? 12 : 8;
+}
+
+function formatNationalPhoneInput(countryCode, rawValue) {
+  const digits = String(rawValue || "").replace(/\D/g, "");
+
+  if (String(countryCode || "") === "55") {
+    const trimmed = digits.slice(0, 11);
+    if (!trimmed) return "";
+    if (trimmed.length < 3) return `(${trimmed}`;
+    if (trimmed.length < 8) return `(${trimmed.slice(0, 2)}) ${trimmed.slice(2)}`;
+    return `(${trimmed.slice(0, 2)}) ${trimmed.slice(2, 7)}-${trimmed.slice(7)}`;
+  }
+
+  return digits.slice(0, 15);
 }
 
 function resolveWhatsAppPhone(cityLabel) {
