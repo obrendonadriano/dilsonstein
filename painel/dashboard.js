@@ -235,7 +235,7 @@ async function loadCityTimes() {
 }
 
 async function loadLeads() {
-  leads = await fetchTable("leads", [], {
+  leads = await fetchTableAll("leads", [], {
     select: "id,name,age,city,time,phone,created_at",
     order: "created_at.desc"
   });
@@ -274,6 +274,59 @@ async function fetchTable(tableName, fallback = [], query = {}) {
     return await response.json();
   } catch (error) {
     console.error(`Falha ao carregar ${tableName}:`, error);
+    return fallback;
+  }
+}
+
+async function fetchTableAll(tableName, fallback = [], query = {}) {
+  const supabaseUrl = PANEL_CONFIG.supabase?.url;
+  const supabaseKey = PANEL_CONFIG.supabase?.anonKey;
+
+  if (!supabaseUrl || !supabaseKey) {
+    return fallback;
+  }
+
+  const pageSize = 1000;
+  const rows = [];
+  let offset = 0;
+
+  try {
+    while (true) {
+      const params = new URLSearchParams({
+        select: query.select || "*"
+      });
+
+      if (query.order) params.set("order", query.order);
+      if (query.activeOnly) params.set("active", "eq.true");
+      if (query.extraParams) {
+        Object.entries(query.extraParams).forEach(([key, value]) => params.set(key, value));
+      }
+
+      const response = await fetch(`${supabaseUrl}/rest/v1/${tableName}?${params.toString()}`, {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          Range: `${offset}-${offset + pageSize - 1}`,
+          Prefer: "count=exact"
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+
+      const batch = await response.json();
+      if (!Array.isArray(batch) || !batch.length) break;
+
+      rows.push(...batch);
+
+      if (batch.length < pageSize) break;
+      offset += pageSize;
+    }
+
+    return rows;
+  } catch (error) {
+    console.error(`Falha ao carregar todos os registros de ${tableName}:`, error);
     return fallback;
   }
 }
