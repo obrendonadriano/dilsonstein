@@ -836,6 +836,12 @@ textarea {
   height: 100%;
 }
 
+.crm-helper-text {
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
 .crm-controls {
   display: grid;
   gap: 16px;

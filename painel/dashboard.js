@@ -800,9 +800,9 @@ function renderCrmLeads() {
 }
 
 function openCrmWhatsapp(lead) {
-  const message = String(crmMessageInput?.value || "").trim();
+  const messageTemplate = String(crmMessageInput?.value || "").trim();
   const targetPhone = normalizeWhatsappTarget(lead.phone);
-  if (!message) {
+  if (!messageTemplate) {
     alert("Digite a mensagem antes de abrir o WhatsApp.");
     return;
   }
@@ -812,6 +812,7 @@ function openCrmWhatsapp(lead) {
     return;
   }
 
+  const message = buildCrmMessage(messageTemplate, lead);
   const url = `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`;
   const popup = window.open(url, "_blank", "noopener,noreferrer");
   crmLockedLeadIds.add(String(lead.id));
@@ -1425,6 +1426,32 @@ function normalizeWhatsappTarget(phone) {
   if (digits.length >= 12) return digits;
   if (digits.length === 10 || digits.length === 11) return `55${digits}`;
   return digits;
+}
+
+function buildCrmMessage(template, lead) {
+  const cityRecord = cities.find((item) => item.label === lead.city);
+  const replacements = {
+    nome: getFirstName(lead.name),
+    nome_completo: String(lead.name || "").trim(),
+    idade: String(lead.age || "").trim(),
+    cidade: String(lead.city || "").trim(),
+    horario: String(lead.time || "").trim(),
+    hotel: String(cityRecord?.venue_name || "").trim(),
+    endereco: String(cityRecord?.address || "").trim(),
+    whatsapp: formatPhone(lead.phone || ""),
+    data_cadastro: formatDateTime(lead.created_at)
+  };
+
+  return String(template || "").replace(/\{([a-z_]+)\}/gi, (match, key) => {
+    const normalizedKey = String(key || "").toLowerCase();
+    return replacements[normalizedKey] || "";
+  }).replace(/\s+\./g, ".").replace(/\s+,/g, ",").trim();
+}
+
+function getFirstName(name) {
+  const fullName = String(name || "").trim();
+  if (!fullName) return "";
+  return fullName.split(/\s+/)[0] || "";
 }
 
 function extractStateFromCity(city) {
