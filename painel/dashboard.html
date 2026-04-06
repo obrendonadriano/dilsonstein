@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/painel/painel.css?v=13">
+  <link rel="stylesheet" href="/painel/painel.css?v=14">
   <script src="/config.js?v=7"></script>
 </head>
 <body class="panel-page">
@@ -29,6 +29,9 @@
         </button>
         <button class="panel-sidebar-link" type="button" data-view-target="cities">
           Gerenciar Cidades
+        </button>
+        <button class="panel-sidebar-link" type="button" data-view-target="crm">
+          CRM
         </button>
       </nav>
 
@@ -55,6 +58,7 @@
           <button class="panel-mobile-link is-active" type="button" data-view-target="overview">Dashboard</button>
           <button class="panel-mobile-link" type="button" data-view-target="export">Baixar Planilha</button>
           <button class="panel-mobile-link" type="button" data-view-target="cities">Gerenciar Cidades</button>
+          <button class="panel-mobile-link" type="button" data-view-target="crm">CRM</button>
         </nav>
 
         <button class="ghost-button panel-mobile-logout" id="logout-button-mobile" type="button">
@@ -318,12 +322,63 @@
               </div>
             </section>
           </section>
+
+          <section class="panel-view" data-view="crm" hidden>
+            <header class="panel-section-header">
+              <div>
+                <span class="eyebrow">Relacionamento</span>
+                <h1 class="panel-page-title">CRM</h1>
+                <p class="panel-subtitle">Escreva a mensagem, selecione a cidade e avance lead por lead no WhatsApp sem perder o ponto onde você parou.</p>
+              </div>
+            </header>
+
+            <section class="panel-card">
+              <div class="card-header">
+                <div>
+                  <h2>Mensagem e cidade</h2>
+                  <p class="panel-subtitle">Ao trocar o texto ou a cidade, a lista é reiniciada e os botões voltam a ficar disponíveis.</p>
+                </div>
+              </div>
+
+              <div class="crm-form-grid">
+                <label class="crm-message-field">
+                  Texto da mensagem
+                  <textarea id="crm-message" rows="6" placeholder="Digite aqui a mensagem que quer abrir no WhatsApp..."></textarea>
+                </label>
+
+                <div class="crm-controls">
+                  <label>
+                    Cidade
+                    <select id="crm-city">
+                      <option value="">Selecione uma cidade</option>
+                    </select>
+                  </label>
+
+                  <div class="crm-counter">
+                    <span>Leads encontrados</span>
+                    <strong id="crm-results-count">0</strong>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel-card">
+              <div class="card-header">
+                <div>
+                  <h2>Lista para contato</h2>
+                  <p class="panel-subtitle">Clique em enviar mensagem para abrir o WhatsApp do lead. Depois disso, o botão dele fica bloqueado até você trocar o texto ou a cidade.</p>
+                </div>
+              </div>
+
+              <div class="crm-list" id="crm-list"></div>
+            </section>
+          </section>
         </section>
       </main>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-  <script src="/painel/dashboard.js?v=14"></script>
+  <script src="/painel/dashboard.js?v=15"></script>
 </body>
 </html>

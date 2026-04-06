@@ -41,12 +41,17 @@ const exportFilterCity = document.querySelector("#export-filter-city");
 const exportFilterTime = document.querySelector("#export-filter-time");
 const exportFilterDdd = document.querySelector("#export-filter-ddd");
 const exportFilterCityStatus = document.querySelector("#export-filter-city-status");
+const crmMessageInput = document.querySelector("#crm-message");
+const crmCitySelect = document.querySelector("#crm-city");
+const crmList = document.querySelector("#crm-list");
+const crmResultsCount = document.querySelector("#crm-results-count");
 
 const metricTotal = document.querySelector("#metric-total");
 const metricCities = document.querySelector("#metric-cities");
 const metricTimes = document.querySelector("#metric-times");
 const metricFilter = document.querySelector("#metric-filter");
 const resultsCount = document.querySelector("#results-count");
+const PANEL_VIEWS = ["overview", "export", "cities", "crm"];
 
 let cities = [];
 let timeTemplates = [];
@@ -56,6 +61,7 @@ let filteredLeads = [];
 let selectedEditorCityId = "";
 let cityTimesFeatureEnabled = true;
 let activeView = "overview";
+let crmLockedLeadIds = new Set();
 
 guardRoute();
 refreshDashboard();
@@ -73,10 +79,12 @@ if (cityTimeForm) cityTimeForm.addEventListener("submit", handleCityTimeCreate);
 if (editorCitySelect) editorCitySelect.addEventListener("change", handleEditorCityChange);
 if (leadDisplayLimitSelect) leadDisplayLimitSelect.addEventListener("change", renderLeadsTable);
 if (leadSearchInput) leadSearchInput.addEventListener("input", applyFilters);
+if (crmMessageInput) crmMessageInput.addEventListener("input", handleCrmContextChange);
+if (crmCitySelect) crmCitySelect.addEventListener("change", handleCrmContextChange);
 
 function setupNavigation() {
   const initialHash = window.location.hash.replace("#", "").trim();
-  if (["overview", "export", "cities"].includes(initialHash)) {
+  if (PANEL_VIEWS.includes(initialHash)) {
     activeView = initialHash;
   }
   setActiveView(activeView, false);
@@ -120,7 +128,7 @@ function setupNavigation() {
 }
 
 function setActiveView(viewName, pushHash = true) {
-  activeView = ["overview", "export", "cities"].includes(viewName) ? viewName : "overview";
+  activeView = PANEL_VIEWS.includes(viewName) ? viewName : "overview";
 
   panelViews.forEach((section) => {
     const isCurrent = section.dataset.view === activeView;
@@ -198,8 +206,10 @@ async function refreshDashboard() {
   populateFilters();
   populateExportFilters();
   populateEditorCitySelect();
+  populateCrmCitySelect();
   await renderEditorCity();
   applyFilters();
+  renderCrmLeads();
 }
 
 async function loadCities() {
@@ -349,6 +359,10 @@ function populateEditorCitySelect() {
   if (selectedCity) {
     editorCitySelect.value = selectedCity.label;
   }
+}
+
+function populateCrmCitySelect() {
+  populateSelect(crmCitySelect, cities.map((item) => item.label), "Selecione uma cidade");
 }
 
 function populateSelect(node, options, placeholder) {
@@ -714,6 +728,97 @@ function clearExportFilters() {
   if (exportFilterTime) exportFilterTime.value = "";
   if (exportFilterDdd) exportFilterDdd.value = "";
   if (exportFilterCityStatus) exportFilterCityStatus.value = "";
+}
+
+function handleCrmContextChange() {
+  crmLockedLeadIds = new Set();
+  renderCrmLeads();
+}
+
+function renderCrmLeads() {
+  if (!crmList || !crmResultsCount) return;
+
+  const selectedCity = crmCitySelect?.value || "";
+  const message = String(crmMessageInput?.value || "").trim();
+
+  if (!selectedCity) {
+    crmResultsCount.textContent = "0";
+    crmList.innerHTML = `<p class="empty-state">Selecione uma cidade para carregar a lista de leads.</p>`;
+    return;
+  }
+
+  const crmLeads = leads.filter((lead) => lead.city === selectedCity);
+  crmResultsCount.textContent = String(crmLeads.length);
+
+  if (!crmLeads.length) {
+    crmList.innerHTML = `<p class="empty-state">Nenhum lead encontrado para essa cidade.</p>`;
+    return;
+  }
+
+  const hasMessage = Boolean(message);
+
+  crmList.innerHTML = crmLeads
+    .map((lead) => {
+      const isLocked = crmLockedLeadIds.has(String(lead.id));
+      const hasPhone = Boolean(normalizeWhatsappTarget(lead.phone));
+      const isDisabled = isLocked || !hasMessage || !hasPhone;
+
+      return `
+        <article class="crm-lead-card">
+          <div class="crm-lead-card__content">
+            <strong>${escapeHtml(lead.name || "Sem nome")}</strong>
+            <div class="crm-lead-card__meta">
+              <span>${escapeHtml(lead.city || "-")}</span>
+              <span>${escapeHtml(lead.time || "Sem horário")}</span>
+              <span>${escapeHtml(lead.age || "-")} anos</span>
+            </div>
+            <p>${formatPhone(lead.phone || "-")}</p>
+            <small>Cadastrado em ${formatDateTime(lead.created_at)}</small>
+          </div>
+          <button
+            type="button"
+            class="primary-button crm-send-button${isLocked ? " is-sent" : ""}"
+            data-action="crm-send"
+            data-id="${escapeHtml(lead.id)}"
+            ${isDisabled ? "disabled" : ""}
+          >
+            ${isLocked ? "Mensagem aberta" : "Enviar mensagem"}
+          </button>
+        </article>
+      `;
+    })
+    .join("");
+
+  crmList.querySelectorAll('[data-action="crm-send"]').forEach((button) => {
+    button.addEventListener("click", () => {
+      const leadId = button.dataset.id || "";
+      const lead = crmLeads.find((item) => String(item.id) === String(leadId));
+      if (!lead) return;
+      openCrmWhatsapp(lead);
+    });
+  });
+}
+
+function openCrmWhatsapp(lead) {
+  const message = String(crmMessageInput?.value || "").trim();
+  const targetPhone = normalizeWhatsappTarget(lead.phone);
+  if (!message) {
+    alert("Digite a mensagem antes de abrir o WhatsApp.");
+    return;
+  }
+
+  if (!targetPhone) {
+    alert("Esse lead não possui um número de WhatsApp válido.");
+    return;
+  }
+
+  const url = `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`;
+  const popup = window.open(url, "_blank", "noopener,noreferrer");
+  crmLockedLeadIds.add(String(lead.id));
+  renderCrmLeads();
+  if (!popup) {
+    window.location.href = url;
+  }
 }
 
 function renderLeadsTable() {
@@ -1310,6 +1415,16 @@ function extractDdd(phone) {
   if (digits.length >= 13 && digits.startsWith("55")) return digits.slice(2, 4);
   if (digits.length >= 10 && digits.length <= 11) return digits.slice(0, 2);
   return "";
+}
+
+function normalizeWhatsappTarget(phone) {
+  const digits = String(phone || "").replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.startsWith("00") && digits.length > 4) return digits.slice(2);
+  if (digits.length < 10) return "";
+  if (digits.length >= 12) return digits;
+  if (digits.length === 10 || digits.length === 11) return `55${digits}`;
+  return digits;
 }
 
 function extractStateFromCity(city) {
