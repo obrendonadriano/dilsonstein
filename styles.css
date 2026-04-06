@@ -293,6 +293,7 @@ main {
   font-size: clamp(3rem, 5vw, 4.7rem);
   line-height: 0.96;
   font-weight: 700;
+  color: #132033;
 }
 
 .hero-text,
@@ -1538,7 +1539,7 @@ textarea {
 
 .footer-links a,
 .policy-card a {
-  color: #ffffff;
+  color: rgba(22, 33, 50, 0.78);
   text-decoration: none;
 }
 
@@ -1561,6 +1562,51 @@ textarea {
     0 18px 40px rgba(15, 23, 42, 0.08),
     inset 1px 1px 0 rgba(255, 255, 255, 0.92),
     inset -1px -1px 0 rgba(203, 213, 225, 0.66);
+}
+
+.policy-updated {
+  margin-top: -2px;
+  color: rgba(22, 33, 50, 0.62);
+  font-size: 0.95rem;
+}
+
+.policy-section {
+  margin-top: 30px;
+}
+
+.policy-section h2 {
+  margin: 0 0 12px;
+  color: #132033;
+  font-family: "Manrope", sans-serif;
+  font-size: 1.2rem;
+  line-height: 1.4;
+}
+
+.policy-section h3 {
+  margin: 18px 0 10px;
+  color: #132033;
+  font-family: "Manrope", sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.policy-section ul {
+  margin: 0;
+  padding-left: 22px;
+  color: rgba(22, 33, 50, 0.78);
+}
+
+.policy-section li {
+  margin-bottom: 8px;
+  line-height: 1.7;
+}
+
+.policy-contact-list {
+  margin-top: 12px;
+}
+
+.policy-back-link {
+  margin-top: 34px;
 }
 
 .success-modal {
