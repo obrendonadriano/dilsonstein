@@ -281,7 +281,6 @@ main {
   background: currentColor;
 }
 
-.hero h1,
 .hero-title,
 .section-heading h2,
 .showcase-copy h2,
@@ -318,6 +317,11 @@ main {
 .hero-title-centered {
   max-width: 980px;
   font-size: clamp(3.4rem, 6vw, 5.6rem);
+}
+
+.hero .hero-title,
+.hero .hero-title-centered {
+  color: #ffffff;
 }
 
 .hero-text-centered {
