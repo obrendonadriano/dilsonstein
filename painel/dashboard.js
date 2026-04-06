@@ -814,12 +814,9 @@ function openCrmWhatsapp(lead) {
 
   const message = buildCrmMessage(messageTemplate, lead);
   const url = `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`;
-  const popup = window.open(url, "_blank", "noopener,noreferrer");
+  window.open(url, "_blank", "noopener,noreferrer");
   crmLockedLeadIds.add(String(lead.id));
   renderCrmLeads();
-  if (!popup) {
-    window.location.href = url;
-  }
 }
 
 function renderLeadsTable() {
