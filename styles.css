@@ -281,6 +281,7 @@ main {
   background: currentColor;
 }
 
+.hero h1,
 .hero-title,
 .section-heading h2,
 .showcase-copy h2,
@@ -319,6 +320,7 @@ main {
   font-size: clamp(3.4rem, 6vw, 5.6rem);
 }
 
+.hero h1,
 .hero .hero-title,
 .hero .hero-title-centered {
   color: #ffffff;
@@ -1541,7 +1543,11 @@ textarea {
   padding-top: 10px;
 }
 
-.footer-links a,
+.footer-links a {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+}
+
 .policy-card a {
   color: rgba(22, 33, 50, 0.78);
   text-decoration: none;
