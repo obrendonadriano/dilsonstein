@@ -865,6 +865,10 @@ textarea {
   line-height: 1;
 }
 
+.crm-counter--sent {
+  background: rgba(161, 135, 66, 0.1);
+}
+
 .crm-list {
   display: grid;
   gap: 14px;

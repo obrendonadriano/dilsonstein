@@ -45,6 +45,8 @@ const crmMessageInput = document.querySelector("#crm-message");
 const crmCitySelect = document.querySelector("#crm-city");
 const crmList = document.querySelector("#crm-list");
 const crmResultsCount = document.querySelector("#crm-results-count");
+const crmSentCounter = document.querySelector("#crm-sent-counter");
+const crmSentCount = document.querySelector("#crm-sent-count");
 
 const metricTotal = document.querySelector("#metric-total");
 const metricCities = document.querySelector("#metric-cities");
@@ -62,6 +64,7 @@ let selectedEditorCityId = "";
 let cityTimesFeatureEnabled = true;
 let activeView = "overview";
 let crmLockedLeadIds = new Set();
+let crmSentClicks = 0;
 
 guardRoute();
 refreshDashboard();
@@ -732,6 +735,7 @@ function clearExportFilters() {
 
 function handleCrmContextChange() {
   crmLockedLeadIds = new Set();
+  crmSentClicks = 0;
   renderCrmLeads();
 }
 
@@ -743,12 +747,16 @@ function renderCrmLeads() {
 
   if (!selectedCity) {
     crmResultsCount.textContent = "0";
+    if (crmSentCount) crmSentCount.textContent = "0";
+    if (crmSentCounter) crmSentCounter.hidden = true;
     crmList.innerHTML = `<p class="empty-state">Selecione uma cidade para carregar a lista de leads.</p>`;
     return;
   }
 
   const crmLeads = leads.filter((lead) => lead.city === selectedCity);
   crmResultsCount.textContent = String(crmLeads.length);
+  if (crmSentCount) crmSentCount.textContent = String(crmSentClicks);
+  if (crmSentCounter) crmSentCounter.hidden = !crmLeads.length;
 
   if (!crmLeads.length) {
     crmList.innerHTML = `<p class="empty-state">Nenhum lead encontrado para essa cidade.</p>`;
@@ -816,6 +824,7 @@ function openCrmWhatsapp(lead) {
   const url = `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`;
   window.open(url, "_blank", "noopener,noreferrer");
   crmLockedLeadIds.add(String(lead.id));
+  crmSentClicks += 1;
   renderCrmLeads();
 }
 
