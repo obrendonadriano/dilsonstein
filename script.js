@@ -32,6 +32,7 @@ let chatHistory = [];
 let chatTypingNode = null;
 let cityCatalog = [];
 let cityTimeCatalog = [];
+let whatsappNumberCatalog = [];
 
 setupModal();
 setupCardGlowTouch();
@@ -580,7 +581,7 @@ function configureWhatsAppLink(payload) {
   if (!whatsappLink) return;
 
   const selectedCity = getCityRecordByLabel(payload.city);
-  const rawPhone = resolveWhatsAppPhone(selectedCity?.label || payload.city || "");
+  const rawPhone = resolveWhatsAppPhone(selectedCity || { label: payload.city || "" });
   const template = APP_CONFIG.whatsapp?.message
     || "Olá! Meu nome é {nome}, tenho {idade} anos e me cadastrei para participar da seleção em {cidade}, no dia {dia}, no {hotel}, localizado no endereço {endereco}. Gostaria de receber mais informações sobre como participar.";
   const venueName = selectedCity?.venue_name || "local a confirmar";
@@ -637,9 +638,15 @@ function formatNationalPhoneInput(countryCode, rawValue) {
   return digits.slice(0, 15);
 }
 
-function resolveWhatsAppPhone(cityLabel) {
+function resolveWhatsAppPhone(cityRecord) {
   const fallbackPhone = APP_CONFIG.whatsapp?.number || "5511999999999";
-  const normalizedCity = String(cityLabel || "").toLowerCase();
+  const cityNumberId = String(cityRecord?.whatsapp_number_id || "");
+  const linkedNumber = whatsappNumberCatalog.find((item) => String(item.id) === cityNumberId && item.active !== false);
+  if (linkedNumber?.phone) {
+    return linkedNumber.phone;
+  }
+
+  const normalizedCity = String(cityRecord?.label || "").toLowerCase();
   const numbersByCity = APP_CONFIG.whatsapp?.numbersByCity || {};
 
   if (normalizedCity.includes("santos") && numbersByCity.santos) {
@@ -763,8 +770,10 @@ function trackInitialPageView() {
 
 async function setupSchedulingOptions() {
   const cityOptions = await loadActiveCities();
+  const numberOptions = await loadActiveWhatsappNumbers();
   const timeOptions = await loadActiveCityTimes(cityOptions);
   cityCatalog = cityOptions;
+  whatsappNumberCatalog = numberOptions;
   cityTimeCatalog = timeOptions;
 
   populateSelect(
@@ -812,6 +821,42 @@ async function loadActiveCities() {
     return normalizeCityRecords(items);
   } catch (error) {
     console.error("Falha ao carregar event_cities:", error);
+    return normalizedFallback;
+  }
+}
+
+async function loadActiveWhatsappNumbers() {
+  const supabaseUrl = APP_CONFIG.supabase?.url;
+  const supabaseKey = APP_CONFIG.supabase?.anonKey;
+  const normalizedFallback = buildFallbackWhatsappNumbers();
+
+  if (!supabaseUrl || !supabaseKey) {
+    return normalizedFallback;
+  }
+
+  try {
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/event_whatsapp_numbers?select=*&active=eq.true&order=sort_order.asc.nullslast,label.asc`,
+      {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+
+    const items = await response.json();
+    if (!Array.isArray(items) || !items.length) {
+      return normalizedFallback;
+    }
+
+    return normalizeWhatsappNumberRecords(items);
+  } catch (error) {
+    console.error("Falha ao carregar event_whatsapp_numbers:", error);
     return normalizedFallback;
   }
 }
@@ -943,6 +988,7 @@ function normalizeCityRecords(items) {
           label: item,
           venue_name: "",
           address: "",
+          whatsapp_number_id: null,
           sort_order: index + 1,
           active: true
         };
@@ -955,12 +1001,68 @@ function normalizeCityRecords(items) {
         label: String(item.label || "").trim(),
         venue_name: String(item.venue_name || item.venue || "").trim(),
         address: String(item.address || item.endereco || "").trim(),
+        whatsapp_number_id: item.whatsapp_number_id ?? null,
         sort_order: Number(item.sort_order || index + 1),
         active: item.active !== false
       };
     })
     .filter(Boolean)
     .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || a.label.localeCompare(b.label, "pt-BR"));
+}
+
+function normalizeWhatsappNumberRecords(items) {
+  return (Array.isArray(items) ? items : [])
+    .map((item, index) => {
+      if (!item) return null;
+
+      return {
+        id: item.id ?? `whatsapp-number-${index}`,
+        label: String(item.label || "").trim(),
+        phone: normalizeWhatsappTarget(item.phone || ""),
+        sort_order: Number(item.sort_order || index + 1),
+        active: item.active !== false
+      };
+    })
+    .filter((item) => item && item.phone)
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || String(a.label || "").localeCompare(String(b.label || ""), "pt-BR"));
+}
+
+function buildFallbackWhatsappNumbers() {
+  const fallbackNumbers = [];
+  const defaultNumber = normalizeWhatsappTarget(APP_CONFIG.whatsapp?.number || "");
+  if (defaultNumber) {
+    fallbackNumbers.push({
+      id: "fallback-default-whatsapp",
+      label: "Número principal",
+      phone: defaultNumber,
+      sort_order: 1,
+      active: true
+    });
+  }
+
+  Object.entries(APP_CONFIG.whatsapp?.numbersByCity || {}).forEach(([cityKey, phone], index) => {
+    const normalizedPhone = normalizeWhatsappTarget(phone || "");
+    if (!normalizedPhone || fallbackNumbers.some((item) => item.phone === normalizedPhone)) return;
+    fallbackNumbers.push({
+      id: `fallback-whatsapp-${cityKey}`,
+      label: `Número ${cityKey}`,
+      phone: normalizedPhone,
+      sort_order: index + 2,
+      active: true
+    });
+  });
+
+  return fallbackNumbers;
+}
+
+function normalizeWhatsappTarget(phone) {
+  const digits = String(phone || "").replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.startsWith("00") && digits.length > 4) return digits.slice(2);
+  if (digits.length < 10) return "";
+  if (digits.length >= 12) return digits;
+  if (digits.length === 10 || digits.length === 11) return `55${digits}`;
+  return digits;
 }
 
 function normalizeTimeRecords(items) {

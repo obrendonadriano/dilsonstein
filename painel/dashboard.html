@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/painel/painel.css?v=14">
+  <link rel="stylesheet" href="/painel/painel.css?v=15">
   <script src="/config.js?v=7"></script>
 </head>
 <body class="panel-page">
@@ -29,6 +29,9 @@
         </button>
         <button class="panel-sidebar-link" type="button" data-view-target="cities">
           Gerenciar Cidades
+        </button>
+        <button class="panel-sidebar-link" type="button" data-view-target="numbers">
+          Gerenciar Números
         </button>
         <button class="panel-sidebar-link" type="button" data-view-target="crm">
           CRM
@@ -58,6 +61,7 @@
           <button class="panel-mobile-link is-active" type="button" data-view-target="overview">Dashboard</button>
           <button class="panel-mobile-link" type="button" data-view-target="export">Baixar Planilha</button>
           <button class="panel-mobile-link" type="button" data-view-target="cities">Gerenciar Cidades</button>
+          <button class="panel-mobile-link" type="button" data-view-target="numbers">Gerenciar Números</button>
           <button class="panel-mobile-link" type="button" data-view-target="crm">CRM</button>
         </nav>
 
@@ -268,6 +272,12 @@
                   <input type="text" id="new-city-venue" placeholder="Ex.: Hotel Leon Park" required>
                 </div>
                 <input type="text" id="new-city-address" placeholder="Ex.: Av. Francisco Glicério, 641" required>
+                <label>
+                  Número responsável pela cidade
+                  <select id="new-city-whatsapp-number">
+                    <option value="">Selecione um número</option>
+                  </select>
+                </label>
                 <button type="submit" class="primary-button">Adicionar cidade</button>
               </form>
 
@@ -294,6 +304,12 @@
                   <input type="text" id="edit-city" placeholder="Cidade" required>
                   <input type="text" id="edit-city-venue" placeholder="Nome do local" required>
                   <input type="text" id="edit-city-address" placeholder="Endereço completo" required>
+                  <label>
+                    Número responsável pela cidade
+                    <select id="edit-city-whatsapp-number">
+                      <option value="">Selecione um número</option>
+                    </select>
+                  </label>
                   <label class="switch-field">
                     <span>Status da cidade</span>
                     <select id="edit-city-active">
@@ -320,6 +336,66 @@
 
                 <div class="tag-list tag-list--stacked" id="city-time-list"></div>
               </div>
+            </section>
+          </section>
+
+          <section class="panel-view" data-view="numbers" hidden>
+            <header class="panel-section-header">
+              <div>
+                <span class="eyebrow">WhatsApp</span>
+                <h1 class="panel-page-title">Gerenciar Números</h1>
+                <p class="panel-subtitle">Cadastre os números oficiais do WhatsApp e relacione cada cidade ao número responsável pelo atendimento final.</p>
+              </div>
+            </header>
+
+            <section class="workspace-panel workspace-panel--compact">
+              <div class="card-header">
+                <div>
+                  <h2>Novo número</h2>
+                  <p class="panel-subtitle">Crie o número, dê um nome interno para ele e depois associe as cidades correspondentes.</p>
+                </div>
+              </div>
+
+              <form id="whatsapp-number-form" class="inline-form">
+                <div class="inline-form-grid">
+                  <input type="text" id="new-whatsapp-number-label" placeholder="Ex.: Time Santos" required>
+                  <input type="text" id="new-whatsapp-number-phone" placeholder="Ex.: 5511919792976" required>
+                </div>
+                <button type="submit" class="primary-button">Adicionar número</button>
+              </form>
+
+              <div class="tag-list" id="whatsapp-number-list"></div>
+            </section>
+
+            <section class="workspace-panel workspace-panel--compact" id="whatsapp-number-editor-section" hidden>
+              <div class="card-header">
+                <div>
+                  <h2>Editar número</h2>
+                  <p class="panel-subtitle">Atualize o número e marque quais cidades devem direcionar o WhatsApp final para ele.</p>
+                </div>
+              </div>
+
+              <form id="whatsapp-number-editor-form" class="inline-form">
+                <input type="text" id="edit-whatsapp-number-label" placeholder="Nome interno" required>
+                <input type="text" id="edit-whatsapp-number-phone" placeholder="Número com DDI" required>
+                <label class="switch-field">
+                  <span>Status do número</span>
+                  <select id="edit-whatsapp-number-active">
+                    <option value="true">Ativo</option>
+                    <option value="false">Inativo</option>
+                  </select>
+                </label>
+
+                <div class="card-header card-header--compact">
+                  <div>
+                    <h3>Cidades vinculadas</h3>
+                    <p class="panel-subtitle">Essas cidades passarão a usar este número quando o lead finalizar o cadastro.</p>
+                  </div>
+                </div>
+
+                <div class="checkbox-grid" id="whatsapp-number-city-checklist"></div>
+                <button type="submit" class="primary-button">Salvar número e cidades</button>
+              </form>
             </section>
           </section>
 
@@ -385,6 +461,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-  <script src="/painel/dashboard.js?v=15"></script>
+  <script src="/painel/dashboard.js?v=16"></script>
 </body>
 </html>

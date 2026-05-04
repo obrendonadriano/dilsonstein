@@ -89,6 +89,7 @@ create table if not exists public.event_cities (
   label text not null unique,
   venue_name text,
   address text,
+  whatsapp_number_id bigint,
   sort_order integer not null default 0,
   active boolean not null default true,
   created_at timestamptz not null default now()
@@ -99,6 +100,28 @@ add column if not exists venue_name text;
 
 alter table public.event_cities
 add column if not exists address text;
+
+alter table public.event_cities
+add column if not exists whatsapp_number_id bigint;
+
+create table if not exists public.event_whatsapp_numbers (
+  id bigint generated always as identity primary key,
+  label text not null,
+  phone text not null,
+  sort_order integer not null default 0,
+  active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create unique index if not exists event_whatsapp_numbers_phone_key
+on public.event_whatsapp_numbers (phone);
+
+alter table public.event_cities
+drop constraint if exists event_cities_whatsapp_number_id_fkey;
+
+alter table public.event_cities
+add constraint event_cities_whatsapp_number_id_fkey
+foreign key (whatsapp_number_id) references public.event_whatsapp_numbers (id) on delete set null;
 
 create table if not exists public.event_times (
   id bigint generated always as identity primary key,
@@ -122,12 +145,14 @@ alter table public.leads enable row level security;
 alter table public.event_cities enable row level security;
 alter table public.event_times enable row level security;
 alter table public.event_city_times enable row level security;
+alter table public.event_whatsapp_numbers enable row level security;
 
 grant usage on schema public to anon, authenticated;
 grant select, insert, update on table public.leads to anon, authenticated;
 grant select, insert, update, delete on table public.event_cities to anon, authenticated;
 grant select, insert, update, delete on table public.event_times to anon, authenticated;
 grant select, insert, update, delete on table public.event_city_times to anon, authenticated;
+grant select, insert, update, delete on table public.event_whatsapp_numbers to anon, authenticated;
 grant usage, select on all sequences in schema public to anon, authenticated;
 
 drop policy if exists "Allow anon inserts on leads" on public.leads;
@@ -176,6 +201,34 @@ for all
 to anon, authenticated
 using (true)
 with check (true);
+
+drop policy if exists "Allow public manage whatsapp numbers" on public.event_whatsapp_numbers;
+create policy "Allow public manage whatsapp numbers"
+on public.event_whatsapp_numbers
+for all
+to anon, authenticated
+using (true)
+with check (true);
+
+insert into public.event_whatsapp_numbers (label, phone, sort_order, active)
+values
+  ('Santos', '5511919792976', 1, true),
+  ('Campinas', '5511925517859', 2, true)
+on conflict (phone) do update
+set
+  label = excluded.label,
+  sort_order = excluded.sort_order,
+  active = excluded.active;
+
+update public.event_cities c
+set whatsapp_number_id = numbers.id
+from public.event_whatsapp_numbers numbers
+where c.whatsapp_number_id is null
+  and (
+    (lower(c.label) like '%santos%' and lower(numbers.label) = 'santos')
+    or
+    (lower(c.label) like '%campinas%' and lower(numbers.label) = 'campinas')
+  );
 
 insert into public.event_cities (label, sort_order)
 values

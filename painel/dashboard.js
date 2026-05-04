@@ -31,16 +31,28 @@ const leadSearchInput = document.querySelector("#lead-search");
 const newCityInput = document.querySelector("#new-city");
 const newCityVenueInput = document.querySelector("#new-city-venue");
 const newCityAddressInput = document.querySelector("#new-city-address");
+const newCityWhatsappNumberInput = document.querySelector("#new-city-whatsapp-number");
 const editorCitySelect = document.querySelector("#editor-city-select");
 const editCityInput = document.querySelector("#edit-city");
 const editCityVenueInput = document.querySelector("#edit-city-venue");
 const editCityAddressInput = document.querySelector("#edit-city-address");
+const editCityWhatsappNumberInput = document.querySelector("#edit-city-whatsapp-number");
 const editCityActiveInput = document.querySelector("#edit-city-active");
 const newCityTimeInput = document.querySelector("#new-city-time");
 const exportFilterCity = document.querySelector("#export-filter-city");
 const exportFilterTime = document.querySelector("#export-filter-time");
 const exportFilterDdd = document.querySelector("#export-filter-ddd");
 const exportFilterCityStatus = document.querySelector("#export-filter-city-status");
+const whatsappNumberForm = document.querySelector("#whatsapp-number-form");
+const whatsappNumberEditorForm = document.querySelector("#whatsapp-number-editor-form");
+const whatsappNumberList = document.querySelector("#whatsapp-number-list");
+const whatsappNumberEditorSection = document.querySelector("#whatsapp-number-editor-section");
+const newWhatsappNumberLabelInput = document.querySelector("#new-whatsapp-number-label");
+const newWhatsappNumberPhoneInput = document.querySelector("#new-whatsapp-number-phone");
+const editWhatsappNumberLabelInput = document.querySelector("#edit-whatsapp-number-label");
+const editWhatsappNumberPhoneInput = document.querySelector("#edit-whatsapp-number-phone");
+const editWhatsappNumberActiveInput = document.querySelector("#edit-whatsapp-number-active");
+const whatsappNumberCityChecklist = document.querySelector("#whatsapp-number-city-checklist");
 const crmMessageInput = document.querySelector("#crm-message");
 const crmCitySelect = document.querySelector("#crm-city");
 const crmList = document.querySelector("#crm-list");
@@ -53,15 +65,18 @@ const metricCities = document.querySelector("#metric-cities");
 const metricTimes = document.querySelector("#metric-times");
 const metricFilter = document.querySelector("#metric-filter");
 const resultsCount = document.querySelector("#results-count");
-const PANEL_VIEWS = ["overview", "export", "cities", "crm"];
+const PANEL_VIEWS = ["overview", "export", "cities", "numbers", "crm"];
 
 let cities = [];
 let timeTemplates = [];
 let cityTimes = [];
+let whatsappNumbers = [];
 let leads = [];
 let filteredLeads = [];
 let selectedEditorCityId = "";
+let selectedEditorWhatsappNumberId = "";
 let cityTimesFeatureEnabled = true;
+let whatsappNumbersFeatureEnabled = true;
 let activeView = "overview";
 let crmLockedLeadIds = new Set();
 let crmSentClicks = 0;
@@ -79,6 +94,8 @@ if (exportClearFiltersButton) exportClearFiltersButton.addEventListener("click",
 if (cityForm) cityForm.addEventListener("submit", handleCityCreate);
 if (cityEditorForm) cityEditorForm.addEventListener("submit", handleCityUpdate);
 if (cityTimeForm) cityTimeForm.addEventListener("submit", handleCityTimeCreate);
+if (whatsappNumberForm) whatsappNumberForm.addEventListener("submit", handleWhatsappNumberCreate);
+if (whatsappNumberEditorForm) whatsappNumberEditorForm.addEventListener("submit", handleWhatsappNumberUpdate);
 if (editorCitySelect) editorCitySelect.addEventListener("change", handleEditorCityChange);
 if (leadDisplayLimitSelect) leadDisplayLimitSelect.addEventListener("change", renderLeadsTable);
 if (leadSearchInput) leadSearchInput.addEventListener("input", applyFilters);
@@ -198,6 +215,7 @@ function logout(event) {
 
 async function refreshDashboard() {
   await Promise.all([
+    loadWhatsappNumbers(),
     loadCities(),
     loadTimeTemplates(),
     loadCityTimes(),
@@ -205,14 +223,32 @@ async function refreshDashboard() {
   ]);
 
   syncSelectedEditorCity();
+  syncSelectedEditorWhatsappNumber();
   renderOptionLists();
   populateFilters();
   populateExportFilters();
   populateEditorCitySelect();
   populateCrmCitySelect();
+  populateCityWhatsappNumberSelects();
   await renderEditorCity();
+  renderWhatsappNumberEditor();
   applyFilters();
   renderCrmLeads();
+}
+
+async function loadWhatsappNumbers() {
+  const rows = await fetchTable("event_whatsapp_numbers", null, {
+    order: "sort_order.asc,label.asc"
+  });
+
+  if (Array.isArray(rows)) {
+    whatsappNumbers = normalizeWhatsappNumberRecords(rows);
+    whatsappNumbersFeatureEnabled = true;
+    return;
+  }
+
+  whatsappNumbers = buildFallbackWhatsappNumbers();
+  whatsappNumbersFeatureEnabled = false;
 }
 
 async function loadCities() {
@@ -368,6 +404,26 @@ function populateCrmCitySelect() {
   populateSelect(crmCitySelect, cities.map((item) => item.label), "Selecione uma cidade");
 }
 
+function populateCityWhatsappNumberSelects() {
+  populateWhatsappNumberSelect(newCityWhatsappNumberInput, "Selecione um número");
+  populateWhatsappNumberSelect(editCityWhatsappNumberInput, "Selecione um número");
+}
+
+function populateWhatsappNumberSelect(node, placeholder) {
+  if (!node) return;
+
+  const currentValue = node.value;
+  const activeNumbers = whatsappNumbers.filter((item) => item.active !== false);
+  node.innerHTML = [
+    `<option value="">${placeholder}</option>`,
+    ...activeNumbers.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(buildWhatsappNumberOptionLabel(item))}</option>`)
+  ].join("");
+
+  if (activeNumbers.some((item) => String(item.id) === String(currentValue))) {
+    node.value = currentValue;
+  }
+}
+
 function populateSelect(node, options, placeholder) {
   if (!node) return;
 
@@ -384,6 +440,7 @@ function populateSelect(node, options, placeholder) {
 
 function renderOptionLists() {
   renderCityList();
+  renderWhatsappNumberList();
 }
 
 function renderCityList() {
@@ -400,6 +457,7 @@ function renderCityList() {
         <div class="tag-item__content">
           <strong>${escapeHtml(item.label)}</strong>
           <p>${escapeHtml(item.venue_name || "Local a confirmar")}</p>
+          <small>${escapeHtml(getCityWhatsappNumberSummary(item))}</small>
           <small>${escapeHtml(item.address || "Endereço em confirmação.")}</small>
         </div>
         <div class="tag-item__actions">
@@ -428,6 +486,55 @@ function renderCityList() {
   });
 }
 
+function renderWhatsappNumberList() {
+  if (!whatsappNumberList) return;
+
+  if (!whatsappNumbersFeatureEnabled) {
+    whatsappNumberList.innerHTML = `<p class="empty-state">Rode o SQL novo do Supabase para habilitar o gerenciamento persistente de números no painel.</p>`;
+    return;
+  }
+
+  if (!whatsappNumbers.length) {
+    whatsappNumberList.innerHTML = `<p class="empty-state">Nenhum número cadastrado ainda.</p>`;
+    return;
+  }
+
+  whatsappNumberList.innerHTML = whatsappNumbers
+    .map((item) => `
+      <article class="tag-item tag-item--city">
+        <div class="tag-item__content">
+          <strong>${escapeHtml(item.label || "Número sem nome")}</strong>
+          <p>${escapeHtml(formatPhone(item.phone || ""))}</p>
+          <small>${escapeHtml(getWhatsappNumberCitySummary(item.id))}</small>
+        </div>
+        <div class="tag-item__actions">
+          <button type="button" class="ghost-button" data-action="edit-whatsapp-number" data-id="${item.id}">Editar</button>
+          <button type="button" class="ghost-button" data-action="delete-whatsapp-number" data-id="${item.id}">Excluir</button>
+        </div>
+      </article>
+    `)
+    .join("");
+
+  whatsappNumberList.querySelectorAll("button").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const id = button.dataset.id || "";
+      if (!id) return;
+
+      if (button.dataset.action === "edit-whatsapp-number") {
+        selectedEditorWhatsappNumberId = id;
+        setActiveView("numbers");
+        renderWhatsappNumberEditor();
+        whatsappNumberEditorSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      if (button.dataset.action === "delete-whatsapp-number") {
+        await deleteWhatsappNumber(id);
+      }
+    });
+  });
+}
+
 async function renderEditorCity() {
   const selectedCity = getSelectedEditorCity();
   if (cityEditorSection) {
@@ -438,6 +545,7 @@ async function renderEditorCity() {
     if (editCityInput) editCityInput.value = "";
     if (editCityVenueInput) editCityVenueInput.value = "";
     if (editCityAddressInput) editCityAddressInput.value = "";
+    if (editCityWhatsappNumberInput) editCityWhatsappNumberInput.value = "";
     if (editCityActiveInput) editCityActiveInput.value = "true";
     if (cityTimeList) {
       cityTimeList.innerHTML = `<p class="empty-state">Selecione uma cidade para editar os horários dela.</p>`;
@@ -448,9 +556,53 @@ async function renderEditorCity() {
   if (editCityInput) editCityInput.value = selectedCity.label;
   if (editCityVenueInput) editCityVenueInput.value = selectedCity.venue_name;
   if (editCityAddressInput) editCityAddressInput.value = selectedCity.address;
+  if (editCityWhatsappNumberInput) editCityWhatsappNumberInput.value = selectedCity.whatsapp_number_id ? String(selectedCity.whatsapp_number_id) : "";
   if (editCityActiveInput) editCityActiveInput.value = selectedCity.active === false ? "false" : "true";
 
   renderCityTimeList(selectedCity.id);
+}
+
+function renderWhatsappNumberEditor() {
+  if (!whatsappNumberEditorSection) return;
+  const selectedNumber = getSelectedEditorWhatsappNumber();
+  whatsappNumberEditorSection.hidden = !selectedNumber || !whatsappNumbersFeatureEnabled;
+
+  if (!selectedNumber) {
+    if (editWhatsappNumberLabelInput) editWhatsappNumberLabelInput.value = "";
+    if (editWhatsappNumberPhoneInput) editWhatsappNumberPhoneInput.value = "";
+    if (editWhatsappNumberActiveInput) editWhatsappNumberActiveInput.value = "true";
+    if (whatsappNumberCityChecklist) {
+      whatsappNumberCityChecklist.innerHTML = `<p class="empty-state">Selecione um número para editar as cidades vinculadas.</p>`;
+    }
+    return;
+  }
+
+  if (editWhatsappNumberLabelInput) editWhatsappNumberLabelInput.value = selectedNumber.label;
+  if (editWhatsappNumberPhoneInput) editWhatsappNumberPhoneInput.value = selectedNumber.phone;
+  if (editWhatsappNumberActiveInput) editWhatsappNumberActiveInput.value = selectedNumber.active === false ? "false" : "true";
+
+  renderWhatsappNumberCityChecklist(selectedNumber.id);
+}
+
+function renderWhatsappNumberCityChecklist(numberId) {
+  if (!whatsappNumberCityChecklist) return;
+
+  if (!cities.length) {
+    whatsappNumberCityChecklist.innerHTML = `<p class="empty-state">Cadastre cidades para começar a vincular este número.</p>`;
+    return;
+  }
+
+  whatsappNumberCityChecklist.innerHTML = cities
+    .map((city) => `
+      <label class="checkbox-card">
+        <input type="checkbox" value="${escapeHtml(city.id)}" ${String(city.whatsapp_number_id || "") === String(numberId) ? "checked" : ""}>
+        <span>
+          <strong>${escapeHtml(city.label)}</strong>
+          <small>${escapeHtml(city.venue_name || "Local a confirmar")}</small>
+        </span>
+      </label>
+    `)
+    .join("");
 }
 
 function renderCityTimeList(cityId) {
@@ -512,15 +664,21 @@ async function handleCityCreate(event) {
   const label = newCityInput?.value.trim();
   const venueName = newCityVenueInput?.value.trim();
   const address = newCityAddressInput?.value.trim();
+  const whatsappNumberId = newCityWhatsappNumberInput?.value || null;
   if (!label || !venueName || !address) return;
 
-  const createdRows = await mutateSupabase("event_cities", "POST", {
+  const cityPayload = {
     label,
     venue_name: venueName,
     address,
     sort_order: cities.length + 1,
     active: true
-  });
+  };
+  if (whatsappNumbersFeatureEnabled) {
+    cityPayload.whatsapp_number_id = whatsappNumberId || null;
+  }
+
+  const createdRows = await mutateSupabase("event_cities", "POST", cityPayload);
 
   const createdCity = normalizeCityRecords(createdRows)[0];
   if (createdCity) {
@@ -538,6 +696,7 @@ async function handleCityCreate(event) {
   if (newCityInput) newCityInput.value = "";
   if (newCityVenueInput) newCityVenueInput.value = "";
   if (newCityAddressInput) newCityAddressInput.value = "";
+  if (newCityWhatsappNumberInput) newCityWhatsappNumberInput.value = "";
   await refreshDashboard();
 }
 
@@ -549,16 +708,73 @@ async function handleCityUpdate(event) {
   const label = editCityInput?.value.trim();
   const venueName = editCityVenueInput?.value.trim();
   const address = editCityAddressInput?.value.trim();
+  const whatsappNumberId = editCityWhatsappNumberInput?.value || null;
   const active = editCityActiveInput?.value !== "false";
   if (!label || !venueName || !address) return;
 
-  await mutateSupabase(`event_cities?id=eq.${selectedCity.id}`, "PATCH", {
+  const cityPayload = {
     label,
     venue_name: venueName,
     address,
     active
+  };
+  if (whatsappNumbersFeatureEnabled) {
+    cityPayload.whatsapp_number_id = whatsappNumberId || null;
+  }
+
+  await mutateSupabase(`event_cities?id=eq.${selectedCity.id}`, "PATCH", cityPayload);
+
+  await refreshDashboard();
+}
+
+async function handleWhatsappNumberCreate(event) {
+  event.preventDefault();
+  if (!whatsappNumbersFeatureEnabled) {
+    alert("Rode o SQL novo do Supabase antes de gerenciar números por aqui.");
+    return;
+  }
+
+  const label = newWhatsappNumberLabelInput?.value.trim();
+  const phone = normalizeWhatsappTarget(newWhatsappNumberPhoneInput?.value || "");
+  if (!label || !phone) return;
+
+  const createdRows = await mutateSupabase("event_whatsapp_numbers", "POST", {
+    label,
+    phone,
+    sort_order: whatsappNumbers.length + 1,
+    active: true
   });
 
+  const createdNumber = normalizeWhatsappNumberRecords(createdRows)[0];
+  if (createdNumber) {
+    selectedEditorWhatsappNumberId = String(createdNumber.id);
+  }
+
+  if (newWhatsappNumberLabelInput) newWhatsappNumberLabelInput.value = "";
+  if (newWhatsappNumberPhoneInput) newWhatsappNumberPhoneInput.value = "";
+  await refreshDashboard();
+}
+
+async function handleWhatsappNumberUpdate(event) {
+  event.preventDefault();
+  const selectedNumber = getSelectedEditorWhatsappNumber();
+  if (!selectedNumber || !whatsappNumbersFeatureEnabled) return;
+
+  const label = editWhatsappNumberLabelInput?.value.trim();
+  const phone = normalizeWhatsappTarget(editWhatsappNumberPhoneInput?.value || "");
+  const active = editWhatsappNumberActiveInput?.value !== "false";
+  if (!label || !phone) return;
+
+  await mutateSupabase(`event_whatsapp_numbers?id=eq.${selectedNumber.id}`, "PATCH", {
+    label,
+    phone,
+    active
+  });
+
+  const selectedCityIds = [...(whatsappNumberCityChecklist?.querySelectorAll('input[type="checkbox"]:checked') || [])]
+    .map((input) => input.value)
+    .filter(Boolean);
+  await syncCitiesForWhatsappNumber(selectedNumber.id, selectedCityIds);
   await refreshDashboard();
 }
 
@@ -609,6 +825,29 @@ async function handleEditorCityChange() {
   await renderEditorCity();
 }
 
+async function syncCitiesForWhatsappNumber(numberId, selectedCityIds) {
+  const targetId = String(numberId);
+  const selectedIds = new Set(selectedCityIds.map((id) => String(id)));
+  const updates = [];
+
+  cities.forEach((city) => {
+    const cityId = String(city.id);
+    const shouldUseNumber = selectedIds.has(cityId);
+    const currentNumberId = String(city.whatsapp_number_id || "");
+
+    if (shouldUseNumber && currentNumberId !== targetId) {
+      updates.push(mutateSupabase(`event_cities?id=eq.${city.id}`, "PATCH", { whatsapp_number_id: numberId }));
+      return;
+    }
+
+    if (!shouldUseNumber && currentNumberId === targetId) {
+      updates.push(mutateSupabase(`event_cities?id=eq.${city.id}`, "PATCH", { whatsapp_number_id: null }));
+    }
+  });
+
+  await Promise.all(updates);
+}
+
 async function seedCityTimes(city) {
   const templateRows = timeTemplates.length
     ? timeTemplates
@@ -639,6 +878,20 @@ async function deleteCity(id) {
   await mutateSupabase(`event_cities?id=eq.${id}`, "DELETE");
   if (selectedEditorCityId === String(id)) {
     selectedEditorCityId = "";
+  }
+  await refreshDashboard();
+}
+
+async function deleteWhatsappNumber(id) {
+  if (!whatsappNumbersFeatureEnabled) {
+    alert("Rode o SQL novo do Supabase antes de gerenciar números por aqui.");
+    return;
+  }
+
+  await syncCitiesForWhatsappNumber(id, []);
+  await mutateSupabase(`event_whatsapp_numbers?id=eq.${id}`, "DELETE");
+  if (selectedEditorWhatsappNumberId === String(id)) {
+    selectedEditorWhatsappNumberId = "";
   }
   await refreshDashboard();
 }
@@ -986,8 +1239,39 @@ function syncSelectedEditorCity() {
   selectedEditorCityId = "";
 }
 
+function syncSelectedEditorWhatsappNumber() {
+  if (selectedEditorWhatsappNumberId && whatsappNumbers.some((item) => String(item.id) === selectedEditorWhatsappNumberId)) return;
+  selectedEditorWhatsappNumberId = "";
+}
+
 function getSelectedEditorCity() {
   return cities.find((item) => String(item.id) === String(selectedEditorCityId)) || null;
+}
+
+function getSelectedEditorWhatsappNumber() {
+  return whatsappNumbers.find((item) => String(item.id) === String(selectedEditorWhatsappNumberId)) || null;
+}
+
+function findWhatsappNumberById(id) {
+  return whatsappNumbers.find((item) => String(item.id) === String(id)) || null;
+}
+
+function getCityWhatsappNumberSummary(city) {
+  const number = findWhatsappNumberById(city?.whatsapp_number_id);
+  if (!number) return "Sem número de WhatsApp vinculado.";
+  return `WhatsApp: ${number.label} • ${formatPhone(number.phone || "")}`;
+}
+
+function getWhatsappNumberCitySummary(numberId) {
+  const linkedCities = cities.filter((item) => String(item.whatsapp_number_id || "") === String(numberId));
+  if (!linkedCities.length) return "Nenhuma cidade vinculada.";
+  return `Cidades: ${linkedCities.map((item) => item.label).join(", ")}`;
+}
+
+function buildWhatsappNumberOptionLabel(item) {
+  const label = String(item?.label || "").trim();
+  const phone = formatPhone(item?.phone || "");
+  return label ? `${label} • ${phone}` : phone;
 }
 
 function getCityTimes(cityId) {
@@ -1049,6 +1333,7 @@ function normalizeCityRecords(items) {
           label: item,
           venue_name: "",
           address: "",
+          whatsapp_number_id: null,
           sort_order: index + 1,
           active: true
         };
@@ -1061,6 +1346,7 @@ function normalizeCityRecords(items) {
         label: String(item.label || "").trim(),
         venue_name: String(item.venue_name || item.venue || "").trim(),
         address: String(item.address || item.endereco || "").trim(),
+        whatsapp_number_id: item.whatsapp_number_id ?? null,
         sort_order: Number(item.sort_order || index + 1),
         active: item.active !== false
       };
@@ -1105,6 +1391,51 @@ function normalizeCityTimes(items) {
       };
     })
     .filter(Boolean);
+}
+
+function normalizeWhatsappNumberRecords(items) {
+  return (Array.isArray(items) ? items : [])
+    .map((item, index) => {
+      if (!item) return null;
+
+      return {
+        id: item.id ?? `whatsapp-number-${index}`,
+        label: String(item.label || "").trim(),
+        phone: normalizeWhatsappTarget(item.phone || ""),
+        sort_order: Number(item.sort_order || index + 1),
+        active: item.active !== false
+      };
+    })
+    .filter((item) => item && item.phone)
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0) || String(a.label || "").localeCompare(String(b.label || ""), "pt-BR"));
+}
+
+function buildFallbackWhatsappNumbers() {
+  const fallbackNumbers = [];
+  const defaultNumber = normalizeWhatsappTarget(PANEL_CONFIG.whatsapp?.number || "");
+  if (defaultNumber) {
+    fallbackNumbers.push({
+      id: "fallback-default-whatsapp",
+      label: "Número principal",
+      phone: defaultNumber,
+      sort_order: 1,
+      active: true
+    });
+  }
+
+  Object.entries(PANEL_CONFIG.whatsapp?.numbersByCity || {}).forEach(([cityKey, phone], index) => {
+    const normalizedPhone = normalizeWhatsappTarget(phone || "");
+    if (!normalizedPhone || fallbackNumbers.some((item) => item.phone === normalizedPhone)) return;
+    fallbackNumbers.push({
+      id: `fallback-whatsapp-${cityKey}`,
+      label: `Número ${cityKey}`,
+      phone: normalizedPhone,
+      sort_order: index + 2,
+      active: true
+    });
+  });
+
+  return fallbackNumbers;
 }
 
 function countBy(items, key) {

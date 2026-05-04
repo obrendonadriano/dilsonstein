@@ -621,6 +621,38 @@ textarea {
   margin-top: 0;
 }
 
+.checkbox-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.checkbox-card {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(237, 242, 248, 0.78);
+  border: 1px solid rgba(19, 32, 51, 0.08);
+  font-weight: 600;
+}
+
+.checkbox-card input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+}
+
+.checkbox-card span {
+  display: grid;
+  gap: 4px;
+}
+
+.checkbox-card small {
+  color: var(--muted);
+}
+
 .tag-item {
   display: inline-flex;
   align-items: center;
