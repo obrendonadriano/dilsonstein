@@ -59,6 +59,7 @@ const crmList = document.querySelector("#crm-list");
 const crmResultsCount = document.querySelector("#crm-results-count");
 const crmSentCounter = document.querySelector("#crm-sent-counter");
 const crmSentCount = document.querySelector("#crm-sent-count");
+const panelNotice = document.querySelector("#panel-notice");
 
 const metricTotal = document.querySelector("#metric-total");
 const metricCities = document.querySelector("#metric-cities");
@@ -80,6 +81,7 @@ let whatsappNumbersFeatureEnabled = true;
 let activeView = "overview";
 let crmLockedLeadIds = new Set();
 let crmSentClicks = 0;
+let panelNoticeTimeoutId = 0;
 
 guardRoute();
 refreshDashboard();
@@ -667,37 +669,43 @@ async function handleCityCreate(event) {
   const whatsappNumberId = newCityWhatsappNumberInput?.value || null;
   if (!label || !venueName || !address) return;
 
-  const cityPayload = {
-    label,
-    venue_name: venueName,
-    address,
-    sort_order: cities.length + 1,
-    active: true
-  };
-  if (whatsappNumbersFeatureEnabled) {
-    cityPayload.whatsapp_number_id = whatsappNumberId || null;
-  }
-
-  const createdRows = await mutateSupabase("event_cities", "POST", cityPayload);
-
-  const createdCity = normalizeCityRecords(createdRows)[0];
-  if (createdCity) {
-    if (cityTimesFeatureEnabled) {
-      try {
-        await seedCityTimes(createdCity);
-      } catch (error) {
-        console.error("Falha ao criar horários iniciais da cidade:", error);
-        cityTimesFeatureEnabled = false;
-      }
+  try {
+    const cityPayload = {
+      label,
+      venue_name: venueName,
+      address,
+      sort_order: cities.length + 1,
+      active: true
+    };
+    if (whatsappNumbersFeatureEnabled) {
+      cityPayload.whatsapp_number_id = whatsappNumberId || null;
     }
-    selectedEditorCityId = String(createdCity.id);
-  }
 
-  if (newCityInput) newCityInput.value = "";
-  if (newCityVenueInput) newCityVenueInput.value = "";
-  if (newCityAddressInput) newCityAddressInput.value = "";
-  if (newCityWhatsappNumberInput) newCityWhatsappNumberInput.value = "";
-  await refreshDashboard();
+    const createdRows = await mutateSupabase("event_cities", "POST", cityPayload);
+
+    const createdCity = normalizeCityRecords(createdRows)[0];
+    if (createdCity) {
+      if (cityTimesFeatureEnabled) {
+        try {
+          await seedCityTimes(createdCity);
+        } catch (error) {
+          console.error("Falha ao criar horários iniciais da cidade:", error);
+          cityTimesFeatureEnabled = false;
+        }
+      }
+      selectedEditorCityId = String(createdCity.id);
+    }
+
+    if (newCityInput) newCityInput.value = "";
+    if (newCityVenueInput) newCityVenueInput.value = "";
+    if (newCityAddressInput) newCityAddressInput.value = "";
+    if (newCityWhatsappNumberInput) newCityWhatsappNumberInput.value = "";
+    await refreshDashboard();
+    showPanelNotice("Cidade cadastrada com sucesso.");
+  } catch (error) {
+    console.error("Falha ao cadastrar cidade:", error);
+    showPanelNotice("Não foi possível cadastrar a cidade agora.", "error");
+  }
 }
 
 async function handleCityUpdate(event) {
@@ -712,19 +720,26 @@ async function handleCityUpdate(event) {
   const active = editCityActiveInput?.value !== "false";
   if (!label || !venueName || !address) return;
 
-  const cityPayload = {
-    label,
-    venue_name: venueName,
-    address,
-    active
-  };
-  if (whatsappNumbersFeatureEnabled) {
-    cityPayload.whatsapp_number_id = whatsappNumberId || null;
+  try {
+    const cityPayload = {
+      label,
+      venue_name: venueName,
+      address,
+      active
+    };
+    if (whatsappNumbersFeatureEnabled) {
+      cityPayload.whatsapp_number_id = whatsappNumberId || null;
+    }
+
+    await mutateSupabase(`event_cities?id=eq.${selectedCity.id}`, "PATCH", cityPayload);
+    selectedEditorCityId = "";
+    if (editorCitySelect) editorCitySelect.value = "";
+    await refreshDashboard();
+    showPanelNotice("Cidade atualizada com sucesso.");
+  } catch (error) {
+    console.error("Falha ao atualizar cidade:", error);
+    showPanelNotice("Não foi possível atualizar a cidade agora.", "error");
   }
-
-  await mutateSupabase(`event_cities?id=eq.${selectedCity.id}`, "PATCH", cityPayload);
-
-  await refreshDashboard();
 }
 
 async function handleWhatsappNumberCreate(event) {
@@ -738,21 +753,27 @@ async function handleWhatsappNumberCreate(event) {
   const phone = normalizeWhatsappTarget(newWhatsappNumberPhoneInput?.value || "");
   if (!label || !phone) return;
 
-  const createdRows = await mutateSupabase("event_whatsapp_numbers", "POST", {
-    label,
-    phone,
-    sort_order: whatsappNumbers.length + 1,
-    active: true
-  });
+  try {
+    const createdRows = await mutateSupabase("event_whatsapp_numbers", "POST", {
+      label,
+      phone,
+      sort_order: whatsappNumbers.length + 1,
+      active: true
+    });
 
-  const createdNumber = normalizeWhatsappNumberRecords(createdRows)[0];
-  if (createdNumber) {
-    selectedEditorWhatsappNumberId = String(createdNumber.id);
+    const createdNumber = normalizeWhatsappNumberRecords(createdRows)[0];
+    if (createdNumber) {
+      selectedEditorWhatsappNumberId = String(createdNumber.id);
+    }
+
+    if (newWhatsappNumberLabelInput) newWhatsappNumberLabelInput.value = "";
+    if (newWhatsappNumberPhoneInput) newWhatsappNumberPhoneInput.value = "";
+    await refreshDashboard();
+    showPanelNotice("Número cadastrado com sucesso.");
+  } catch (error) {
+    console.error("Falha ao cadastrar número:", error);
+    showPanelNotice("Não foi possível cadastrar o número agora.", "error");
   }
-
-  if (newWhatsappNumberLabelInput) newWhatsappNumberLabelInput.value = "";
-  if (newWhatsappNumberPhoneInput) newWhatsappNumberPhoneInput.value = "";
-  await refreshDashboard();
 }
 
 async function handleWhatsappNumberUpdate(event) {
@@ -765,17 +786,23 @@ async function handleWhatsappNumberUpdate(event) {
   const active = editWhatsappNumberActiveInput?.value !== "false";
   if (!label || !phone) return;
 
-  await mutateSupabase(`event_whatsapp_numbers?id=eq.${selectedNumber.id}`, "PATCH", {
-    label,
-    phone,
-    active
-  });
+  try {
+    await mutateSupabase(`event_whatsapp_numbers?id=eq.${selectedNumber.id}`, "PATCH", {
+      label,
+      phone,
+      active
+    });
 
-  const selectedCityIds = [...(whatsappNumberCityChecklist?.querySelectorAll('input[type="checkbox"]:checked') || [])]
-    .map((input) => input.value)
-    .filter(Boolean);
-  await syncCitiesForWhatsappNumber(selectedNumber.id, selectedCityIds);
-  await refreshDashboard();
+    const selectedCityIds = [...(whatsappNumberCityChecklist?.querySelectorAll('input[type="checkbox"]:checked') || [])]
+      .map((input) => input.value)
+      .filter(Boolean);
+    await syncCitiesForWhatsappNumber(selectedNumber.id, selectedCityIds);
+    await refreshDashboard();
+    showPanelNotice("Número atualizado com sucesso.");
+  } catch (error) {
+    console.error("Falha ao atualizar número:", error);
+    showPanelNotice("Não foi possível atualizar o número agora.", "error");
+  }
 }
 
 async function handleCityTimeCreate(event) {
@@ -788,15 +815,21 @@ async function handleCityTimeCreate(event) {
     return;
   }
 
-  await mutateSupabase("event_city_times", "POST", {
-    city_id: selectedCity.id,
-    label,
-    sort_order: getCityTimes(selectedCity.id).length + 1,
-    active: true
-  });
+  try {
+    await mutateSupabase("event_city_times", "POST", {
+      city_id: selectedCity.id,
+      label,
+      sort_order: getCityTimes(selectedCity.id).length + 1,
+      active: true
+    });
 
-  if (newCityTimeInput) newCityTimeInput.value = "";
-  await refreshDashboard();
+    if (newCityTimeInput) newCityTimeInput.value = "";
+    await refreshDashboard();
+    showPanelNotice("Horário adicionado com sucesso.");
+  } catch (error) {
+    console.error("Falha ao adicionar horário:", error);
+    showPanelNotice("Não foi possível adicionar o horário agora.", "error");
+  }
 }
 
 async function createCityTimeFromTemplate(label) {
@@ -808,14 +841,20 @@ async function createCityTimeFromTemplate(label) {
     return;
   }
 
-  await mutateSupabase("event_city_times", "POST", {
-    city_id: selectedCity.id,
-    label: normalizedLabel,
-    sort_order: getNextCityTimeSortOrder(selectedCity.id),
-    active: true
-  });
+  try {
+    await mutateSupabase("event_city_times", "POST", {
+      city_id: selectedCity.id,
+      label: normalizedLabel,
+      sort_order: getNextCityTimeSortOrder(selectedCity.id),
+      active: true
+    });
 
-  await refreshDashboard();
+    await refreshDashboard();
+    showPanelNotice("Horário ativado para a cidade.");
+  } catch (error) {
+    console.error("Falha ao ativar horário da cidade:", error);
+    showPanelNotice("Não foi possível ativar esse horário agora.", "error");
+  }
 }
 
 async function handleEditorCityChange() {
@@ -868,18 +907,24 @@ async function seedCityTimes(city) {
 }
 
 async function deleteCity(id) {
-  if (cityTimesFeatureEnabled) {
-    try {
-      await mutateSupabase(`event_city_times?city_id=eq.${id}`, "DELETE");
-    } catch (error) {
-      console.error("Falha ao excluir horários da cidade:", error);
+  try {
+    if (cityTimesFeatureEnabled) {
+      try {
+        await mutateSupabase(`event_city_times?city_id=eq.${id}`, "DELETE");
+      } catch (error) {
+        console.error("Falha ao excluir horários da cidade:", error);
+      }
     }
+    await mutateSupabase(`event_cities?id=eq.${id}`, "DELETE");
+    if (selectedEditorCityId === String(id)) {
+      selectedEditorCityId = "";
+    }
+    await refreshDashboard();
+    showPanelNotice("Cidade excluída com sucesso.");
+  } catch (error) {
+    console.error("Falha ao excluir cidade:", error);
+    showPanelNotice("Não foi possível excluir a cidade agora.", "error");
   }
-  await mutateSupabase(`event_cities?id=eq.${id}`, "DELETE");
-  if (selectedEditorCityId === String(id)) {
-    selectedEditorCityId = "";
-  }
-  await refreshDashboard();
 }
 
 async function deleteWhatsappNumber(id) {
@@ -888,12 +933,18 @@ async function deleteWhatsappNumber(id) {
     return;
   }
 
-  await syncCitiesForWhatsappNumber(id, []);
-  await mutateSupabase(`event_whatsapp_numbers?id=eq.${id}`, "DELETE");
-  if (selectedEditorWhatsappNumberId === String(id)) {
-    selectedEditorWhatsappNumberId = "";
+  try {
+    await syncCitiesForWhatsappNumber(id, []);
+    await mutateSupabase(`event_whatsapp_numbers?id=eq.${id}`, "DELETE");
+    if (selectedEditorWhatsappNumberId === String(id)) {
+      selectedEditorWhatsappNumberId = "";
+    }
+    await refreshDashboard();
+    showPanelNotice("Número excluído com sucesso.");
+  } catch (error) {
+    console.error("Falha ao excluir número:", error);
+    showPanelNotice("Não foi possível excluir o número agora.", "error");
   }
-  await refreshDashboard();
 }
 
 async function toggleCityTime(id) {
@@ -904,11 +955,17 @@ async function toggleCityTime(id) {
     return;
   }
 
-  await mutateSupabase(`event_city_times?id=eq.${id}`, "PATCH", {
-    active: row.active === false
-  });
+  try {
+    await mutateSupabase(`event_city_times?id=eq.${id}`, "PATCH", {
+      active: row.active === false
+    });
 
-  await refreshDashboard();
+    await refreshDashboard();
+    showPanelNotice(row.active === false ? "Horário ativado com sucesso." : "Horário inativado com sucesso.");
+  } catch (error) {
+    console.error("Falha ao alterar status do horário:", error);
+    showPanelNotice("Não foi possível atualizar o horário agora.", "error");
+  }
 }
 
 async function deleteOption(tableName, id) {
@@ -916,8 +973,14 @@ async function deleteOption(tableName, id) {
     alert("Os horários por cidade ainda não estão disponíveis no Supabase. Rode o SQL de atualização e tente novamente.");
     return;
   }
-  await mutateSupabase(`${tableName}?id=eq.${id}`, "DELETE");
-  await refreshDashboard();
+  try {
+    await mutateSupabase(`${tableName}?id=eq.${id}`, "DELETE");
+    await refreshDashboard();
+    showPanelNotice("Item removido com sucesso.");
+  } catch (error) {
+    console.error("Falha ao excluir item:", error);
+    showPanelNotice("Não foi possível remover esse item agora.", "error");
+  }
 }
 
 async function mutateSupabase(path, method, body) {
@@ -1795,6 +1858,24 @@ function extractStateFromCity(city) {
   const text = String(city || "").trim();
   const stateMatch = text.match(/(?:^|[\s\-\/])([A-Z]{2})$/);
   return stateMatch ? stateMatch[1] : "";
+}
+
+function showPanelNotice(message, type = "success") {
+  if (!panelNotice) return;
+  if (panelNoticeTimeoutId) {
+    window.clearTimeout(panelNoticeTimeoutId);
+  }
+
+  panelNotice.hidden = false;
+  panelNotice.textContent = message;
+  panelNotice.classList.toggle("is-error", type === "error");
+  panelNotice.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  panelNoticeTimeoutId = window.setTimeout(() => {
+    panelNotice.hidden = true;
+    panelNotice.textContent = "";
+    panelNotice.classList.remove("is-error");
+  }, 2800);
 }
 
 function matchCityStatus(cityLabel, selectedStatus) {

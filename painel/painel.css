@@ -609,6 +609,26 @@ textarea {
   color: #9d2530;
 }
 
+.panel-notice {
+  position: sticky;
+  top: 18px;
+  z-index: 12;
+  margin: 0 0 18px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  color: #0f5132;
+  font-weight: 700;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+}
+
+.panel-notice.is-error {
+  background: rgba(220, 38, 38, 0.1);
+  border-color: rgba(220, 38, 38, 0.18);
+  color: #991b1b;
+}
+
 .tag-list {
   display: flex;
   flex-wrap: wrap;
