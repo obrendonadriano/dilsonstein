@@ -24,17 +24,20 @@ window.APP_CONFIG = {
   scheduling: {
     defaultCities: [
       {
-        label: "Campinas 10/04",
+        label: "Campinas",
+        event_date: "2026-04-10",
         venue_name: "Hotel Leon Park",
         address: "Av. Francisco Glicério, 641"
       },
       {
-        label: "São Paulo 12/04",
+        label: "São Paulo",
+        event_date: "2026-04-12",
         venue_name: "Local a confirmar",
         address: "Endereço a confirmar"
       },
       {
-        label: "Sorocaba 14/04",
+        label: "Sorocaba",
+        event_date: "2026-04-14",
         venue_name: "Local a confirmar",
         address: "Endereço a confirmar"
       }

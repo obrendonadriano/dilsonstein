@@ -31,11 +31,13 @@ const leadSearchInput = document.querySelector("#lead-search");
 const newCityInput = document.querySelector("#new-city");
 const newCityVenueInput = document.querySelector("#new-city-venue");
 const newCityAddressInput = document.querySelector("#new-city-address");
+const newCityDateInput = document.querySelector("#new-city-date");
 const newCityWhatsappNumberInput = document.querySelector("#new-city-whatsapp-number");
 const editorCitySelect = document.querySelector("#editor-city-select");
 const editCityInput = document.querySelector("#edit-city");
 const editCityVenueInput = document.querySelector("#edit-city-venue");
 const editCityAddressInput = document.querySelector("#edit-city-address");
+const editCityDateInput = document.querySelector("#edit-city-date");
 const editCityWhatsappNumberInput = document.querySelector("#edit-city-whatsapp-number");
 const editCityActiveInput = document.querySelector("#edit-city-active");
 const newCityTimeInput = document.querySelector("#new-city-time");
@@ -383,27 +385,27 @@ async function fetchTableAll(tableName, fallback = [], query = {}) {
 }
 
 function populateFilters() {
-  populateSelect(filterCity, cities.map((item) => item.label), "Todas as cidades");
+  populateSelect(filterCity, cities.map((item) => getCityDisplayLabel(item)), "Todas as cidades");
   populateSelect(filterTime, buildActiveTimeLabels(), "Todos os horários");
   populateSelect(filterDdd, buildDddOptions(), "Todos os DDDs");
 }
 
 function populateExportFilters() {
-  populateSelect(exportFilterCity, cities.map((item) => item.label), "Todas as cidades");
+  populateSelect(exportFilterCity, cities.map((item) => getCityDisplayLabel(item)), "Todas as cidades");
   populateSelect(exportFilterTime, buildActiveTimeLabels(), "Todos os horários");
   populateSelect(exportFilterDdd, buildDddOptions(), "Todos os DDDs");
 }
 
 function populateEditorCitySelect() {
-  populateSelect(editorCitySelect, cities.map((item) => item.label), "Selecione uma cidade");
+  populateSelect(editorCitySelect, cities.map((item) => getCityDisplayLabel(item)), "Selecione uma cidade");
   const selectedCity = getSelectedEditorCity();
   if (selectedCity) {
-    editorCitySelect.value = selectedCity.label;
+    editorCitySelect.value = getCityDisplayLabel(selectedCity);
   }
 }
 
 function populateCrmCitySelect() {
-  populateSelect(crmCitySelect, cities.map((item) => item.label), "Selecione uma cidade");
+  populateSelect(crmCitySelect, cities.map((item) => getCityDisplayLabel(item)), "Selecione uma cidade");
 }
 
 function populateCityWhatsappNumberSelects() {
@@ -457,7 +459,7 @@ function renderCityList() {
     .map((item) => `
       <article class="tag-item tag-item--city">
         <div class="tag-item__content">
-          <strong>${escapeHtml(item.label)}</strong>
+          <strong>${escapeHtml(getCityDisplayLabel(item))}</strong>
           <p>${escapeHtml(item.venue_name || "Local a confirmar")}</p>
           <small>${escapeHtml(getCityWhatsappNumberSummary(item))}</small>
           <small>${escapeHtml(item.address || "Endereço em confirmação.")}</small>
@@ -547,6 +549,7 @@ async function renderEditorCity() {
     if (editCityInput) editCityInput.value = "";
     if (editCityVenueInput) editCityVenueInput.value = "";
     if (editCityAddressInput) editCityAddressInput.value = "";
+    if (editCityDateInput) editCityDateInput.value = "";
     if (editCityWhatsappNumberInput) editCityWhatsappNumberInput.value = "";
     if (editCityActiveInput) editCityActiveInput.value = "true";
     if (cityTimeList) {
@@ -558,6 +561,7 @@ async function renderEditorCity() {
   if (editCityInput) editCityInput.value = selectedCity.label;
   if (editCityVenueInput) editCityVenueInput.value = selectedCity.venue_name;
   if (editCityAddressInput) editCityAddressInput.value = selectedCity.address;
+  if (editCityDateInput) editCityDateInput.value = selectedCity.event_date || "";
   if (editCityWhatsappNumberInput) editCityWhatsappNumberInput.value = selectedCity.whatsapp_number_id ? String(selectedCity.whatsapp_number_id) : "";
   if (editCityActiveInput) editCityActiveInput.value = selectedCity.active === false ? "false" : "true";
 
@@ -599,7 +603,7 @@ function renderWhatsappNumberCityChecklist(numberId) {
       <label class="checkbox-card">
         <input type="checkbox" value="${escapeHtml(city.id)}" ${String(city.whatsapp_number_id || "") === String(numberId) ? "checked" : ""}>
         <span>
-          <strong>${escapeHtml(city.label)}</strong>
+          <strong>${escapeHtml(getCityDisplayLabel(city))}</strong>
           <small>${escapeHtml(city.venue_name || "Local a confirmar")}</small>
         </span>
       </label>
@@ -666,14 +670,16 @@ async function handleCityCreate(event) {
   const label = newCityInput?.value.trim();
   const venueName = newCityVenueInput?.value.trim();
   const address = newCityAddressInput?.value.trim();
+  const eventDate = normalizeEventDate(newCityDateInput?.value || "");
   const whatsappNumberId = newCityWhatsappNumberInput?.value || null;
-  if (!label || !venueName || !address) return;
+  if (!label || !venueName || !address || !eventDate) return;
 
   try {
     const cityPayload = {
       label,
       venue_name: venueName,
       address,
+      event_date: eventDate,
       sort_order: cities.length + 1,
       active: true
     };
@@ -699,6 +705,7 @@ async function handleCityCreate(event) {
     if (newCityInput) newCityInput.value = "";
     if (newCityVenueInput) newCityVenueInput.value = "";
     if (newCityAddressInput) newCityAddressInput.value = "";
+    if (newCityDateInput) newCityDateInput.value = "";
     if (newCityWhatsappNumberInput) newCityWhatsappNumberInput.value = "";
     await refreshDashboard();
     showPanelNotice("Cidade cadastrada com sucesso.");
@@ -716,15 +723,17 @@ async function handleCityUpdate(event) {
   const label = editCityInput?.value.trim();
   const venueName = editCityVenueInput?.value.trim();
   const address = editCityAddressInput?.value.trim();
+  const eventDate = normalizeEventDate(editCityDateInput?.value || "");
   const whatsappNumberId = editCityWhatsappNumberInput?.value || null;
   const active = editCityActiveInput?.value !== "false";
-  if (!label || !venueName || !address) return;
+  if (!label || !venueName || !address || !eventDate) return;
 
   try {
     const cityPayload = {
       label,
       venue_name: venueName,
       address,
+      event_date: eventDate,
       active
     };
     if (whatsappNumbersFeatureEnabled) {
@@ -859,7 +868,7 @@ async function createCityTimeFromTemplate(label) {
 
 async function handleEditorCityChange() {
   const selectedLabel = editorCitySelect?.value || "";
-  const city = cities.find((item) => item.label === selectedLabel);
+  const city = findCityByDisplayLabel(selectedLabel);
   selectedEditorCityId = city ? String(city.id) : "";
   await renderEditorCity();
 }
@@ -1215,8 +1224,8 @@ function renderAlerts() {
         return `
           <article class="alert-city">
             <h3>
-              <span>${escapeHtml(city.label)}</span>
-              <b>${countCityRegistrations(city.label)}</b>
+              <span>${escapeHtml(getCityDisplayLabel(city))}</span>
+              <b>${countCityRegistrations(getCityDisplayLabel(city))}</b>
             </h3>
             <p class="empty-state">Nenhum horário ativo configurado para essa cidade.</p>
           </article>
@@ -1225,7 +1234,8 @@ function renderAlerts() {
 
       const timeRows = cityRows
         .map((time) => {
-          const total = leads.filter((lead) => lead.city === city.label && lead.time === time.label).length;
+          const cityLabel = getCityDisplayLabel(city);
+          const total = leads.filter((lead) => lead.city === cityLabel && lead.time === time.label).length;
           let stateClass = "";
           let stateLabel = "normal";
 
@@ -1252,8 +1262,8 @@ function renderAlerts() {
       return `
         <article class="alert-city">
           <h3>
-            <span>${escapeHtml(city.label)}</span>
-            <b>${countCityRegistrations(city.label)}</b>
+            <span>${escapeHtml(getCityDisplayLabel(city))}</span>
+            <b>${countCityRegistrations(getCityDisplayLabel(city))}</b>
           </h3>
           <div class="alert-times">
             ${timeRows}
@@ -1315,8 +1325,49 @@ function getSelectedEditorWhatsappNumber() {
   return whatsappNumbers.find((item) => String(item.id) === String(selectedEditorWhatsappNumberId)) || null;
 }
 
+function findCityByDisplayLabel(label) {
+  const normalizedLabel = String(label || "").trim();
+  if (!normalizedLabel) return null;
+  return cities.find((item) => getCityDisplayLabel(item) === normalizedLabel) || null;
+}
+
+function findCityByAnyLabel(label) {
+  const normalizedLabel = String(label || "").trim();
+  if (!normalizedLabel) return null;
+
+  return cities.find((item) => {
+    const rawLabel = String(item.label || "").trim();
+    const legacyLabel = String(item.legacy_label || "").trim();
+    const displayLabel = getCityDisplayLabel(item);
+    return normalizedLabel === displayLabel || normalizedLabel === rawLabel || normalizedLabel === legacyLabel;
+  }) || null;
+}
+
 function findWhatsappNumberById(id) {
   return whatsappNumbers.find((item) => String(item.id) === String(id)) || null;
+}
+
+function getCityDisplayLabel(city) {
+  const cityName = String(city?.label || "").trim();
+  const day = formatEventDateShort(city?.event_date || "");
+  return day ? `${cityName} ${day}`.trim() : cityName;
+}
+
+function getCityDisplayParts(city, fallbackLabel = "") {
+  if (city) {
+    return {
+      city: String(city.label || "").trim(),
+      day: formatEventDateShort(city.event_date || ""),
+      displayCity: getCityDisplayLabel(city)
+    };
+  }
+
+  const parsed = parseCityLabelParts(fallbackLabel);
+  return {
+    city: parsed.city,
+    day: formatEventDateShort(parsed.eventDate || "") || parsed.day,
+    displayCity: [parsed.city, parsed.day].filter(Boolean).join(" ").trim()
+  };
 }
 
 function getCityWhatsappNumberSummary(city) {
@@ -1328,13 +1379,51 @@ function getCityWhatsappNumberSummary(city) {
 function getWhatsappNumberCitySummary(numberId) {
   const linkedCities = cities.filter((item) => String(item.whatsapp_number_id || "") === String(numberId));
   if (!linkedCities.length) return "Nenhuma cidade vinculada.";
-  return `Cidades: ${linkedCities.map((item) => item.label).join(", ")}`;
+  return `Cidades: ${linkedCities.map((item) => getCityDisplayLabel(item)).join(", ")}`;
 }
 
 function buildWhatsappNumberOptionLabel(item) {
   const label = String(item?.label || "").trim();
   const phone = formatPhone(item?.phone || "");
   return label ? `${label} • ${phone}` : phone;
+}
+
+function parseCityLabelParts(value) {
+  const normalizedValue = String(value || "").trim();
+  const dayMatch = normalizedValue.match(/\b(\d{2})\/(\d{2})\b/);
+  const day = dayMatch?.[0] || "";
+  const city = normalizedValue.replace(/\b\d{2}\/\d{2}\b/, "").trim();
+  const currentYear = new Date().getFullYear();
+  const eventDate = dayMatch ? `${currentYear}-${dayMatch[2]}-${dayMatch[1]}` : "";
+
+  return {
+    city: city || normalizedValue,
+    day,
+    eventDate
+  };
+}
+
+function normalizeEventDate(value) {
+  const normalizedValue = String(value || "").trim();
+  if (!normalizedValue) return "";
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(normalizedValue)) {
+    return normalizedValue;
+  }
+
+  const slashMatch = normalizedValue.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (slashMatch) {
+    return `${slashMatch[3]}-${slashMatch[2]}-${slashMatch[1]}`;
+  }
+
+  return "";
+}
+
+function formatEventDateShort(value) {
+  const normalizedValue = normalizeEventDate(value);
+  if (!normalizedValue) return "";
+  const [, month, day] = normalizedValue.split("-");
+  return day && month ? `${day}/${month}` : "";
 }
 
 function getCityTimes(cityId) {
@@ -1391,11 +1480,14 @@ function normalizeCityRecords(items) {
   return (Array.isArray(items) ? items : [])
     .map((item, index) => {
       if (typeof item === "string") {
+        const parsedCity = parseCityLabelParts(item);
         return {
           id: `fallback-city-${index}`,
-          label: item,
+          label: parsedCity.city,
+          legacy_label: String(item || "").trim(),
           venue_name: "",
           address: "",
+          event_date: parsedCity.eventDate,
           whatsapp_number_id: null,
           sort_order: index + 1,
           active: true
@@ -1403,12 +1495,15 @@ function normalizeCityRecords(items) {
       }
 
       if (!item || !String(item.label || "").trim()) return null;
+      const parsedCity = parseCityLabelParts(item.label);
 
       return {
         id: item.id ?? `city-${index}`,
-        label: String(item.label || "").trim(),
+        label: parsedCity.city,
+        legacy_label: String(item.label || "").trim(),
         venue_name: String(item.venue_name || item.venue || "").trim(),
         address: String(item.address || item.endereco || "").trim(),
+        event_date: normalizeEventDate(item.event_date || "") || parsedCity.eventDate,
         whatsapp_number_id: item.whatsapp_number_id ?? null,
         sort_order: Number(item.sort_order || index + 1),
         active: item.active !== false
@@ -1772,7 +1867,7 @@ function getExportFilters() {
 }
 
 function buildLeadTimeOptions(lead) {
-  const cityRecord = cities.find((item) => item.label === lead.city);
+  const cityRecord = findCityByAnyLabel(lead.city);
   const options = cityRecord ? getCityTimes(cityRecord.id) : [];
   const labels = options
     .filter((item) => item.active !== false)
@@ -1829,12 +1924,14 @@ function normalizeWhatsappTarget(phone) {
 }
 
 function buildCrmMessage(template, lead) {
-  const cityRecord = cities.find((item) => item.label === lead.city);
+  const cityRecord = findCityByAnyLabel(lead.city);
+  const cityParts = getCityDisplayParts(cityRecord, lead.city);
   const replacements = {
     nome: getFirstName(lead.name),
     nome_completo: String(lead.name || "").trim(),
     idade: String(lead.age || "").trim(),
-    cidade: String(lead.city || "").trim(),
+    cidade: cityParts.displayCity,
+    dia: cityParts.day,
     horario: String(lead.time || "").trim(),
     hotel: String(cityRecord?.venue_name || "").trim(),
     endereco: String(cityRecord?.address || "").trim(),
@@ -1879,7 +1976,7 @@ function showPanelNotice(message, type = "success") {
 }
 
 function matchCityStatus(cityLabel, selectedStatus) {
-  const cityRecord = cities.find((item) => item.label === cityLabel);
+  const cityRecord = findCityByAnyLabel(cityLabel);
   const isActive = cityRecord ? cityRecord.active !== false : false;
   if (selectedStatus === "active") return isActive;
   if (selectedStatus === "inactive") return !isActive;

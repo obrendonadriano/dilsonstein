@@ -86,9 +86,10 @@ $$;
 
 create table if not exists public.event_cities (
   id bigint generated always as identity primary key,
-  label text not null unique,
+  label text not null,
   venue_name text,
   address text,
+  event_date date,
   whatsapp_number_id bigint,
   sort_order integer not null default 0,
   active boolean not null default true,
@@ -102,7 +103,26 @@ alter table public.event_cities
 add column if not exists address text;
 
 alter table public.event_cities
+add column if not exists event_date date;
+
+alter table public.event_cities
 add column if not exists whatsapp_number_id bigint;
+
+do $$
+begin
+  if exists (
+    select 1
+    from pg_constraint
+    where conname = 'event_cities_label_key'
+      and conrelid = 'public.event_cities'::regclass
+  ) then
+    execute 'alter table public.event_cities drop constraint event_cities_label_key';
+  end if;
+end
+$$;
+
+create unique index if not exists event_cities_label_event_date_key
+on public.event_cities (label, event_date);
 
 create table if not exists public.event_whatsapp_numbers (
   id bigint generated always as identity primary key,
@@ -230,24 +250,36 @@ where c.whatsapp_number_id is null
     (lower(c.label) like '%campinas%' and lower(numbers.label) = 'campinas')
   );
 
-insert into public.event_cities (label, sort_order)
-values
-  ('Campinas 10/04', 1),
-  ('São Paulo 12/04', 2),
-  ('Sorocaba 14/04', 3)
-on conflict (label) do nothing;
+update public.event_cities
+set event_date = to_date(
+    substring(label from '(\d{2}/\d{2})$') || '/' || extract(year from current_date)::text,
+    'DD/MM/YYYY'
+  )
+where event_date is null
+  and label ~ '\d{2}/\d{2}';
 
 update public.event_cities
-set venue_name = case label
-    when 'Campinas 10/04' then coalesce(nullif(venue_name, ''), 'Hotel Leon Park')
-    when 'São Paulo 12/04' then coalesce(nullif(venue_name, ''), 'Local a confirmar')
-    when 'Sorocaba 14/04' then coalesce(nullif(venue_name, ''), 'Local a confirmar')
+set label = trim(regexp_replace(label, '\s*\d{2}/\d{2}\s*$', '', 'g'))
+where label ~ '\d{2}/\d{2}';
+
+insert into public.event_cities (label, event_date, sort_order)
+values
+  ('Campinas', '2026-04-10', 1),
+  ('São Paulo', '2026-04-12', 2),
+  ('Sorocaba', '2026-04-14', 3)
+on conflict (label, event_date) do nothing;
+
+update public.event_cities
+set venue_name = case
+    when label = 'Campinas' and event_date = '2026-04-10' then coalesce(nullif(venue_name, ''), 'Hotel Leon Park')
+    when label = 'São Paulo' and event_date = '2026-04-12' then coalesce(nullif(venue_name, ''), 'Local a confirmar')
+    when label = 'Sorocaba' and event_date = '2026-04-14' then coalesce(nullif(venue_name, ''), 'Local a confirmar')
     else venue_name
   end,
-  address = case label
-    when 'Campinas 10/04' then coalesce(nullif(address, ''), 'Av. Francisco Glicério, 641')
-    when 'São Paulo 12/04' then coalesce(nullif(address, ''), 'Endereço a confirmar')
-    when 'Sorocaba 14/04' then coalesce(nullif(address, ''), 'Endereço a confirmar')
+  address = case
+    when label = 'Campinas' and event_date = '2026-04-10' then coalesce(nullif(address, ''), 'Av. Francisco Glicério, 641')
+    when label = 'São Paulo' and event_date = '2026-04-12' then coalesce(nullif(address, ''), 'Endereço a confirmar')
+    when label = 'Sorocaba' and event_date = '2026-04-14' then coalesce(nullif(address, ''), 'Endereço a confirmar')
     else address
   end;
 

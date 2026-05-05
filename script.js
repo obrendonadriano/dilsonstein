@@ -587,7 +587,7 @@ function configureWhatsAppLink(payload) {
   const venueName = selectedCity?.venue_name || "local a confirmar";
   const address = selectedCity?.address || "endereço a confirmar";
   const firstName = splitName(payload.name || "").firstName || "";
-  const cityParts = extractCityLabelParts(selectedCity?.label || payload.city || "");
+  const cityParts = getCityDisplayParts(selectedCity, payload.city || "");
   const text = normalizeWhatsAppMessage(template
     .replaceAll("{name}", payload.name || "")
     .replaceAll("{age}", payload.age || "")
@@ -661,22 +661,7 @@ function resolveWhatsAppPhone(cityRecord) {
 }
 
 function extractCityLabelParts(label) {
-  const normalizedLabel = String(label || "").trim();
-  if (!normalizedLabel) {
-    return {
-      city: "",
-      day: ""
-    };
-  }
-
-  const dayMatch = normalizedLabel.match(/\b\d{2}\/\d{2}\b/);
-  const day = dayMatch?.[0] || "";
-  const city = normalizedLabel.replace(/\b\d{2}\/\d{2}\b/, "").trim();
-
-  return {
-    city,
-    day
-  };
+  return getCityDisplayParts(null, label);
 }
 
 function buildWhatsAppUrl(phone, text) {
@@ -778,7 +763,7 @@ async function setupSchedulingOptions() {
 
   populateSelect(
     citySelect,
-    cityOptions.map((item) => item.label),
+    cityOptions.map((item) => getCityDisplayLabel(item)),
     "Selecione a cidade que deseja participar da seleção"
   );
 
@@ -922,7 +907,7 @@ function populateActiveCities(cities) {
       <article class="city-card">
         <div class="city-card__head">
           <span class="city-card__badge">Cidade ativa</span>
-          <strong>${escapeHtml(city.label)}</strong>
+          <strong>${escapeHtml(getCityDisplayLabel(city))}</strong>
         </div>
         <p>${escapeHtml(city.venue_name || "Local a confirmar")}</p>
         <small>${escapeHtml(city.address || "Endereço em confirmação no painel admin.")}</small>
@@ -947,7 +932,7 @@ function populateHeroActiveCities(cities) {
     return;
   }
 
-  const visibleCities = items.slice(0, 3).map((item) => item.label);
+  const visibleCities = items.slice(0, 3).map((item) => getCityDisplayLabel(item));
   const cityText = visibleCities.join(", ");
   heroActiveCitiesText.textContent = ` Seleção presencial já confirmada em ${cityText}.`;
 }
@@ -967,7 +952,7 @@ function updateSelectionDetails() {
     return;
   }
 
-  selectionDetailsCity.textContent = selectedCity.label || "Cidade da seleção";
+  selectionDetailsCity.textContent = getCityDisplayLabel(selectedCity) || "Cidade da seleção";
   selectionDetailsVenue.textContent = selectedCity.venue_name || "Local a confirmar";
   selectionDetailsAddress.textContent = selectedCity.address || "Endereço em confirmação.";
   selectionDetailsCard.hidden = false;
@@ -976,18 +961,26 @@ function updateSelectionDetails() {
 function getCityRecordByLabel(label) {
   const normalizedLabel = String(label || "").trim();
   if (!normalizedLabel) return null;
-  return cityCatalog.find((item) => item.label === normalizedLabel) || null;
+  return cityCatalog.find((item) => {
+    const rawLabel = String(item.label || "").trim();
+    const legacyLabel = String(item.legacy_label || "").trim();
+    const displayLabel = getCityDisplayLabel(item);
+    return normalizedLabel === displayLabel || normalizedLabel === rawLabel || normalizedLabel === legacyLabel;
+  }) || null;
 }
 
 function normalizeCityRecords(items) {
   return (Array.isArray(items) ? items : [])
     .map((item, index) => {
       if (typeof item === "string") {
+        const parsedCity = parseCityLabelParts(item);
         return {
           id: `fallback-city-${index}`,
-          label: item,
+          label: parsedCity.city,
+          legacy_label: String(item || "").trim(),
           venue_name: "",
           address: "",
+          event_date: parsedCity.eventDate,
           whatsapp_number_id: null,
           sort_order: index + 1,
           active: true
@@ -995,12 +988,15 @@ function normalizeCityRecords(items) {
       }
 
       if (!item || !String(item.label || "").trim()) return null;
+      const parsedCity = parseCityLabelParts(item.label);
 
       return {
         id: item.id ?? `city-${index}`,
-        label: String(item.label || "").trim(),
+        label: parsedCity.city,
+        legacy_label: String(item.label || "").trim(),
         venue_name: String(item.venue_name || item.venue || "").trim(),
         address: String(item.address || item.endereco || "").trim(),
+        event_date: normalizeEventDate(item.event_date || "") || parsedCity.eventDate,
         whatsapp_number_id: item.whatsapp_number_id ?? null,
         sort_order: Number(item.sort_order || index + 1),
         active: item.active !== false
@@ -1335,7 +1331,7 @@ function autoResizeChatInput() {
 }
 
 function getLeadContext() {
-  const activeCities = cityCatalog.map((item) => item.label).filter(Boolean);
+  const activeCities = cityCatalog.map((item) => getCityDisplayLabel(item)).filter(Boolean);
 
   return {
     page: window.location.pathname,
@@ -1345,5 +1341,66 @@ function getLeadContext() {
     time: document.querySelector("#time")?.value.trim() || "",
     activeCities,
     activeCitiesSource: "Cidades ativas para quem quer viver essa oportunidade de perto."
+  };
+}
+
+function parseCityLabelParts(value) {
+  const normalizedValue = String(value || "").trim();
+  const dayMatch = normalizedValue.match(/\b(\d{2})\/(\d{2})\b/);
+  const day = dayMatch?.[0] || "";
+  const city = normalizedValue.replace(/\b\d{2}\/\d{2}\b/, "").trim();
+  const currentYear = new Date().getFullYear();
+  const eventDate = dayMatch ? `${currentYear}-${dayMatch[2]}-${dayMatch[1]}` : "";
+
+  return {
+    city: city || normalizedValue,
+    day,
+    eventDate
+  };
+}
+
+function normalizeEventDate(value) {
+  const normalizedValue = String(value || "").trim();
+  if (!normalizedValue) return "";
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(normalizedValue)) {
+    return normalizedValue;
+  }
+
+  const slashMatch = normalizedValue.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (slashMatch) {
+    return `${slashMatch[3]}-${slashMatch[2]}-${slashMatch[1]}`;
+  }
+
+  return "";
+}
+
+function formatEventDateShort(value) {
+  const normalizedValue = normalizeEventDate(value);
+  if (!normalizedValue) return "";
+  const [, month, day] = normalizedValue.split("-");
+  return day && month ? `${day}/${month}` : "";
+}
+
+function getCityDisplayLabel(city) {
+  const cityName = String(city?.label || "").trim();
+  const day = formatEventDateShort(city?.event_date || "");
+  return day ? `${cityName} ${day}`.trim() : cityName;
+}
+
+function getCityDisplayParts(city, fallbackLabel = "") {
+  if (city) {
+    return {
+      city: String(city.label || "").trim(),
+      day: formatEventDateShort(city.event_date || ""),
+      displayCity: getCityDisplayLabel(city)
+    };
+  }
+
+  const parsed = parseCityLabelParts(fallbackLabel);
+  return {
+    city: parsed.city,
+    day: formatEventDateShort(parsed.eventDate || "") || parsed.day,
+    displayCity: [parsed.city, parsed.day].filter(Boolean).join(" ").trim()
   };
 }

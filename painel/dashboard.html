@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/painel/painel.css?v=16">
-  <script src="/config.js?v=7"></script>
+  <link rel="stylesheet" href="/painel/painel.css?v=17">
+  <script src="/config.js?v=8"></script>
 </head>
 <body class="panel-page">
   <div class="panel-backdrop"></div>
@@ -269,10 +269,23 @@
 
               <form id="city-form" class="inline-form">
                 <div class="inline-form-grid">
-                  <input type="text" id="new-city" placeholder="Ex.: Campinas 10/04" required>
-                  <input type="text" id="new-city-venue" placeholder="Ex.: Hotel Leon Park" required>
+                  <label>
+                    Nome da cidade
+                    <input type="text" id="new-city" placeholder="Ex.: Campinas" required>
+                  </label>
+                  <label>
+                    Local do evento
+                    <input type="text" id="new-city-venue" placeholder="Ex.: Hotel Leon Park" required>
+                  </label>
                 </div>
-                <input type="text" id="new-city-address" placeholder="Ex.: Av. Francisco Glicério, 641" required>
+                <label>
+                  Endereço do evento
+                  <input type="text" id="new-city-address" placeholder="Ex.: Av. Francisco Glicério, 641" required>
+                </label>
+                <label>
+                  Data do evento
+                  <input type="date" id="new-city-date" required>
+                </label>
                 <label>
                   Número responsável pela cidade
                   <select id="new-city-whatsapp-number">
@@ -302,9 +315,22 @@
                 </label>
 
                 <form id="city-editor-form" class="inline-form">
-                  <input type="text" id="edit-city" placeholder="Cidade" required>
-                  <input type="text" id="edit-city-venue" placeholder="Nome do local" required>
-                  <input type="text" id="edit-city-address" placeholder="Endereço completo" required>
+                  <label>
+                    Nome da cidade
+                    <input type="text" id="edit-city" placeholder="Cidade" required>
+                  </label>
+                  <label>
+                    Local do evento
+                    <input type="text" id="edit-city-venue" placeholder="Nome do local" required>
+                  </label>
+                  <label>
+                    Endereço do evento
+                    <input type="text" id="edit-city-address" placeholder="Endereço completo" required>
+                  </label>
+                  <label>
+                    Data do evento
+                    <input type="date" id="edit-city-date" required>
+                  </label>
                   <label>
                     Número responsável pela cidade
                     <select id="edit-city-whatsapp-number">
@@ -331,7 +357,10 @@
                 </div>
 
                 <form id="city-time-form" class="inline-form">
-                  <input type="text" id="new-city-time" placeholder="Ex.: 15h30" required>
+                  <label>
+                    Horário da cidade
+                    <input type="text" id="new-city-time" placeholder="Ex.: 15h30" required>
+                  </label>
                   <button type="submit" class="primary-button">Adicionar horário nesta cidade</button>
                 </form>
 
@@ -359,8 +388,14 @@
 
               <form id="whatsapp-number-form" class="inline-form">
                 <div class="inline-form-grid">
-                  <input type="text" id="new-whatsapp-number-label" placeholder="Ex.: Time Santos" required>
-                  <input type="text" id="new-whatsapp-number-phone" placeholder="Ex.: 5511919792976" required>
+                  <label>
+                    Nome interno
+                    <input type="text" id="new-whatsapp-number-label" placeholder="Ex.: Time Santos" required>
+                  </label>
+                  <label>
+                    Número do WhatsApp
+                    <input type="text" id="new-whatsapp-number-phone" placeholder="Ex.: 5511919792976" required>
+                  </label>
                 </div>
                 <button type="submit" class="primary-button">Adicionar número</button>
               </form>
@@ -377,8 +412,14 @@
               </div>
 
               <form id="whatsapp-number-editor-form" class="inline-form">
-                <input type="text" id="edit-whatsapp-number-label" placeholder="Nome interno" required>
-                <input type="text" id="edit-whatsapp-number-phone" placeholder="Número com DDI" required>
+                <label>
+                  Nome interno
+                  <input type="text" id="edit-whatsapp-number-label" placeholder="Nome interno" required>
+                </label>
+                <label>
+                  Número do WhatsApp
+                  <input type="text" id="edit-whatsapp-number-phone" placeholder="Número com DDI" required>
+                </label>
                 <label class="switch-field">
                   <span>Status do número</span>
                   <select id="edit-whatsapp-number-active">
@@ -462,6 +503,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-  <script src="/painel/dashboard.js?v=17"></script>
+  <script src="/painel/dashboard.js?v=18"></script>
 </body>
 </html>

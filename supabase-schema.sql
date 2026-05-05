@@ -23,14 +23,18 @@ create table if not exists public.leads (
 
 create table if not exists public.event_cities (
   id bigint generated always as identity primary key,
-  label text not null unique,
+  label text not null,
   venue_name text,
   address text,
+  event_date date,
   whatsapp_number_id bigint,
   sort_order integer not null default 0,
   active boolean not null default true,
   created_at timestamptz not null default now()
 );
+
+create unique index if not exists event_cities_label_event_date_key
+on public.event_cities (label, event_date);
 
 create table if not exists public.event_whatsapp_numbers (
   id bigint generated always as identity primary key,
