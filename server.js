@@ -10,7 +10,8 @@ loadDotEnv();
 const ROOT = __dirname;
 const PORT = Number(process.env.PORT) || 3000;
 const META_PIXEL_ID = process.env.META_PIXEL_ID || "928735966754524";
-const META_ACCESS_TOKEN = process.env.META_ACCESS_TOKEN || "";
+const META_ACCESS_TOKEN = String(process.env.META_ACCESS_TOKEN || "").trim();
+const META_GRAPH_VERSION = process.env.META_GRAPH_VERSION || "v22.0";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 const CHAT_MEMORY_FILE = path.join(ROOT, "momery-chat.json");
@@ -43,8 +44,13 @@ const server = http.createServer(async (req, res) => {
 
     if (requestUrl.pathname === "/api/facebook-conversion" && req.method === "POST") {
       const body = await readJsonBody(req);
+      body.user_data = {
+        ...(body.user_data || {}),
+        client_ip_address: getClientIp(req)
+      };
       console.log("[Meta CAPI] Evento recebido no proxy:", {
         event_name: body.event_name,
+        event_id: body.event_id || "",
         test_event_code: body.test_event_code || "",
         city: body.user_data?.ct || "",
         has_phone: Boolean(body.user_data?.ph)
@@ -86,6 +92,9 @@ const server = http.createServer(async (req, res) => {
     if (requestUrl.pathname === "/") filePath = path.join(ROOT, "index.html");
     if (requestUrl.pathname === "/cadastro-formulario" || requestUrl.pathname === "/cadastro-formulario/") {
       filePath = path.join(ROOT, "cadastro-formulario.html");
+    }
+    if (requestUrl.pathname === "/lead-qualificado" || requestUrl.pathname === "/lead-qualificado/") {
+      filePath = path.join(ROOT, "lead-qualificado.html");
     }
 
     if (!filePath.startsWith(ROOT)) {
@@ -205,6 +214,7 @@ function forwardToMeta(payload) {
       data: [
         {
           event_name: payload.event_name || "Lead",
+          event_id: payload.event_id || undefined,
           event_time: payload.event_time || Math.floor(Date.now() / 1000),
           action_source: payload.action_source || "website",
           event_source_url: payload.event_source_url || "",
@@ -216,7 +226,7 @@ function forwardToMeta(payload) {
 
     const options = {
       hostname: "graph.facebook.com",
-      path: `/v22.0/${META_PIXEL_ID}/events?access_token=${encodeURIComponent(META_ACCESS_TOKEN)}`,
+      path: `/${META_GRAPH_VERSION}/${META_PIXEL_ID}/events?access_token=${encodeURIComponent(META_ACCESS_TOKEN)}`,
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -250,7 +260,7 @@ function forwardToMeta(payload) {
 }
 
 function hashUserData(userData) {
-  const passthroughKeys = new Set(["client_user_agent", "fbc", "fbp"]);
+  const passthroughKeys = new Set(["client_user_agent", "client_ip_address", "fbc", "fbp"]);
   const hashed = {};
 
   Object.entries(userData).forEach(([key, value]) => {
@@ -265,6 +275,13 @@ function hashUserData(userData) {
   });
 
   return hashed;
+}
+
+function getClientIp(req) {
+  const forwardedFor = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  const realIp = String(req.headers["x-real-ip"] || "").trim();
+  const socketIp = String(req.socket?.remoteAddress || "").replace(/^::ffff:/, "");
+  return forwardedFor || realIp || socketIp;
 }
 
 function normalizeForHash(value) {

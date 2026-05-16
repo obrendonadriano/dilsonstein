@@ -10,6 +10,9 @@ const form = document.querySelector("#lead-form");
 const statusNode = document.querySelector("#form-status");
 const modal = document.querySelector("#success-modal");
 const whatsappLink = document.querySelector("#whatsapp-link");
+const blockedModal = document.querySelector("#attendance-blocked-modal");
+const blockedWhatsappLink = document.querySelector("#blocked-whatsapp-link");
+const qualifiedWhatsappLink = document.querySelector("#qualified-whatsapp-link");
 const activeCitiesList = document.querySelector("#active-cities-list");
 const heroActiveCitiesText = document.querySelector("#hero-active-cities-text");
 const heroVideo = document.querySelector(".hero-video");
@@ -44,6 +47,7 @@ let savedLeadId = null;
 let isSavingProgress = false;
 
 setupModal();
+setupBlockedModal();
 setupCardGlowTouch();
 setupHeroVideo();
 setupFormGate();
@@ -54,12 +58,15 @@ setupInfiniteMarquees();
 setupModelsScrollLoop();
 setupSchedulingOptions();
 setupSiteChat();
+setupQualifiedLeadPage();
 trackInitialPageView();
 
 if (form) form.addEventListener("submit", handleSubmit);
 if (phoneLocalInput) phoneLocalInput.addEventListener("input", handlePhoneInput);
 if (phoneCountrySelect) phoneCountrySelect.addEventListener("change", handlePhoneCountryChange);
 if (whatsappLink) whatsappLink.addEventListener("click", handleWhatsAppClick);
+if (blockedWhatsappLink) blockedWhatsappLink.addEventListener("click", handleWhatsAppClick);
+if (qualifiedWhatsappLink) qualifiedWhatsappLink.addEventListener("click", handleWhatsAppClick);
 if (citySelect) citySelect.addEventListener("change", handleCitySelectionChange);
 
 function handlePhoneInput(event) {
@@ -280,6 +287,18 @@ function setupModal() {
   });
 }
 
+function setupBlockedModal() {
+  if (!blockedModal) return;
+
+  document.querySelectorAll("[data-close-blocked-modal]").forEach((node) => {
+    node.addEventListener("click", closeBlockedModal);
+  });
+
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeBlockedModal();
+  });
+}
+
 function setupFormGate() {
   if (!form || !submitButton) return;
 
@@ -483,6 +502,18 @@ function closeModal() {
   modal.setAttribute("aria-hidden", "true");
 }
 
+function openBlockedModal() {
+  if (!blockedModal) return;
+  blockedModal.classList.add("is-open");
+  blockedModal.setAttribute("aria-hidden", "false");
+}
+
+function closeBlockedModal() {
+  if (!blockedModal) return;
+  blockedModal.classList.remove("is-open");
+  blockedModal.setAttribute("aria-hidden", "true");
+}
+
 async function handleSubmit(event) {
   event.preventDefault();
   statusNode.textContent = "";
@@ -517,10 +548,11 @@ async function handleSubmit(event) {
       const blockedRecord = Array.isArray(blockedResult) ? blockedResult[0] : blockedResult;
       if (blockedRecord?.id) {
         savedLeadId = blockedRecord.id;
+        payload.lead_id = blockedRecord.id;
       }
 
-      statusNode.textContent = "Essa avaliação é um evento presencial. No momento, apenas pessoas que conseguem comparecer ao evento podem fazer o cadastro.";
-      statusNode.classList.add("is-error");
+      configureBlockedWhatsAppLink(payload);
+      openBlockedModal();
       return;
     }
 
@@ -531,6 +563,7 @@ async function handleSubmit(event) {
     const savedRecord = Array.isArray(progressResult) ? progressResult[0] : progressResult;
     if (savedRecord?.id) {
       savedLeadId = savedRecord.id;
+      payload.lead_id = savedRecord.id;
     }
 
     const [supabaseResult, crmResult, facebookResult] = await Promise.allSettled([
@@ -561,9 +594,8 @@ async function handleSubmit(event) {
     updateGuardianWarning();
     updateAttendanceQuestion();
     showQuizStep(0);
-    statusNode.textContent = "Cadastro enviado com sucesso.";
-    configureWhatsAppLink(payload);
-    openModal();
+    saveQualifiedLeadPayload(payload);
+    window.location.assign("/lead-qualificado");
   } catch (error) {
     console.error(error);
     statusNode.textContent = error.message || "Não foi possível enviar agora. Tente novamente em instantes.";
@@ -727,6 +759,12 @@ async function trackLead(payload) {
   return sendFacebookConversion(payload, "Lead", eventId);
 }
 
+async function trackQualifiedLead(payload) {
+  const eventId = buildEventId("LeadQualificado");
+  trackFacebookPixel(payload, "LeadQualificado", eventId);
+  return sendFacebookConversion(payload, "LeadQualificado", eventId);
+}
+
 function trackFacebookPixel(payload, eventName = "Lead", eventId = "") {
   if (typeof window.fbq !== "function") return;
 
@@ -744,6 +782,14 @@ function trackFacebookPixel(payload, eventName = "Lead", eventId = "") {
 
   if (eventName === "PageView") {
     window.fbq("track", "PageView", eventPayload, eventId ? { eventID: eventId } : undefined);
+    return;
+  }
+
+  if (eventName === "LeadQualificado") {
+    window.fbq("trackCustom", eventName, {
+      ...eventPayload,
+      status: "qualified"
+    }, eventId ? { eventID: eventId } : undefined);
     return;
   }
 
@@ -785,7 +831,11 @@ async function sendFacebookConversion(payload, eventName = "Lead", eventId = "")
         source: payload.source,
         age: payload.age,
         city: payload.city,
-        schedule_time: payload.time
+        schedule_time: payload.time,
+        attendance: payload.attendance || "",
+        guardian_authorization: payload.guardian_authorization || "",
+        model_evaluation_experience: payload.model_evaluation_experience || "",
+        lead_id: payload.lead_id || ""
       }
     })
   });
@@ -822,7 +872,7 @@ async function handleWhatsAppClick(event) {
 }
 
 function configureWhatsAppLink(payload) {
-  if (!whatsappLink) return;
+  if (!whatsappLink && !qualifiedWhatsappLink) return;
 
   const selectedCity = getCityRecordByLabel(payload.city);
   const rawPhone = resolveWhatsAppPhone(selectedCity || { label: payload.city || "" });
@@ -853,7 +903,58 @@ function configureWhatsAppLink(payload) {
     .replaceAll("{hotel}", venueName)
     .replaceAll("{endereco}", address)}${quizSummary ? ` Respostas do cadastro: ${quizSummary}.` : ""}`);
   const url = buildWhatsAppUrl(rawPhone, text);
-  whatsappLink.href = url;
+  if (whatsappLink) whatsappLink.href = url;
+  if (qualifiedWhatsappLink) qualifiedWhatsappLink.href = url;
+}
+
+function configureBlockedWhatsAppLink(payload) {
+  if (!blockedWhatsappLink) return;
+
+  const selectedCity = getCityRecordByLabel(payload.city);
+  const rawPhone = resolveWhatsAppPhone(selectedCity || { label: payload.city || "" });
+  const firstName = splitName(payload.name || "").firstName || payload.name || "";
+  const cityParts = getCityDisplayParts(selectedCity, payload.city || "");
+  const venueName = selectedCity?.venue_name || "local a confirmar";
+  const address = selectedCity?.address || "endereço a confirmar";
+  const text = normalizeWhatsAppMessage(
+    `Olá! Meu nome é ${firstName}, tenho ${payload.age || ""} anos e me inscrevi para a seleção em ${cityParts.city}, no dia ${cityParts.day}, às ${payload.time || ""}, no ${venueName}, localizado no endereço ${address}. Eu tenho interesse, mas não consigo comparecer presencialmente ao evento. Gostaria de falar com a equipe para entender se existe alguma alternativa.`
+  );
+
+  blockedWhatsappLink.href = buildWhatsAppUrl(rawPhone, text);
+}
+
+function saveQualifiedLeadPayload(payload) {
+  try {
+    sessionStorage.setItem("qualifiedLeadPayload", JSON.stringify(payload));
+  } catch (error) {
+    console.error("Falha ao salvar lead qualificado na sessão:", error);
+  }
+}
+
+function getQualifiedLeadPayload() {
+  try {
+    const rawPayload = sessionStorage.getItem("qualifiedLeadPayload");
+    return rawPayload ? JSON.parse(rawPayload) : null;
+  } catch (error) {
+    console.error("Falha ao ler lead qualificado da sessão:", error);
+    return null;
+  }
+}
+
+function setupQualifiedLeadPage() {
+  if (!qualifiedWhatsappLink) return;
+
+  const payload = getQualifiedLeadPayload();
+  if (!payload) {
+    qualifiedWhatsappLink.href = "/cadastro-formulario";
+    return;
+  }
+
+  latestLeadPayload = payload;
+  configureWhatsAppLink(payload);
+  trackQualifiedLead(payload).catch((error) => {
+    console.error("Falha ao registrar LeadQualificado:", error);
+  });
 }
 
 function syncPhoneValue() {

@@ -218,17 +218,54 @@ body.signup-page {
 
 .field-warning {
   margin: 2px 0 0;
-  padding: 12px 14px;
-  border: 1px solid rgba(248, 113, 113, 0.55);
-  border-radius: 14px;
   color: #fecaca;
-  background: rgba(127, 29, 29, 0.28);
   font-size: 0.92rem;
   line-height: 1.5;
 }
 
 .form-status.is-error {
   color: #fecaca;
+}
+
+.qualified-page-main {
+  width: min(100% - 40px, 980px);
+  min-height: calc(100vh - 110px);
+  display: grid;
+  align-items: center;
+  margin: 0 auto;
+  padding: 40px 0 88px;
+}
+
+.qualified-hero {
+  display: grid;
+  gap: 22px;
+  max-width: 820px;
+}
+
+.qualified-hero .eyebrow {
+  color: var(--accent);
+}
+
+.qualified-hero h1 {
+  margin: 0;
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(3rem, 6vw, 5.4rem);
+  line-height: 0.95;
+  color: #ffffff;
+}
+
+.qualified-hero p {
+  margin: 0;
+  max-width: 720px;
+  color: rgba(248, 250, 252, 0.82);
+  font-size: 1.1rem;
+  line-height: 1.75;
+}
+
+.qualified-whatsapp-button {
+  width: auto;
+  justify-self: start;
+  padding: 0 28px;
 }
 
 .signup-page label,
@@ -330,6 +367,20 @@ body.signup-page {
 
   .quiz-actions .primary-button,
   .secondary-button {
+    width: 100%;
+  }
+
+  .qualified-page-main {
+    width: min(100% - 24px, 980px);
+    min-height: auto;
+    padding: 28px 0 64px;
+  }
+
+  .qualified-hero h1 {
+    font-size: clamp(2.5rem, 10vw, 4rem);
+  }
+
+  .qualified-whatsapp-button {
     width: 100%;
   }
 }

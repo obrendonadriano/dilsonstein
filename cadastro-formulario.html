@@ -18,8 +18,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=39">
-  <link rel="stylesheet" href="cadastro-formulario.css?v=2">
-  <script src="config.js?v=8"></script>
+  <link rel="stylesheet" href="cadastro-formulario.css?v=3">
+  <script src="config.js?v=9"></script>
   <script>
     !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
     n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -228,6 +228,27 @@
     </div>
   </div>
 
+  <div class="success-modal" id="attendance-blocked-modal" aria-hidden="true">
+    <div class="success-modal-backdrop" data-close-blocked-modal></div>
+    <div class="success-modal-dialog card-glow" role="dialog" aria-modal="true" aria-labelledby="attendance-blocked-title">
+      <button class="modal-close" type="button" aria-label="Fechar" data-close-blocked-modal>×</button>
+      <span class="eyebrow">Avaliação presencial</span>
+      <h2 id="attendance-blocked-title">Lamentamos, mas essa avaliação acontece presencialmente.</h2>
+      <p>
+        Neste momento, o cadastro é direcionado para pessoas que conseguem comparecer ao evento. Se você tem interesse, fale com a nossa equipe para vermos como podemos te orientar.
+      </p>
+      <a
+        class="primary-button whatsapp-button"
+        id="blocked-whatsapp-link"
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Falar com a equipe no WhatsApp
+      </a>
+    </div>
+  </div>
+
   <aside class="site-chat" id="site-chat" aria-label="Chat de duvidas">
     <button class="site-chat-toggle" id="site-chat-toggle" type="button" aria-expanded="false" aria-controls="site-chat-panel">
       <img class="site-chat-toggle-avatar" src="img-dilson/dilson.webp" alt="Suporte Dilson Stein">
@@ -252,6 +273,6 @@
     </section>
   </aside>
 
-  <script src="script.js?v=28"></script>
+  <script src="script.js?v=29"></script>
 </body>
 </html>

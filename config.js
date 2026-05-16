@@ -19,7 +19,7 @@ window.APP_CONFIG = {
   facebook: {
     pixelId: "928735966754524",
     conversionProxyUrl: "/api/facebook-conversion",
-    testEventCode: "TEST37800"
+    testEventCode: ""
   },
   scheduling: {
     defaultCities: [
