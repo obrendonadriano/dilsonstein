@@ -11,6 +11,21 @@ alter table public.leads
 add column if not exists phone text;
 
 alter table public.leads
+add column if not exists attendance text;
+
+alter table public.leads
+add column if not exists guardian_authorization text;
+
+alter table public.leads
+add column if not exists model_evaluation_experience text;
+
+alter table public.leads
+add column if not exists registration_step integer not null default 1;
+
+alter table public.leads
+add column if not exists registration_status text not null default 'started';
+
+alter table public.leads
 add column if not exists consent boolean not null default false;
 
 alter table public.leads
@@ -18,6 +33,12 @@ add column if not exists source text not null default 'facebook-landing-page';
 
 alter table public.leads
 add column if not exists created_at timestamptz not null default now();
+
+alter table public.leads
+add column if not exists updated_at timestamptz;
+
+alter table public.leads
+add column if not exists completed_at timestamptz;
 
 alter table public.leads
 add column if not exists page_url text;
@@ -81,6 +102,9 @@ begin
   ) then
     execute 'alter table public.leads alter column state drop not null';
   end if;
+
+  execute 'alter table public.leads alter column city drop not null';
+  execute 'alter table public.leads alter column time drop not null';
 end
 $$;
 

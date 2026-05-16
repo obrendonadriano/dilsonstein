@@ -2,12 +2,19 @@ create table if not exists public.leads (
   id bigint generated always as identity primary key,
   name text not null,
   age text not null,
-  city text not null,
-  time text not null,
+  city text,
+  time text,
   phone text not null,
+  attendance text,
+  guardian_authorization text,
+  model_evaluation_experience text,
+  registration_step integer not null default 1,
+  registration_status text not null default 'started',
   consent boolean not null default false,
   source text not null default 'facebook-landing-page',
   created_at timestamptz not null default now(),
+  updated_at timestamptz,
+  completed_at timestamptz,
   page_url text,
   utm_source text,
   utm_medium text,
@@ -80,7 +87,7 @@ alter table public.event_city_times enable row level security;
 alter table public.event_whatsapp_numbers enable row level security;
 
 grant usage on schema public to anon, authenticated;
-grant select, insert on table public.leads to anon, authenticated;
+grant select, insert, update on table public.leads to anon, authenticated;
 grant select, insert, update, delete on table public.event_cities to anon, authenticated;
 grant select, insert, update, delete on table public.event_times to anon, authenticated;
 grant select, insert, update, delete on table public.event_city_times to anon, authenticated;
@@ -100,6 +107,14 @@ on public.leads
 for select
 to anon, authenticated
 using (true);
+
+drop policy if exists "Allow public updates on leads" on public.leads;
+create policy "Allow public updates on leads"
+on public.leads
+for update
+to anon, authenticated
+using (true)
+with check (true);
 
 drop policy if exists "Allow public manage event cities" on public.event_cities;
 create policy "Allow public manage event cities"

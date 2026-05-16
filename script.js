@@ -19,6 +19,12 @@ const selectionDetailsCard = document.querySelector("#selection-details-card");
 const selectionDetailsCity = document.querySelector("#selection-details-city");
 const selectionDetailsVenue = document.querySelector("#selection-details-venue");
 const selectionDetailsAddress = document.querySelector("#selection-details-address");
+const quizSteps = Array.from(document.querySelectorAll("[data-quiz-step]"));
+const quizProgressFills = Array.from(document.querySelectorAll("[data-quiz-progress-fill]"));
+const quizNextButtons = Array.from(document.querySelectorAll("[data-quiz-next]"));
+const quizPrevButtons = Array.from(document.querySelectorAll("[data-quiz-prev]"));
+const attendanceQuestion = document.querySelector("#attendance-question");
+const guardianWarning = document.querySelector("#guardian-warning");
 const chatRoot = document.querySelector("#site-chat");
 const chatToggle = document.querySelector("#site-chat-toggle");
 const chatPanel = document.querySelector("#site-chat-panel");
@@ -33,12 +39,16 @@ let chatTypingNode = null;
 let cityCatalog = [];
 let cityTimeCatalog = [];
 let whatsappNumberCatalog = [];
+let currentQuizStep = 0;
+let savedLeadId = null;
+let isSavingProgress = false;
 
 setupModal();
 setupCardGlowTouch();
 setupHeroVideo();
 setupFormGate();
 setupDefaultConsent();
+setupQuizForm();
 setupHeroModelLoop();
 setupInfiniteMarquees();
 setupModelsScrollLoop();
@@ -275,12 +285,160 @@ function setupFormGate() {
 
   form.addEventListener("input", updateSubmitState);
   form.addEventListener("change", updateSubmitState);
+  form.addEventListener("change", handleQuizFieldChange);
   updateSubmitState();
 }
 
 function setupDefaultConsent() {
   if (!consentInput) return;
   consentInput.checked = true;
+}
+
+function setupQuizForm() {
+  if (!form || !quizSteps.length) return;
+
+  quizNextButtons.forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (!validateQuizStep(currentQuizStep)) return;
+      const saved = await saveLeadProgress(currentQuizStep + 1, button);
+      if (!saved) return;
+      showQuizStep(currentQuizStep + 1);
+    });
+  });
+
+  quizPrevButtons.forEach((button) => {
+    button.addEventListener("click", () => showQuizStep(currentQuizStep - 1));
+  });
+
+  updateGuardianWarning();
+  updateAttendanceQuestion();
+  showQuizStep(0);
+}
+
+function showQuizStep(stepIndex) {
+  if (!quizSteps.length) return;
+
+  currentQuizStep = Math.max(0, Math.min(stepIndex, quizSteps.length - 1));
+
+  quizSteps.forEach((step, index) => {
+    const isActive = index === currentQuizStep;
+    step.classList.toggle("is-active", isActive);
+    step.setAttribute("aria-hidden", String(!isActive));
+  });
+
+  const progressPercent = `${Math.round(((currentQuizStep + 1) / quizSteps.length) * 100)}%`;
+  quizProgressFills.forEach((fill) => {
+    fill.style.width = progressPercent;
+  });
+
+  updateSubmitState();
+}
+
+function handleQuizFieldChange(event) {
+  if (event.target?.name === "guardian_authorization") {
+    updateGuardianWarning();
+  }
+
+  if (event.target === citySelect) {
+    updateAttendanceQuestion();
+  }
+}
+
+function validateQuizStep(stepIndex) {
+  const step = quizSteps[stepIndex];
+  if (!step) return true;
+
+  statusNode.textContent = "";
+  statusNode.classList.remove("is-error");
+  syncPhoneValue();
+
+  const invalidField = Array.from(step.querySelectorAll("input, select, textarea"))
+    .find((field) => !field.checkValidity());
+
+  if (invalidField) {
+    invalidField.reportValidity();
+    statusNode.textContent = "Confira os campos destacados antes de continuar.";
+    statusNode.classList.add("is-error");
+    return false;
+  }
+
+  if (step.contains(phoneLocalInput)) {
+    const phoneDigits = getCombinedPhoneDigits();
+    if (!phoneDigits || phoneDigits.length < getPhoneMinLength()) {
+      phoneLocalInput?.setCustomValidity("Informe um WhatsApp válido.");
+      phoneLocalInput?.reportValidity();
+      phoneLocalInput?.setCustomValidity("");
+      statusNode.textContent = "Informe um WhatsApp válido para continuar.";
+      statusNode.classList.add("is-error");
+      return false;
+    }
+  }
+
+  return true;
+}
+
+async function saveLeadProgress(stepNumber, triggerButton) {
+  if (isSavingProgress) return false;
+
+  isSavingProgress = true;
+  statusNode.textContent = "";
+  statusNode.classList.remove("is-error");
+
+  const originalText = triggerButton?.querySelector("span")?.textContent || triggerButton?.textContent || "";
+  setButtonLoading(triggerButton, "Salvando...");
+
+  try {
+    const payload = buildPayload(new FormData(form));
+    const result = await saveLeadToSupabase(payload, {
+      step: stepNumber,
+      status: stepNumber >= quizSteps.length ? "completed" : "in_progress"
+    });
+
+    const savedRecord = Array.isArray(result) ? result[0] : result;
+    if (savedRecord?.id) {
+      savedLeadId = savedRecord.id;
+    }
+
+    return true;
+  } catch (error) {
+    console.error(error);
+    statusNode.textContent = error.message || "Não foi possível salvar agora. Tente novamente em instantes.";
+    statusNode.classList.add("is-error");
+    return false;
+  } finally {
+    setButtonLoading(triggerButton, originalText);
+    isSavingProgress = false;
+    updateSubmitState();
+  }
+}
+
+function setButtonLoading(button, text) {
+  if (!button) return;
+  button.disabled = text === "Salvando..." || text === "Enviando...";
+  const label = button.querySelector("span");
+  if (label) {
+    label.textContent = text;
+  } else {
+    button.textContent = text;
+  }
+}
+
+function updateGuardianWarning() {
+  if (!guardianWarning) return;
+
+  const selectedValue = form?.elements?.guardian_authorization?.value || "";
+  guardianWarning.hidden = !selectedValue.includes("responsável ainda não sabe");
+}
+
+function updateAttendanceQuestion() {
+  if (!attendanceQuestion) return;
+
+  const selectedCity = getCityRecordByLabel(citySelect?.value || "");
+  const cityParts = getCityDisplayParts(selectedCity, citySelect?.value || "");
+  const cityName = cityParts.city || "na cidade escolhida";
+  const day = cityParts.day ? ` no dia ${cityParts.day}` : "";
+
+  attendanceQuestion.textContent = `Você consegue comparecer presencialmente em ${cityName}${day}?`;
 }
 
 function updateSubmitState() {
@@ -291,7 +449,11 @@ function updateSubmitState() {
   const city = document.querySelector("#city")?.value.trim();
   const time = document.querySelector("#time")?.value.trim();
   const phoneDigits = getCombinedPhoneDigits();
+  const attendance = form.elements?.attendance?.value;
+  const guardianAuthorization = form.elements?.guardian_authorization?.value;
+  const modelEvaluationExperience = form.elements?.model_evaluation_experience?.value;
   const consent = consentInput?.checked;
+  const hasQuizFields = quizSteps.length > 0;
 
   const isReady = Boolean(
     name &&
@@ -300,10 +462,12 @@ function updateSubmitState() {
     time &&
     phoneDigits &&
     phoneDigits.length >= getPhoneMinLength() &&
+    (!hasQuizFields || (attendance && guardianAuthorization && modelEvaluationExperience)) &&
     consent
   );
 
-  submitButton.disabled = !isReady;
+  const isFinalStepActive = !quizSteps.length || currentQuizStep === quizSteps.length - 1;
+  submitButton.disabled = !isFinalStepActive || !isReady;
   submitButton.classList.toggle("is-ready", isReady);
 }
 
@@ -322,9 +486,18 @@ function closeModal() {
 async function handleSubmit(event) {
   event.preventDefault();
   statusNode.textContent = "";
+  statusNode.classList.remove("is-error");
+
+  if (quizSteps.length && currentQuizStep !== quizSteps.length - 1) {
+    showQuizStep(quizSteps.length - 1);
+    statusNode.textContent = "Finalize as confirmações antes de enviar.";
+    statusNode.classList.add("is-error");
+    return;
+  }
 
   if (!form.reportValidity()) {
     statusNode.textContent = "Confira os campos destacados antes de enviar.";
+    statusNode.classList.add("is-error");
     return;
   }
 
@@ -335,8 +508,33 @@ async function handleSubmit(event) {
   submitButton.querySelector("span").textContent = "Enviando...";
 
   try {
+    const attendanceValue = form.elements?.attendance?.value || "";
+    if (attendanceValue === "Não consigo comparecer") {
+      const blockedResult = await saveLeadToSupabase(payload, {
+        step: quizSteps.length || 3,
+        status: "blocked_no_attendance"
+      });
+      const blockedRecord = Array.isArray(blockedResult) ? blockedResult[0] : blockedResult;
+      if (blockedRecord?.id) {
+        savedLeadId = blockedRecord.id;
+      }
+
+      statusNode.textContent = "Essa avaliação é um evento presencial. No momento, apenas pessoas que conseguem comparecer ao evento podem fazer o cadastro.";
+      statusNode.classList.add("is-error");
+      return;
+    }
+
+    const progressResult = await saveLeadToSupabase(payload, {
+      step: quizSteps.length || 3,
+      status: "completed"
+    });
+    const savedRecord = Array.isArray(progressResult) ? progressResult[0] : progressResult;
+    if (savedRecord?.id) {
+      savedLeadId = savedRecord.id;
+    }
+
     const [supabaseResult, crmResult, facebookResult] = await Promise.allSettled([
-      submitLeadToSupabase(payload),
+      Promise.resolve(progressResult),
       submitLeadToCRM(payload),
       trackLead(payload)
     ]);
@@ -357,7 +555,12 @@ async function handleSubmit(event) {
     if (consentInput) consentInput.checked = true;
     if (phoneCountrySelect) phoneCountrySelect.value = "55";
     if (phoneLocalInput) phoneLocalInput.value = "";
+    savedLeadId = null;
     syncPhoneValue();
+    populateTimeSelectForCity("");
+    updateGuardianWarning();
+    updateAttendanceQuestion();
+    showQuizStep(0);
     statusNode.textContent = "Cadastro enviado com sucesso.";
     configureWhatsAppLink(payload);
     openModal();
@@ -366,7 +569,7 @@ async function handleSubmit(event) {
     statusNode.textContent = error.message || "Não foi possível enviar agora. Tente novamente em instantes.";
   } finally {
     updateSubmitState();
-    submitButton.querySelector("span").textContent = "Quero iniciar meu cadastro";
+    submitButton.querySelector("span").textContent = "Enviar cadastro";
   }
 }
 
@@ -393,6 +596,9 @@ function buildPayload(formData) {
     city: payload.city?.trim() || "",
     time: payload.time?.trim() || "",
     phone: payload.phone?.replace(/\D/g, ""),
+    attendance: payload.attendance || "",
+    guardian_authorization: payload.guardian_authorization || "",
+    model_evaluation_experience: payload.model_evaluation_experience || "",
     consent: payload.consent === "on",
     source: "facebook-landing-page",
     created_at: now,
@@ -406,12 +612,13 @@ function buildPayload(formData) {
     fbc,
     fbp,
     external_id: externalId,
+    lead_id: savedLeadId,
     user_agent: navigator.userAgent,
     locale: navigator.language
   };
 }
 
-async function submitLeadToSupabase(payload) {
+async function saveLeadToSupabase(payload, progress = {}) {
   const supabaseUrl = APP_CONFIG.supabase?.url;
   const supabaseKey = APP_CONFIG.supabase?.anonKey;
   const table = APP_CONFIG.supabase?.table || "leads";
@@ -420,15 +627,45 @@ async function submitLeadToSupabase(payload) {
     return Promise.resolve({ skipped: true });
   }
 
-  const {
-    external_id,
-    first_name,
-    last_name,
-    ...supabasePayload
-  } = payload;
+  const now = new Date().toISOString();
+  const supabasePayload = {
+    name: payload.name,
+    age: payload.age,
+    city: payload.city || null,
+    time: payload.time || null,
+    phone: payload.phone,
+    attendance: payload.attendance || null,
+    guardian_authorization: payload.guardian_authorization || null,
+    model_evaluation_experience: payload.model_evaluation_experience || null,
+    consent: payload.consent,
+    source: payload.source,
+    page_url: payload.page_url,
+    utm_source: payload.utm_source,
+    utm_medium: payload.utm_medium,
+    utm_campaign: payload.utm_campaign,
+    utm_content: payload.utm_content,
+    utm_term: payload.utm_term,
+    fbclid: payload.fbclid,
+    fbc: payload.fbc,
+    fbp: payload.fbp,
+    user_agent: payload.user_agent,
+    locale: payload.locale,
+    registration_step: progress.step || 1,
+    registration_status: progress.status || "in_progress",
+    updated_at: now,
+    completed_at: progress.status === "completed" ? now : null
+  };
 
-  const response = await fetch(`${supabaseUrl}/rest/v1/${table}`, {
-    method: "POST",
+  if (!savedLeadId) {
+    supabasePayload.created_at = payload.created_at;
+  }
+
+  const endpoint = savedLeadId
+    ? `${supabaseUrl}/rest/v1/${table}?id=eq.${encodeURIComponent(savedLeadId)}`
+    : `${supabaseUrl}/rest/v1/${table}`;
+
+  const response = await fetch(endpoint, {
+    method: savedLeadId ? "PATCH" : "POST",
     headers: {
       "Content-Type": "application/json",
       apikey: supabaseKey,
@@ -444,6 +681,13 @@ async function submitLeadToSupabase(payload) {
   }
 
   return response.json();
+}
+
+async function submitLeadToSupabase(payload) {
+  return saveLeadToSupabase(payload, {
+    step: quizSteps.length || 3,
+    status: "completed"
+  });
 }
 
 async function submitLeadToCRM(payload) {
@@ -588,7 +832,12 @@ function configureWhatsAppLink(payload) {
   const address = selectedCity?.address || "endereço a confirmar";
   const firstName = splitName(payload.name || "").firstName || "";
   const cityParts = getCityDisplayParts(selectedCity, payload.city || "");
-  const text = normalizeWhatsAppMessage(template
+  const quizSummary = [
+    payload.attendance ? `Comparecimento: ${payload.attendance}` : "",
+    payload.guardian_authorization ? `Autorização: ${payload.guardian_authorization}` : "",
+    payload.model_evaluation_experience ? `Experiência: ${payload.model_evaluation_experience}` : ""
+  ].filter(Boolean).join(" | ");
+  const text = normalizeWhatsAppMessage(`${template
     .replaceAll("{name}", payload.name || "")
     .replaceAll("{age}", payload.age || "")
     .replaceAll("{city}", payload.city || "")
@@ -602,7 +851,7 @@ function configureWhatsAppLink(payload) {
     .replaceAll("{dia}", cityParts.day)
     .replaceAll("{horario}", payload.time || "")
     .replaceAll("{hotel}", venueName)
-    .replaceAll("{endereco}", address));
+    .replaceAll("{endereco}", address)}${quizSummary ? ` Respostas do cadastro: ${quizSummary}.` : ""}`);
   const url = buildWhatsAppUrl(rawPhone, text);
   whatsappLink.href = url;
 }
@@ -940,6 +1189,7 @@ function populateHeroActiveCities(cities) {
 function handleCitySelectionChange() {
   populateTimeSelectForCity(citySelect?.value || "");
   updateSelectionDetails();
+  updateAttendanceQuestion();
   updateSubmitState();
 }
 

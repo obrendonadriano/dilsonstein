@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=39">
-  <link rel="stylesheet" href="cadastro-formulario.css?v=1">
+  <link rel="stylesheet" href="cadastro-formulario.css?v=2">
   <script src="config.js?v=8"></script>
   <script>
     !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -45,75 +45,162 @@
       <div class="signup-standalone-copy">
         <span class="eyebrow">Faça parte</span>
         <h1>Cadastre seu perfil</h1>
-        <p>Preencha seus dados, selecione a cidade e o horário desejados para participar da seleção e avance para a finalização via WhatsApp.</p>
+        <p>Responda as etapas rápidas, escolha a cidade e o horário desejados para participar da seleção presencial e avance para a finalização via WhatsApp.</p>
       </div>
 
       <form id="lead-form" class="signup-standalone-form" novalidate>
-        <div class="field-grid hero-form-grid">
-          <div class="field">
-            <label for="name">Nome</label>
-            <input id="name" name="name" type="text" autocomplete="name" placeholder="Seu Nome" required>
+        <section class="quiz-step is-active" data-quiz-step="0" aria-labelledby="quiz-step-profile">
+          <div class="quiz-step__header">
+            <span>Etapa 1 de 3</span>
+            <h2 id="quiz-step-profile">Dados do perfil</h2>
+          </div>
+          <div class="quiz-progress-bar" aria-hidden="true">
+            <span data-quiz-progress-fill></span>
+          </div>
+
+          <div class="field-grid hero-form-grid">
+            <div class="field">
+              <label for="name">Nome</label>
+              <input id="name" name="name" type="text" autocomplete="name" placeholder="Seu nome completo" required>
+            </div>
+
+            <div class="field">
+              <label for="age">Idade</label>
+              <input id="age" name="age" type="number" min="0" max="120" placeholder="Ex.: 19" required>
+            </div>
           </div>
 
           <div class="field">
-            <label for="age">Idade</label>
-            <input id="age" name="age" type="number" min="0" max="120" placeholder="Ex.: 19" required>
+            <label for="phone-local">Número / WhatsApp</label>
+            <div class="phone-field">
+              <select id="phone-country" class="phone-country" aria-label="País do WhatsApp">
+                <option value="55" data-iso="BR" selected>Brasil (+55)</option>
+                <option value="54" data-iso="AR">Argentina (+54)</option>
+                <option value="1" data-iso="US">Estados Unidos (+1)</option>
+                <option value="595" data-iso="PY">Paraguai (+595)</option>
+                <option value="598" data-iso="UY">Uruguai (+598)</option>
+                <option value="56" data-iso="CL">Chile (+56)</option>
+                <option value="57" data-iso="CO">Colômbia (+57)</option>
+                <option value="52" data-iso="MX">México (+52)</option>
+                <option value="351" data-iso="PT">Portugal (+351)</option>
+                <option value="34" data-iso="ES">Espanha (+34)</option>
+              </select>
+              <input id="phone-local" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(11) 99999-9999" required>
+            </div>
+            <input id="phone" name="phone" type="hidden" required>
           </div>
-        </div>
 
-        <div class="field-grid hero-form-grid">
-          <div class="field">
-            <label for="city">Cidade da seleção</label>
-            <select id="city" name="city" required>
-              <option value="">Selecione a cidade que deseja participar da seleção</option>
-            </select>
+          <div class="quiz-actions">
+            <button class="primary-button quiz-next" type="button" data-quiz-next>
+              <span>Continuar</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="quiz-step" data-quiz-step="1" aria-labelledby="quiz-step-selection">
+          <div class="quiz-step__header">
+            <span>Etapa 2 de 3</span>
+            <h2 id="quiz-step-selection">Cidade e horário</h2>
+          </div>
+          <div class="quiz-progress-bar" aria-hidden="true">
+            <span data-quiz-progress-fill></span>
           </div>
 
-          <div class="field">
-            <label for="time">Horário da seleção</label>
-            <select id="time" name="time" required>
-              <option value="">Selecione o horário para comparecer presencialmente à seleção</option>
-            </select>
+          <div class="field-grid hero-form-grid">
+            <div class="field">
+              <label for="city">Cidade da seleção</label>
+              <select id="city" name="city" required>
+                <option value="">Selecione a cidade que deseja participar da seleção</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="time">Qual melhor horário para atendimento?</label>
+              <select id="time" name="time" required>
+                <option value="">Selecione o horário para comparecer presencialmente à seleção</option>
+              </select>
+            </div>
           </div>
-        </div>
 
-        <div class="selection-details-card" id="selection-details-card" hidden>
-          <span class="selection-details-card__label">Local da seleção</span>
-          <strong id="selection-details-city">Cidade da seleção</strong>
-          <p id="selection-details-venue">Nome do local</p>
-          <small id="selection-details-address">Endereço completo</small>
-        </div>
-
-        <div class="field">
-          <label for="phone-local">Número / WhatsApp</label>
-          <div class="phone-field">
-            <select id="phone-country" class="phone-country" aria-label="País do WhatsApp">
-              <option value="55" data-iso="BR" selected>Brasil (+55)</option>
-              <option value="54" data-iso="AR">Argentina (+54)</option>
-              <option value="1" data-iso="US">Estados Unidos (+1)</option>
-              <option value="595" data-iso="PY">Paraguai (+595)</option>
-              <option value="598" data-iso="UY">Uruguai (+598)</option>
-              <option value="56" data-iso="CL">Chile (+56)</option>
-              <option value="57" data-iso="CO">Colômbia (+57)</option>
-              <option value="52" data-iso="MX">México (+52)</option>
-              <option value="351" data-iso="PT">Portugal (+351)</option>
-              <option value="34" data-iso="ES">Espanha (+34)</option>
-            </select>
-            <input id="phone-local" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(11) 99999-9999" required>
+          <div class="selection-details-card" id="selection-details-card" hidden>
+            <span class="selection-details-card__label">Local da seleção</span>
+            <strong id="selection-details-city">Cidade da seleção</strong>
+            <p id="selection-details-venue">Nome do local</p>
+            <small id="selection-details-address">Endereço completo</small>
           </div>
-          <input id="phone" name="phone" type="hidden" required>
-        </div>
 
-        <div class="field consent">
-          <label class="checkbox">
-            <input id="consent" name="consent" type="checkbox" required checked>
-            <span>Autorizo o contato da equipe Dilson Stein e o uso dos meus dados para avaliação do cadastro.</span>
-          </label>
-        </div>
+          <div class="quiz-actions quiz-actions--split">
+            <button class="secondary-button" type="button" data-quiz-prev>Voltar</button>
+            <button class="primary-button quiz-next" type="button" data-quiz-next>
+              <span>Continuar</span>
+            </button>
+          </div>
+        </section>
 
-        <button class="primary-button" type="submit">
-          <span>Quero iniciar meu cadastro</span>
-        </button>
+        <section class="quiz-step" data-quiz-step="2" aria-labelledby="quiz-step-confirmation">
+          <div class="quiz-step__header">
+            <span>Etapa 3 de 3</span>
+            <h2 id="quiz-step-confirmation">Confirmações finais</h2>
+          </div>
+          <div class="quiz-progress-bar" aria-hidden="true">
+            <span data-quiz-progress-fill></span>
+          </div>
+
+          <fieldset class="choice-group">
+            <legend id="attendance-question">Você consegue comparecer presencialmente no evento?</legend>
+            <label class="choice-card">
+              <input type="radio" name="attendance" value="Sim, vou comparecer" required>
+              <span>Sim, vou comparecer</span>
+            </label>
+            <label class="choice-card">
+              <input type="radio" name="attendance" value="Não consigo comparecer" required>
+              <span>Não consigo comparecer</span>
+            </label>
+          </fieldset>
+
+          <fieldset class="choice-group">
+            <legend>Você tem autorização dos responsáveis?</legend>
+            <label class="choice-card">
+              <input type="radio" name="guardian_authorization" value="Sou maior de idade e posso comparecer sozinho(a)" required>
+              <span>Sou maior de idade e posso comparecer sozinho(a)</span>
+            </label>
+            <label class="choice-card">
+              <input type="radio" name="guardian_authorization" value="Sim, meu responsável vai me levar no evento" required>
+              <span>Sim, meu responsável vai me levar no evento</span>
+            </label>
+            <label class="choice-card">
+              <input type="radio" name="guardian_authorization" value="Não, sou menor e meu responsável ainda não sabe" required>
+              <span>Não, sou menor e meu responsável ainda não sabe</span>
+            </label>
+            <p class="field-warning" id="guardian-warning" hidden>Para participar sendo menor de idade, o responsável precisa estar presente no dia do evento com você.</p>
+          </fieldset>
+
+          <fieldset class="choice-group">
+            <legend>Você já participou de avaliação de modelo antes?</legend>
+            <label class="choice-card">
+              <input type="radio" name="model_evaluation_experience" value="Sim, já participei e estou buscando novas parcerias e uma carreira consolidada com a equipe do Dilson Stein" required>
+              <span>Sim, já participei e estou buscando novas parcerias e uma carreira consolidada com a equipe do Dilson Stein</span>
+            </label>
+            <label class="choice-card">
+              <input type="radio" name="model_evaluation_experience" value="Não, nunca participei" required>
+              <span>Não, nunca participei.</span>
+            </label>
+          </fieldset>
+
+          <div class="field consent">
+            <label class="checkbox">
+              <input id="consent" name="consent" type="checkbox" required checked>
+              <span>Autorizo o contato da equipe Dilson Stein e o uso dos meus dados para avaliação do cadastro.</span>
+            </label>
+          </div>
+
+          <div class="quiz-actions quiz-actions--split">
+            <button class="secondary-button" type="button" data-quiz-prev>Voltar</button>
+            <button class="primary-button" type="submit">
+              <span>Enviar cadastro</span>
+            </button>
+          </div>
+        </section>
 
         <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
       </form>
@@ -165,6 +252,6 @@
     </section>
   </aside>
 
-  <script src="script.js?v=27"></script>
+  <script src="script.js?v=28"></script>
 </body>
 </html>
